@@ -51,5 +51,8 @@ class Outlook:
 
 
     def check_success(self, response):
-        # check for string in HTML indicating success
-        pass
+        failure_url = 'reason=2'
+        if failure_url in response.url:
+            return False
+        else:
+            return True
