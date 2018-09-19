@@ -31,6 +31,17 @@ class Outlook:
             'isUtf8': '1'
         }
 
+        # proxy settings
+        #self.http_proxy  = "http://127.0.0.1:8080"
+        #self.https_proxy = "http://127.0.0.1:8080"
+        #self.ftp_proxy   = "http://127.0.0.1:8080"
+
+        #self.proxyDict = { 
+              #"http"  : self.http_proxy, 
+              #"https" : self.https_proxy, 
+              #"ftp"   : self.ftp_proxy
+        #}
+
 
     def set_username(self, username):
         self.data['username'] = username
@@ -45,8 +56,7 @@ class Outlook:
         self.set_username(username)
         self.set_password(password)
         # post the request
-        response = requests.post(self.url, headers=self.headers, cookies=self.cookies, data=self.data)
-        self.check_success(response)
+        response = requests.post(self.url, headers=self.headers, cookies=self.cookies, data=self.data)#, verify=False, proxies=self.proxyDict)
         return response
 
 
