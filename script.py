@@ -81,7 +81,7 @@ def check_sleep(login_attempts, attempts, interval):
     if login_attempts == attempts:
         print('')
         login_attempts = 0
-        colors.color_print(('[*] Sleeping until %s') % ((datetime.datetime.now() + datetime.timedelta(minutes=interval)).strftime('%M-%D %H:%M:%S')), colors.yellow)
+        colors.color_print(('[*] Sleeping until %s') % ((datetime.datetime.now() + datetime.timedelta(minutes=interval)).strftime('%m-%d %H:%M:%S')), colors.yellow)
         time.sleep(interval * 60)
         print('')
 
