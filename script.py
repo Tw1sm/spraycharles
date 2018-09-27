@@ -132,12 +132,12 @@ def main():
     # spray using password file
     for password in passwords:
         check_sleep(login_attempts, attempts, interval)
-        print('[*] Spraying with %s') % (password)
+        print('[*] Spraying with: %s') % (password)
         for username in users:
             response = target.login(username, password)
             success = target.check_success(response)
             if success:
-                colors.color_print(('\t[+] Hit for: %s') % (username), color.green)
+                colors.color_print(('\t[+] %s') % (username), color.green)
                 if csvfile:
                     output_writer.writerow([username, password])
             
