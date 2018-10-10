@@ -7,7 +7,8 @@ import requests
 
 class Cisco:
 
-    def __init__(self, host):
+    def __init__(self, host, timeout):
+        self.timeout = timeout
         self.host = host
         self.url = 'https://%s/cgi/login' % (host)
         self.headers = {
@@ -49,7 +50,7 @@ class Cisco:
         self.set_username(username)
         self.set_password(password)
         # post the request
-        response = requests.post(self.url, headers=self.headers, data=self.data)
+        response = requests.post(self.url, headers=self.headers, data=self.data, timeout=self.timeout)
         return response
 
 

@@ -3,7 +3,8 @@ import requests
 
 class Outlook:
 
-    def __init__(self, host):
+    def __init__(self, host, timeout):
+        self.timeout = timeout
         self.url = 'https://%s/owa/auth.owa' % (host)
         self.cookies = {
             #'OutlookSession': '311819103dcd4cabb6117b73a6026f2f', 
@@ -56,7 +57,7 @@ class Outlook:
         self.set_username(username)
         self.set_password(password)
         # post the request
-        response = requests.post(self.url, headers=self.headers, cookies=self.cookies, data=self.data)#, verify=False, proxies=self.proxyDict)
+        response = requests.post(self.url, headers=self.headers, cookies=self.cookies, data=self.data, timeout=self.timeout)#, verify=False, proxies=self.proxyDict)
         return response
 
 
