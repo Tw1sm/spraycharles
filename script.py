@@ -67,20 +67,6 @@ def args():
     return users, passwords, args.host, args.csvfile, attempts, interval, args.equal, args.module, args.timeout
 
 
-def make_log(host):
-    if not os.path.isdir('logs'):
-        os.mkdir('logs')
-    if not os.path.isdir('logs/%s' % (host)):
-        os.mkdir('logs/%s' % (host))
-    stamp = datetime.datetime.now()
-    ts = stamp.strftime('%B-%d-%Y-%H:%M:%S')
-    log_name = 'logs/%s/%s.csv' % (host,ts)
-    log_file = open(log_name, 'wb')
-    log_writer = csv.writer(log_file, delimiter=',')
-    log_writer.writerow(['Username','Attempt Date','Attempt Time'])
-    return log_file, log_writer, log_name
-
-
 def check_sleep(login_attempts, attempts, interval):
     if login_attempts == attempts:
         print('')
@@ -104,6 +90,8 @@ def main():
         exit()
 
     # create the log file
+    if not os.path.isdir('logs'):
+        os.mkdir('logs')
     log_name = 'logs/%s.log' % host
     logging.basicConfig(filename=log_name, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
