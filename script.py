@@ -9,7 +9,7 @@ import sys
 import csv
 from targets import *
 import logging
-from requests import ConnectTimeout, ConnectionError
+from requests import ConnectTimeout, ConnectionError, ReadTimeout
 
 
 class Color:
@@ -75,9 +75,15 @@ def check_sleep(login_attempts, attempts, interval):
         print('')
 
 def print_attempt(username, password, response, csvfile):
-    print('%-27s %-17s %13s %15d' % (username, password, response.status_code, len(response.content)))
+    if response == 'timeout':
+        code = 'TIMEOUT'
+        length = 'TIMEOUT'
+    else:
+        code = response.status_code
+        length = str(len(response.content))
+    print('%-27s %-17s %13s %15s' % (username, password, code, length))
     output = open(csvfile, 'a')
-    output.write('%s,%s,%s,%d\n' % (username, password, response.status_code, len(response.content)))
+    output.write('%s,%s,%s,%s\n' % (username, password, code, length))
     output.close() 
 
 
@@ -127,13 +133,20 @@ def main():
     if equal:
         print('[*] Spraying with password = username')
         for username in users:
-            response = target.login(username, username)
-            #success = target.check_success(response)
-            #if success:
-                #colors.color_print(('\t[+] Hit for: %s') % (username), colors.green)
-                #if csvfile:
-                    #output_writer.writerow([username, username])
-            print_attempt(username, username, response, csvfile)
+            try:
+                response = target.login(username, username)
+                print_attempt(username, username, response, csvfile)
+            except (ConnectTimeout, ReadTimeout) as e:
+                #colors.color_print('[!] Request to host timed out. Check connection to host - exiting', colors.red)
+                print_attempt(username, username, 'timeout', csvfile)
+            except ConnectionError as e:
+                colors.color_print('[!] Error establishing route to host', colors.red)
+                print(e)
+                exit()
+            
+            # log the login attempt
+            logging.info('Login attempted as %s' % username)
+
         login_attempts += 1
 
     # spray using password file
@@ -143,22 +156,19 @@ def main():
         for username in users:
             try:
                 response = target.login(username, password)
-            except ConnectTimeout as e:
-                colors.color_print('[!] Request to host timed out. Check connection to host - exiting', colors.red)
-                print('')
-                exit()
+                #success = target.check_success(response)
+                #if success:
+                    #colors.color_print(('\t[+] %s') % (username), colors.green)
+                    #if csvfile:
+                        #output_writer.writerow([username, password])
+                print_attempt(username, password, response, csvfile)
+            except (ConnectTimeout, ReadTimeout) as e:
+                #colors.color_print('[!] Request to host timed out. Check connection to host - exiting', colors.red)
+                print_attempt(username, password, 'timeout', csvfile)
             except ConnectionError as e:
                 colors.color_print('[!] Error establishing route to host', colors.red)
                 print(e)
                 exit()
-
-            #success = target.check_success(response)
-            #if success:
-                #colors.color_print(('\t[+] %s') % (username), colors.green)
-                #if csvfile:
-                    #output_writer.writerow([username, password])
-            
-            print_attempt(username, password, response, csvfile)
             
             # log the login attempt
             logging.info('Login attempted as %s' % username)
