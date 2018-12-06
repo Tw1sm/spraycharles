@@ -7,7 +7,6 @@ class Owa:
         self.timeout = timeout
         self.url = 'https://%s/owa/auth.owa' % (host)
         self.cookies = {
-            #'OutlookSession': '311819103dcd4cabb6117b73a6026f2f', 
             'PBack': '0'
         }
 

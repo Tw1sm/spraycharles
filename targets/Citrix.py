@@ -65,39 +65,3 @@ class Citrix:
         else:
             return True
     """
-import requests
-
-burp0_url = "https://vpn.farmersbankgroup.com:443/cgi/login"
-burp0_headers = {
-    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/60.0",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-    "Accept-Language": "en-US,en;q=0.5",
-    "Accept-Encoding": "gzip, deflate",
-    "Referer": "https://vpn.farmersbankgroup.com/vpn/index.html",
-    "Content-Type": "application/x-www-form-urlencoded",
-    "Connection": "close",
-    "Upgrade-Insecure-Requests": "1"
-}
-burp0_data = {
-    "login": "tes",
-    "passwd": "test"
-}
-
-
-burp0_url = "https://polaris.anham.com:443/cgi/login"
-burp0_headers = {
-    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/60.0", 
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", 
-    "Accept-Language": "en-US,en;q=0.5", 
-    "Accept-Encoding": "gzip, deflate", 
-    "Referer": "https://polaris.anham.com/vpn/index.html", 
-    "Content-Type": "application/x-www-form-urlencoded", 
-    "Connection": "close", 
-    "Upgrade-Insecure-Requests": "1"
-}
-burp0_data = {
-    "login": "test", 
-    "dummy_username": '', 
-    "dummy_pass1": '', 
-    "passwd": "test"
-}
