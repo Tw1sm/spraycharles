@@ -25,7 +25,7 @@ class Office365:
             "Password": "", 
             "AuthMethod": "FormsAuthentication"
         }
-    
+    """
         # proxy settings
         self.http_proxy  = "http://127.0.0.1:8080"
         self.https_proxy = "http://127.0.0.1:8080"
@@ -36,7 +36,7 @@ class Office365:
               "https" : self.https_proxy, 
               "ftp"   : self.ftp_proxy
         }
-    
+    """
 
     def set_username(self, username):
         self.data['UserName'] = username
@@ -51,7 +51,7 @@ class Office365:
         self.set_username(username)
         self.set_password(password)
         # post the request
-        response = requests.post(self.url, headers=self.headers, data=self.data, timeout=self.timeout, verify=False, proxies=self.proxyDict)
+        response = requests.post(self.url, headers=self.headers, data=self.data, timeout=self.timeout)#, verify=False, proxies=self.proxyDict)
         return response
 
     """

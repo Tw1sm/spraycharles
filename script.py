@@ -113,7 +113,7 @@ def main():
     print('[*] Target Module: %s') % (module)
     print('[*] Spraying URL: %s') % (target.url)
     if attempts:
-        print('[*] Interval: Attempting %d logins per user every %d minutes') % (attempts, interval)
+        print('[*] Interval: Attempting %d login(s) per user every %d minutes') % (attempts, interval)
     print('[*] Log of event times: %s') % (log_name)
     print('[*] Log of spray results: %s') % (csvfile)
     print('')
