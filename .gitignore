@@ -2,3 +2,4 @@ users.txt
 passwords.txt
 logs/
 *.pyc
+results*

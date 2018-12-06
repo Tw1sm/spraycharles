@@ -1,7 +1,7 @@
 import requests
 
 
-class Outlook:
+class Owa:
 
     def __init__(self, host, timeout):
         self.timeout = timeout
@@ -32,17 +32,18 @@ class Outlook:
             'isUtf8': '1'
         }
 
+    """
         # proxy settings
-        #self.http_proxy  = "http://127.0.0.1:8080"
-        #self.https_proxy = "http://127.0.0.1:8080"
-        #self.ftp_proxy   = "http://127.0.0.1:8080"
+        self.http_proxy  = "http://127.0.0.1:8080"
+        self.https_proxy = "http://127.0.0.1:8080"
+        self.ftp_proxy   = "http://127.0.0.1:8080"
 
-        #self.proxyDict = { 
+        self.proxyDict = { 
               #"http"  : self.http_proxy, 
               #"https" : self.https_proxy, 
               #"ftp"   : self.ftp_proxy
-        #}
-
+        }
+    """
 
     def set_username(self, username):
         self.data['username'] = username
@@ -61,9 +62,9 @@ class Outlook:
         return response
 
 
-    def check_success(self, response):
-        failure_url = 'reason=2'
-        if failure_url in response.url:
-            return False
-        else:
-            return True
+    #def check_success(self, response):
+        #failure_url = 'reason=2'
+        #if failure_url in response.url:
+            #return False
+        #else:
+            #return True
