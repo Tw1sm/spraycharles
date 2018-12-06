@@ -73,6 +73,8 @@ def check_sleep(login_attempts, attempts, interval):
         time.sleep(interval * 60)
         print('')
         return 0
+    else:
+        return login_attempts
 
 
 def print_attempt(username, password, response, csvfile):
