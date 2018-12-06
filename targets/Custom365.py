@@ -1,7 +1,7 @@
 import requests
 
 
-class CustomOffice365:
+class Custom365:
 
     def __init__(self, host, timeout):
         self.timeout = timeout
