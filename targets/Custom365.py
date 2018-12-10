@@ -14,7 +14,6 @@ class Custom365:
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8", 
             "Accept-Language": "en-US,en;q=0.5", 
             "Accept-Encoding": "gzip, deflate", 
-            #"Referer": "https://fs.anham.com/adfs/ls/?&mkt=en-US&client-request-id=b8b0eed1-b46a-4889-a645-78ea738ce535&wa=wsignin1.0&wtrealm=urn%3afederation%3aMicrosoftOnline&wctx=estsredirect%3d2%26estsrequest%3drQIIAXVSO2_TYACMkza0FYIKkGDswARy8vmZh1SJNG7apLEdN04dW0KV40fsOH7E_hrHXmEAiaFi7MDQgaETQgwVM1NZCmN3JOiAEBMTIvkBLLfcSXe6u0c5rIBVH5IESamlQQWtqDSBkhUMoCqJ0yhBETSBA0ynABHeWVv_8vPd-ejDy92327Pr6NU36gy5b0EYRNViMY7jgm-atmYUNN8tniPIJYJ8R5DX2buqZaqhf-TYT1TPUt0Ff5JdNjy01z3LRjRBlyoUgeElgIO5M04WFHFssak2Y90e5JkDm0sAYCXFaotDQk5ZKOPCTBEbY1nUKFYUEk6SMXY0JHhxwcmA6wKg7HB2W2oCTupBbqeZyGmTmGsSlnGwq-xtvnYELXwBfminxu_squmH7mHgR_Ak9xXhA8Nr6nXf8wwNFhYyw4O2pkLb9zqhHxghtI1os9uy4dZkyLs4YTQEVKgP3FoIW3ulNg_4MmMq_Vak1SBpNrx6z-jjbJklp1ucZE-pmTPdZY8Oh_YYFzmpS5usOnNILRSlHanL1VIm4iKQ7IsYZLx-B-u0YKA3jDYZ68O6u9UqM2GwzfWtKK6VU9bppKOhqBiDJLX4_fpM3q2No0GrTUym7mQkOXzCvs_l5727vneRuzXP79n6RhD6pj02LpeQ66WbIFddWVlbzzzIbGT-LCGny_O5L398enYh_N17s108_fz8aeZiuRgLkG6AOt2NgxFsJnpZYmX3IGAGU9eX9JFgPZYnvDdwNE7exKvYcR45zud_5ZEXNzIfV_93lqu1e_OTlVEMRwG5gZFVEqtiuPIP0", 
             "Content-Type": "application/x-www-form-urlencoded", 
             "Connection": "close", 
             "Upgrade-Insecure-Requests": "1"

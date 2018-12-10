@@ -3,3 +3,4 @@ passwords.txt
 logs/
 *.pyc
 results*
+.vscode/

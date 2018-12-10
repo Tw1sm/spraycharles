@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import time
 import argparse
@@ -15,11 +15,12 @@ from requests import ConnectTimeout, ConnectionError, ReadTimeout
 class Color:
     green = '\033[92m'
     yellow = '\033[93m'
+    blue = '\033[94m'
     red = '\033[91m'
     end = '\033[0m'
 
-    def color_print(self, string, color):
-        print(color + string + self.end)
+    def color_print(self, string, color, end='\n'):
+        print(color + string + self.end, end=end)
         
 # initalize colors object
 colors = Color()
@@ -94,6 +95,7 @@ def print_header():
     print('%-27s %-17s %-13s %-15s' % ('Username','Password','Response Code','Response Length'))
     print('---------------------------------------------------------------------------')
 
+
 def main():
     users, passwords, host, csvfile, attempts, interval, equal, module, timeout = args()
     
@@ -114,19 +116,30 @@ def main():
     logging.basicConfig(filename=log_name, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
-    output = open(csvfile, 'wb')
-    output_writer = csv.writer(output, delimiter=',')
-    output_writer.writerow(['Username','Password','Response Code','Response Length'])
+    output = open(csvfile, 'w')
+    fieldnames = ['Username','Password','Response Code','Response Length']
+    output_writer = csv.DictWriter(output, delimiter=',', fieldnames=fieldnames)
+    output_writer.writeheader()
     output.close()
 
-    print('[*] Target Module: %s') % (module)
-    print('[*] Spraying URL: %s') % (target.url)
+    colors.color_print('[*] Target Module: ', colors.blue, '')
+    print(module)
+
+    colors.color_print('[*] Spraying URL: ', colors.blue, '')
+    print(target.url)
+
     if attempts:
-        print('[*] Interval: Attempting %d login(s) per user every %d minutes') % (attempts, interval)
-    print('[*] Log of event times: %s') % (log_name)
-    print('[*] Log of spray results: %s') % (csvfile)
+        colors.color_print('[*] Interval: ', colors.blue, '')
+        print('Attempting %d login(s) per user every %d minutes' % (attempts, interval))
+        
+    colors.color_print('[*] Log of event times: ', colors.blue, '')
+    print(log_name)
+
+    colors.color_print('[*] Log of spray results: ', colors.blue, '')
+    print(csvfile)
+
     print('')
-    raw_input('Press enter to begin:')
+    input('Press enter to begin:')
     print('')
     print_header()
 
@@ -134,7 +147,6 @@ def main():
 
     # spray once with password = username if flag present
     if equal:
-        print('[*] Spraying with password = username')
         for username in users:
             try:
                 response = target.login(username, username)
@@ -155,18 +167,11 @@ def main():
     # spray using password file
     for password in passwords:
         login_attempts = check_sleep(login_attempts, attempts, interval)
-        #print('[*] Spraying with: %s') % (password)
         for username in users:
             try:
                 response = target.login(username, password)
-                #success = target.check_success(response)
-                #if success:
-                    #colors.color_print(('\t[+] %s') % (username), colors.green)
-                    #if csvfile:
-                        #output_writer.writerow([username, password])
                 print_attempt(username, password, response, csvfile)
             except (ConnectTimeout, ReadTimeout) as e:
-                #colors.color_print('[!] Request to host timed out. Check connection to host - exiting', colors.red)
                 print_attempt(username, password, 'timeout', csvfile)
             except ConnectionError as e:
                 colors.color_print('[!] Error establishing route to host', colors.red)
