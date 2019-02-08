@@ -1,0 +1,21 @@
+{
+    "base_words" : [
+        "Winter",
+        "January",
+        "February",
+        "Welcome"
+    ],
+
+    "number_ranges" : [
+        "1,2",
+        "123,124",
+        "18,20",
+        "2018,2020"
+    ],
+
+    "special_characters" : [
+        "!"
+    ],
+
+    "minimum_length": 8
+}
