@@ -1,13 +1,13 @@
 passwordpredator
 ======
 ## Overview ##
-Low and slow password spraying tool, designed to password spray on an interval over a long period of time.
+Low and slow password spraying tool, designed to spray on an interval over a long period of time.
 
 ## Install ##
 ```bash
 $ git clone https://github.com/Tw1sm/passwordpredator.git
 $ cd passwordpredator
-$ pip install -r requirements.txt
+$ pip3 install -r requirements.txt
 $ ./passwordpredator.py -h
 ```
 
@@ -45,7 +45,7 @@ Basic usage
 ```
 Attempt 5 logins per user every 20 minutes
 ```
-./passwordpredator -n users.txt -u webmail.company.com -i 20 -a 5 -m owa
+./passwordpredator -n users.txt -H webmail.company.com -p passwords.txt -i 20 -a 5 -m wa
 ```
 
 
