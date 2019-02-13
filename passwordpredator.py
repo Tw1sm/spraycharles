@@ -17,16 +17,16 @@ from requests import ConnectTimeout, ConnectionError, ReadTimeout
 colors = analyze.Color()
 
 def args():
-    parser = argparse.ArgumentParser(description="password spraying", formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(description="low and slow password spraying tool", formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("-p", "--passwords", type=str, dest="passlist", help="filepath of the passwords list", default="./passwords.txt", required=False)
-    parser.add_argument("-H", "--host", type=str, dest="host", help="host to password spray", required=True)
+    parser.add_argument("-H", "--host", type=str, dest="host", help="host to password spray (ip or hostname)", required=True)
     parser.add_argument("-m", "--module", type=str, dest="module", help="module corresponding to target host", required=True)
     parser.add_argument("-o", "--output", type=str, dest="csvfile", help="name and path of output csv where attempts will be logged", required=True)
     parser.add_argument("-u", "--usernames", type=str, dest="userlist", help="filepath of the usernames list", required=True)
     parser.add_argument("-a", "--attempts", type=int, dest="attempts", help="number of logins submissions per interval (for each user)", required=False)
     parser.add_argument("-i", "--interval", type=int, dest="interval", help="minutes inbetween login intervals", required=False)
     parser.add_argument("-e", "--equal", action="store_true", dest="equal", help="does 1 spray for each user where password = username", required=False)
-    parser.add_argument("-t", "--timeout", type=int, dest="timeout", help="request timeout threshold. default is 5 seconds", default=5, required=False)
+    parser.add_argument("-t", "--timeout", type=int, dest="timeout", help="web request timeout threshold. default is 5 seconds", default=5, required=False)
 
     args = parser.parse_args()
     userlist, passlist, attempts, interval = args.userlist, args.passlist, args.attempts, args.interval
