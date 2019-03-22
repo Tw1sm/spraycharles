@@ -87,6 +87,31 @@ def print_header():
     print('-' * 75)
 
 
+def ascii():
+    colors.color_print("""
+         __.,,------.._
+      ,'"   _      _   "`.        Password
+     /.__, ._  -=- _"`    Y            Predator
+    (.____.-.`      ""`   j
+     VvvvvvV`.Y,.    _.,-'       ,     ,     ,
+        Y    ||,   '"\         ,/    ,/    ./
+        |   ,'  ,     `-..,'_,'/___,'/   ,'/   ,
+   ..  ,;,,',-'"\,'  ,  .     '     ' ""' '--,/    .. ..
+ ,'. `.`---'     `, /  , Y -=-    ,'   ,   ,. .`-..||_|| ..
+ff\\`. `._        /f ,'j j , ,' ,   , f ,  \=\ Y   || ||`||_..
+l` \` `.`."`-..,-' j  /./ /, , / , / /l \   \=\l   || `' || ||...
+ `  `   `-._ `-.,-/ ,' /`"/-/-/-/-"'''"`.`.  `'.\--`'--..`'_`' || ,
+            "`-_,',  ,'  f    ,   /      `._    ``._     ,  `-.`'//         ,
+          ,-"'' _.,-'    l_,-'_,,'          "`-._ . "`. /|     `.'\ ,       |
+        ,',.,-'"          \=) ,`-.         ,    `-'._`.V |       \ // .. . /j
+        |f\\               `._ )-."`.     /|         `.| |        `.`-||-\\/
+        l` \`                 "`._   "`--' j          j' j          `-`---'
+         `  `                     "`,-  ,'/       ,-'"  /
+                                 ,'",__,-'       /,, ,-'
+                                 Vvv'            VVv'
+    """, colors.green)
+
+
 def main():
     users, passwords, host, csvfile, attempts, interval, equal, module, timeout = args()
     # try to instantiate the specified module
@@ -105,6 +130,7 @@ def main():
     log_name = 'logs/%s.log' % host
     logging.basicConfig(filename=log_name, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+    ascii()
 
     output = open(csvfile, 'w')
     fieldnames = ['Username','Password','Response Code','Response Length']

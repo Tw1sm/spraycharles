@@ -45,7 +45,7 @@ Basic usage
 ```
 Attempt 5 logins per user every 20 minutes
 ```
-./passwordpredator -n users.txt -H webmail.company.com -p passwords.txt -i 20 -a 5 -m wa
+./passwordpredator -n users.txt -H webmail.company.com -p passwords.txt -i 20 -a 5 -m owa
 ```
 
 
