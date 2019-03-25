@@ -5,3 +5,4 @@ logs/
 results*
 .vscode/
 targets/Postoffice.py
+out*
