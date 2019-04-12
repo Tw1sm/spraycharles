@@ -24,7 +24,7 @@ class Custom365:
             "Password": "", 
             "AuthMethod": "FormsAuthentication"
         }
-    """
+    
         # proxy settings
         self.http_proxy  = "http://127.0.0.1:8080"
         self.https_proxy = "http://127.0.0.1:8080"
@@ -35,7 +35,7 @@ class Custom365:
               "https" : self.https_proxy, 
               "ftp"   : self.ftp_proxy
         }
-    """
+    
 
     def set_username(self, username):
         self.data['UserName'] = username

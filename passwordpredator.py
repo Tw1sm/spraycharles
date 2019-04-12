@@ -12,6 +12,7 @@ from targets import *
 import logging
 import analyze
 from requests import ConnectTimeout, ConnectionError, ReadTimeout
+from time import sleep
         
 # initalize colors object
 colors = analyze.Color()
@@ -85,6 +86,19 @@ def print_attempt(username, password, response, csvfile):
 def print_header():
     print('%-27s %-17s %-13s %-15s' % ('Username','Password','Response Code','Response Length'))
     print('-' * 75)
+
+
+def login(username, password, csvfile):
+    try:
+        response = target.login(username, password)
+        print_attempt(username, username, response, csvfile)
+    except (ConnectTimeout, ReadTimeout) as e:
+        #colors.color_print('[!] Request to host timed out. Check connection to host - exiting', colors.red)
+        print_attempt(username, password, 'timeout', csvfile)
+    except ConnectionError as e:
+        colors.color_print('\n[!] Connection error - sleeping for 5 seconds', colors.red)
+        sleep(5)
+        login(username, password, csvfile)
 
 
 def ascii():
@@ -164,16 +178,7 @@ def main():
     # spray once with password = username if flag present
     if equal:
         for username in users:
-            try:
-                response = target.login(username, username)
-                print_attempt(username, username, response, csvfile)
-            except (ConnectTimeout, ReadTimeout) as e:
-                #colors.color_print('[!] Request to host timed out. Check connection to host - exiting', colors.red)
-                print_attempt(username, username, 'timeout', csvfile)
-            except ConnectionError as e:
-                colors.color_print('[!] Error establishing route to host', colors.red)
-                print(e)
-                exit()
+            login(username, username, csvfile)
             
             # log the login attempt
             logging.info('Login attempted as %s' % username)
@@ -184,15 +189,7 @@ def main():
     for password in passwords:
         login_attempts = check_sleep(login_attempts, attempts, interval)
         for username in users:
-            try:
-                response = target.login(username, password)
-                print_attempt(username, password, response, csvfile)
-            except (ConnectTimeout, ReadTimeout) as e:
-                print_attempt(username, password, 'timeout', csvfile)
-            except ConnectionError as e:
-                colors.color_print('[!] Error establishing route to host', colors.red)
-                print(e)
-                exit()
+            login(username, password, csvfile)
             
             # log the login attempt
             logging.info('Login attempted as %s' % username)
