@@ -88,7 +88,7 @@ def print_header():
     print('-' * 75)
 
 
-def login(username, password, csvfile):
+def login(target, username, password, csvfile):
     try:
         response = target.login(username, password)
         print_attempt(username, username, response, csvfile)
@@ -178,7 +178,7 @@ def main():
     # spray once with password = username if flag present
     if equal:
         for username in users:
-            login(username, username, csvfile)
+            login(target, username, username, csvfile)
             
             # log the login attempt
             logging.info('Login attempted as %s' % username)
@@ -189,7 +189,7 @@ def main():
     for password in passwords:
         login_attempts = check_sleep(login_attempts, attempts, interval)
         for username in users:
-            login(username, password, csvfile)
+            login(target, username, password, csvfile)
             
             # log the login attempt
             logging.info('Login attempted as %s' % username)
