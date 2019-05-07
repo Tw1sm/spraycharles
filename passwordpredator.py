@@ -91,7 +91,7 @@ def print_header():
 def login(target, username, password, csvfile):
     try:
         response = target.login(username, password)
-        print_attempt(username, username, response, csvfile)
+        print_attempt(username, password, response, csvfile)
     except (ConnectTimeout, ReadTimeout) as e:
         #colors.color_print('[!] Request to host timed out. Check connection to host - exiting', colors.red)
         print_attempt(username, password, 'timeout', csvfile)
