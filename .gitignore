@@ -1,5 +1,5 @@
 users.txt
-passwords.txt
+*passwords.txt
 logs/
 *.pyc
 results*

@@ -98,7 +98,7 @@ def login(target, username, password, csvfile):
     except ConnectionError as e:
         colors.color_print('\n[!] Connection error - sleeping for 5 seconds', colors.red)
         sleep(5)
-        login(username, password, csvfile)
+        login(target, username, password, csvfile)
 
 
 def ascii():
@@ -178,7 +178,8 @@ def main():
     # spray once with password = username if flag present
     if equal:
         for username in users:
-            login(target, username, username, csvfile)
+            pword = username.split('@')[0]
+            login(target, username, pword, csvfile)
             
             # log the login attempt
             logging.info('Login attempted as %s' % username)
