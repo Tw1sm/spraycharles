@@ -1,18 +1,18 @@
-passwordpredator
+spraycharles
 ======
 ## Overview ##
 Low and slow password spraying tool, designed to spray on an interval over a long period of time.
 
 ## Install ##
 ```bash
-$ git clone https://github.com/Tw1sm/passwordpredator.git
-$ cd passwordpredator
+$ git clone https://github.com/Tw1sm/spraycharles.git
+$ cd spraycharles
 $ pip3 install -r requirements.txt
-$ ./passwordpredator.py -h
+$ ./spraycharles.py -h
 ```
 
 ## Usage ##
-usage: passwordpredator.py [-h] [-p PASSLIST] -H HOST -m MODULE -o CSVFILE -u USERLIST 
+usage: spraycharles.py [-h] [-p PASSLIST] -H HOST -m MODULE -o CSVFILE -u USERLIST 
                            [-a ATTEMPTS] [-i INTERVAL] [-e] [-t TIMEOUT]
 
 ```
@@ -41,11 +41,11 @@ optional arguments:
 ### Examples ###
 Basic usage
 ```
-./passwordpredator -u users.txt -H webmail.company.com -p passwords.txt -m owa
+./spraycharles -u users.txt -H webmail.company.com -p passwords.txt -m owa
 ```
 Attempt 5 logins per user every 20 minutes
 ```
-./passwordpredator -n users.txt -H webmail.company.com -p passwords.txt -i 20 -a 5 -m owa
+./spraycharles -n users.txt -H webmail.company.com -p passwords.txt -i 20 -a 5 -m owa
 ```
 
 
