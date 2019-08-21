@@ -10,7 +10,9 @@ class Color:
     yellow = '\033[93m'
     blue = '\033[94m'
     red = '\033[91m'
+    grey = '\033[37m'
     end = '\033[0m'
+
 
     def color_print(self, string, color, end='\n'):
         print(color + string + self.end, end=end)
