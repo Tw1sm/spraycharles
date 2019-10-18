@@ -36,7 +36,7 @@ optional arguments:
   -e, --equal           does 1 spray for each user where password = username
   -t TIMEOUT, --timeout TIMEOUT
                         web request timeout threshold. default is 5 seconds
-
+  -b PORT, --port PORT  port to connect to on the specified host. Default 443.
 ```
 ### Examples ###
 Basic usage
