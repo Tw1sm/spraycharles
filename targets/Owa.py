@@ -3,9 +3,9 @@ import requests
 
 class Owa:
 
-    def __init__(self, host, timeout):
+    def __init__(self, host, port, timeout):
         self.timeout = timeout
-        self.url = 'https://%s/owa/auth.owa' % (host)
+        self.url = f'https://{host}:{port}/owa/auth.owa'
         self.cookies = {
             'PBack': '0'
         }
@@ -15,14 +15,14 @@ class Owa:
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
             'Accept-Language': 'en-US,en;q=0.5',
             'Accept-Encoding': 'gzip, deflate',
-            'Referer': 'https://%s/owa/auth/logon.aspx?replaceCurrent=1' % (host),
+            'Referer': f'https://{host}/owa/auth/logon.aspx?replaceCurrent=1',
             'Connection': 'close',
             'Upgrade-Insecure-Requests': '1',
             'Content-Type': 'application/x-www-form-urlencoded'
         }
 
         self.data = {
-            'destination': 'https://%s/owa/' % (host),
+            'destination': f'https://{host}/owa/',
             'flags': '0',
             'forcedownlevel': '0',
             'trusted': '0',

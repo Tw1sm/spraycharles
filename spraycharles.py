@@ -28,6 +28,7 @@ def args():
     parser.add_argument("-i", "--interval", type=int, dest="interval", help="minutes inbetween login intervals", required=False)
     parser.add_argument("-e", "--equal", action="store_true", dest="equal", help="does 1 spray for each user where password = username", required=False)
     parser.add_argument("-t", "--timeout", type=int, dest="timeout", help="web request timeout threshold. default is 5 seconds", default=5, required=False)
+    parser.add_argument("-b", "--port", type=int, dest="port", help="port to connect to on the specified host. Default 443.", default=443, required=False)
 
     args = parser.parse_args()
     userlist, passlist, attempts, interval = args.userlist, args.passlist, args.attempts, args.interval
@@ -56,7 +57,7 @@ def args():
         colors.color_print('[!] Minutes per interval (-i) required with -a', colors.red)
         exit()
 
-    return users, passwords, args.host, args.csvfile, attempts, interval, args.equal, args.module, args.timeout
+    return users, passwords, args.host, args.csvfile, attempts, interval, args.equal, args.module, args.timeout, args.port
 
 
 def check_sleep(login_attempts, attempts, interval):
@@ -113,15 +114,15 @@ def ascii():
 
 
 def main():
-    users, passwords, host, csvfile, attempts, interval, equal, module, timeout = args()
+    users, passwords, host, csvfile, attempts, interval, equal, module, timeout, port = args()
     # try to instantiate the specified module
     try:
         module = module.title()
         mod_name = getattr(sys.modules[__name__], module)
         class_name = getattr(mod_name, module)
-        target = class_name(host, timeout)
+        target = class_name(host, port, timeout)
     except AttributeError:
-        print('[!] Error loading %s module. %s is spelled incorrectly or does not exist') % (module, module)
+        print(f'[!] Error loading {module} module. {module} is spelled incorrectly or does not exist')
         exit()
 
     # create the log file

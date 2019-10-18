@@ -3,10 +3,10 @@ import requests
 
 class Ciscosslvpn:
 
-    def __init__(self, host, timeout):
+    def __init__(self, host, port, timeout):
         self.group = input('Enter VPN group: ')
         self.timeout = timeout
-        self.url = 'https://%s:443/+webvpn+/index.html' % (host)
+        self.url = f'https://{host}:{port}/+webvpn+/index.html'
         self.cookies = {
             'webvpnlogin': '1', 
             'webvpnLang': 'en'
@@ -17,7 +17,7 @@ class Ciscosslvpn:
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
             'Accept-Language': 'en-US,en;q=0.5',
             'Accept-Encoding': 'gzip, deflate',
-            'Referer': 'https://%s/+CSCOE+/logon.html' % host,
+            'Referer': f'https://{host}/+CSCOE+/logon.html',
             'Content-Type': 'application/x-www-form-urlencoded',
             'Connection': 'close',
             'Upgrade-Insecure-Requests': '1'
