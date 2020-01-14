@@ -5,7 +5,7 @@ class Office365:
 
     def __init__(self, host, port, timeout):
         self.timeout = timeout
-        self.url = "https://outlook.office365.com:/ews/Exchange.asmx"
+        self.url = "https://outlook.office365.com/ews/Exchange.asmx"
 
     """
         # proxy settings
