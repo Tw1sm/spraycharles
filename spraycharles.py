@@ -20,7 +20,7 @@ colors = analyze.Color()
 def args():
     parser = argparse.ArgumentParser(description="low and slow password spraying tool", formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("-p", "--passwords", type=str, dest="passlist", help="filepath of the passwords list", default="./passwords.txt", required=False)
-    parser.add_argument("-H", "--host", type=str, dest="host", help="host to password spray (ip or hostname)", required=True)
+    parser.add_argument("-H", "--host", type=str, dest="host", help="host to password spray (ip or hostname). Can by anything when using Office365 module - only used for logfile name.", required=True)
     parser.add_argument("-m", "--module", type=str, dest="module", help="module corresponding to target host", required=True)
     parser.add_argument("-o", "--output", type=str, dest="csvfile", help="name and path of output csv where attempts will be logged", required=True)
     parser.add_argument("-u", "--usernames", type=str, dest="userlist", help="filepath of the usernames list", required=True)
