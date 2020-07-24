@@ -3,7 +3,7 @@ import requests
 
 class Ciscosslvpn:
 
-    def __init__(self, host, port, timeout):
+    def __init__(self, host, port, timeout, fireprox):
         self.group = input('Enter VPN group: ')
         self.timeout = timeout
         self.url = f'https://{host}:{port}/+webvpn+/index.html'

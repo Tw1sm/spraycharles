@@ -7,7 +7,7 @@ import requests
 
 class Citrix:
 
-    def __init__(self, host, port, timeout):
+    def __init__(self, host, port, timeout, fireprox):
         self.timeout = timeout
         self.host = host
         self.url = f'https://{host}:{port}/cgi/login'

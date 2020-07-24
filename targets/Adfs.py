@@ -3,7 +3,7 @@ import requests
 
 class Adfs:
 
-    def __init__(self, host, port, timeout):
+    def __init__(self, host, port, timeout, fireprox):
         self.timeout = timeout
         self.url = f"https://{host}:{port}"
         self.url += "/adfs/ls/?username=&wa=wsignin1.0&wtrealm=urn%3afederation%3aMicrosoftOnline&wctx=estsredirect%3d2%26estsrequest%3drQIIAY2Rv2_TQACFe3FqaAdAwFoJIRaQnNw5Pp9tqYOdhoZAkqbKj8pLiB07sWv7XOdMkjIjFSFE544VLJkQEhKCBQmmTJ37FwATQkJiJBELY9_w6Y1P37vHoRzS7sB_EYUlBei6SLCdZfsvyfX1ay--mkfPxd8PTt-8vfts9jJzAm7YNEhDKx0FnpX0kmmOJoMZuD1kLB5p-TxNWUDpfo66rmc7BRnnbBrm6biX_wDAGQCzDJELMlFlEcmqrKiqSCQxh1Uiwr4KBRtaqiC5CAuWS2RBJgWRuA5W7T4-z1yt6ykbikvQxDt0fmXWXJqE3ZiO2An3dMtmVpHqg1LJ2E3aHVg0hFqdVUeVKfSresOnrBBNSNBtj-lwEhIa1-HuUJcrpY65v1fxjJ26rxtl0z_AD2tJeeoMpAOzVSxh-mhcbgZpo2uiqtt2mr0oTIXaYeBvIxbJhFW3lBl3IaPvOH5hI6TRnONp7ERe_ywLfmQz8MqfLDhdXfgWP_e_vLr82Hj_ff5a-bSxMl_Nd9RyH1cbUsH248m2tZc2ilajFU_uD9VmbQe7bGTHSgnq5pPWJtHQMQ-Oef4bD37y4OjSyse1C1xzvn5ThEgR0GI9voWwJikaIuZf0"
