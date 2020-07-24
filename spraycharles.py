@@ -29,6 +29,7 @@ def args():
     parser.add_argument("-e", "--equal", action="store_true", dest="equal", help="does 1 spray for each user where password = username", required=False)
     parser.add_argument("-t", "--timeout", type=int, dest="timeout", help="web request timeout threshold. default is 5 seconds", default=5, required=False)
     parser.add_argument("-b", "--port", type=int, dest="port", help="port to connect to on the specified host. Default 443.", default=443, required=False)
+    parser.add_argument("-f", "--fireprox", type=str, dest="fireprox", help="the url of the fireprox interface, if you are using fireprox.", default="", required=False)
 
     args = parser.parse_args()
     userlist, passlist, attempts, interval = args.userlist, args.passlist, args.attempts, args.interval
@@ -57,7 +58,7 @@ def args():
         colors.color_print('[!] Minutes per interval (-i) required with -a', colors.red)
         exit()
 
-    return users, passwords, args.host, args.csvfile, attempts, interval, args.equal, args.module, args.timeout, args.port
+    return users, passwords, args.host, args.csvfile, attempts, interval, args.equal, args.module, args.timeout, args.port, args.fireprox
 
 
 def check_sleep(login_attempts, attempts, interval):
@@ -114,13 +115,13 @@ def ascii():
 
 
 def main():
-    users, passwords, host, csvfile, attempts, interval, equal, module, timeout, port = args()
+    users, passwords, host, csvfile, attempts, interval, equal, module, timeout, port, fireprox = args()
     # try to instantiate the specified module
     try:
         module = module.title()
         mod_name = getattr(sys.modules[__name__], module)
         class_name = getattr(mod_name, module)
-        target = class_name(host, port, timeout)
+        target = class_name(host, port, timeout, fireprox)
     except AttributeError:
         print(f'[!] Error loading {module} module. {module} is spelled incorrectly or does not exist')
         exit()
