@@ -1,8 +1,8 @@
-users.txt
-*passwords.txt
+*user*
+*pass*
 logs/
 *.pyc
-results*
+*.csv
 .vscode/
 targets/Postoffice.py
-out*
+
