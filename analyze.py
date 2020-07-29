@@ -87,6 +87,7 @@ class Analyzer:
         print('[*] Checking for outliers...')
         length_outliers = [x for x in length_elements if(x > length_mean + 2 * length_sd or x < length_mean - 2 * length_sd)]
 
+        length_outliers = list(set(length_outliers))
         len_indicies = []
 
         # find username / password combos with matching response lengths
