@@ -11,9 +11,11 @@ import csv
 from targets import *
 import logging
 import analyze
-from requests import ConnectTimeout, ConnectionError, ReadTimeout
+import requests
+import warnings
 from time import sleep
-        
+
+
 # initalize colors object
 colors = analyze.Color()
 
@@ -22,7 +24,7 @@ def args():
     parser.add_argument("-p", "--passwords", type=str, dest="passlist", help="filepath of the passwords list", default="./passwords.txt", required=False)
     parser.add_argument("-H", "--host", type=str, dest="host", help="host to password spray (ip or hostname). Can by anything when using Office365 module - only used for logfile name.", required=True)
     parser.add_argument("-m", "--module", type=str, dest="module", help="module corresponding to target host", required=True)
-    parser.add_argument("-o", "--output", type=str, dest="csvfile", help="name and path of output csv where attempts will be logged", required=True)
+    parser.add_argument("-o", "--output", type=str, dest="csvfile", help="name and path of output csv where attempts will be logged", default="output.csv", required=False)
     parser.add_argument("-u", "--usernames", type=str, dest="userlist", help="filepath of the usernames list", required=True)
     parser.add_argument("-a", "--attempts", type=int, dest="attempts", help="number of logins submissions per interval (for each user)", required=False)
     parser.add_argument("-i", "--interval", type=int, dest="interval", help="minutes inbetween login intervals", required=False)
@@ -93,11 +95,13 @@ def print_header():
 def login(target, username, password, csvfile):
     try:
         response = target.login(username, password)
-        print_attempt(username, password, response, csvfile)
-    except (ConnectTimeout, ReadTimeout) as e:
+        #print_attempt(username, password, response, csvfile)
+        target.print_response(response, csvfile)
+    except (requests.ConnectTimeout, requests.ReadTimeout) as e:
         #colors.color_print('[!] Request to host timed out. Check connection to host - exiting', colors.red)
-        print_attempt(username, password, 'timeout', csvfile)
-    except ConnectionError as e:
+        #print_attempt(username, password, 'timeout', csvfile)
+        target.print_response(response, csvfile, timeout=True)
+    except requests.ConnectionError as e:
         colors.color_print('\n[!] Connection error - sleeping for 5 seconds', colors.red)
         sleep(5)
         login(target, username, password, csvfile)
@@ -115,6 +119,7 @@ def ascii():
 
 
 def main():
+    requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
     users, passwords, host, csvfile, attempts, interval, equal, module, timeout, port, fireprox = args()
     # try to instantiate the specified module
     try:
@@ -159,7 +164,9 @@ def main():
     print('')
     input('Press enter to begin:')
     print('')
-    print_header()
+    #print_header()
+    target.print_headers(csvfile)
+
 
     login_attempts = 0
 

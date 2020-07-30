@@ -1,4 +1,5 @@
 import requests
+import csv
 
 
 class Adfs:
@@ -6,6 +7,10 @@ class Adfs:
     def __init__(self, host, port, timeout, fireprox):
         self.timeout = timeout
         self.url = f"https://{host}:{port}"
+
+        if fireprox:
+            self.url = f'https://{fireprox}/fireprox'
+
         self.url += "/adfs/ls/?username=&wa=wsignin1.0&wtrealm=urn%3afederation%3aMicrosoftOnline&wctx=estsredirect%3d2%26estsrequest%3drQIIAY2Rv2_TQACFe3FqaAdAwFoJIRaQnNw5Pp9tqYOdhoZAkqbKj8pLiB07sWv7XOdMkjIjFSFE544VLJkQEhKCBQmmTJ37FwATQkJiJBELY9_w6Y1P37vHoRzS7sB_EYUlBei6SLCdZfsvyfX1ay--mkfPxd8PTt-8vfts9jJzAm7YNEhDKx0FnpX0kmmOJoMZuD1kLB5p-TxNWUDpfo66rmc7BRnnbBrm6biX_wDAGQCzDJELMlFlEcmqrKiqSCQxh1Uiwr4KBRtaqiC5CAuWS2RBJgWRuA5W7T4-z1yt6ykbikvQxDt0fmXWXJqE3ZiO2An3dMtmVpHqg1LJ2E3aHVg0hFqdVUeVKfSresOnrBBNSNBtj-lwEhIa1-HuUJcrpY65v1fxjJ26rxtl0z_AD2tJeeoMpAOzVSxh-mhcbgZpo2uiqtt2mr0oTIXaYeBvIxbJhFW3lBl3IaPvOH5hI6TRnONp7ERe_ywLfmQz8MqfLDhdXfgWP_e_vLr82Hj_ff5a-bSxMl_Nd9RyH1cbUsH248m2tZc2ilajFU_uD9VmbQe7bGTHSgnq5pPWJtHQMQ-Oef4bD37y4OjSyse1C1xzvn5ThEgR0GI9voWwJikaIuZf0"
 
 
@@ -25,6 +30,7 @@ class Adfs:
             "AuthMethod": "FormsAuthentication"
         }
     
+        '''
         # proxy settings
         self.http_proxy  = "http://127.0.0.1:8080"
         self.https_proxy = "http://127.0.0.1:8080"
@@ -35,7 +41,7 @@ class Adfs:
               "https" : self.https_proxy, 
               "ftp"   : self.ftp_proxy
         }
-    
+        '''
 
     def set_username(self, username):
         self.data['UserName'] = username
@@ -49,15 +55,39 @@ class Adfs:
         # set data
         self.set_username(username)
         self.set_password(password)
+
         # post the request
         response = requests.post(self.url, headers=self.headers, data=self.data, timeout=self.timeout)#, verify=False, proxies=self.proxyDict)
         return response
 
-    """
-    def check_success(self, response):
-        failure_url = 'reason=2'
-        if failure_url in response.url:
-            return False
+
+    # handle CSV out output headers. Can be customized per module
+    def print_headers(self, csvfile):
+        # print table headers
+        print('%-35s %-17s %-13s %-15s' % ('Username', 'Password', 'Response Code', 'Response Length'))
+        print('-' * 83)
+
+        # create CSV file
+        output = open(csvfile, 'w')
+        fieldnames = ['Username', 'Password', 'Response Code', 'Response Length']
+        output_writer = csv.DictWriter(output, delimiter=',', fieldnames=fieldnames)
+        output_writer.writeheader()
+        output.close()
+
+
+    # handle target's response evaluation. Can be customized per module
+    def print_response(self, response, csvfile, timeout=False):
+        if timeout:
+            code = 'TIMEOUT'
+            length = 'TIMEOUT'
         else:
-            return True
-    """
+            code = response.status_code
+            length = str(len(response.content))
+        
+        # print result to screen
+        print('%-35s %-17s %13s %15s' % (self.data['UserName'], self.data['Password'], code, length))
+
+        # print to CSV file
+        output = open(csvfile, 'a')
+        output.write(f'{self.data["UserName"]},{self.data["Password"]},{code},{length}\n')
+        output.close() 
