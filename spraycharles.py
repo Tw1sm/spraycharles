@@ -22,7 +22,7 @@ colors = analyze.Color()
 def args():
     parser = argparse.ArgumentParser(description="low and slow password spraying tool", formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("-p", "--passwords", type=str, dest="passlist", help="filepath of the passwords list", default="./passwords.txt", required=False)
-    parser.add_argument("-H", "--host", type=str, dest="host", help="host to password spray (ip or hostname). Can by anything when using Office365 module - only used for logfile name.", required=True)
+    parser.add_argument("-H", "--host", type=str, dest="host", help="host to password spray (ip or hostname). Can by anything when using Office365 module - only used for logfile name.", required=False)
     parser.add_argument("-m", "--module", type=str, dest="module", help="module corresponding to target host", required=True)
     parser.add_argument("-o", "--output", type=str, dest="csvfile", help="name and path of output csv where attempts will be logged", default="output.csv", required=False)
     parser.add_argument("-u", "--usernames", type=str, dest="userlist", help="filepath of the usernames list", required=True)
@@ -34,39 +34,45 @@ def args():
     parser.add_argument("-f", "--fireprox", type=str, dest="fireprox", help="the url of the fireprox interface, if you are using fireprox.", default="", required=False)
 
     args = parser.parse_args()
-    userlist, passlist, attempts, interval = args.userlist, args.passlist, args.attempts, args.interval
+
+    # if any other module than Office365 is specified, make sure hostname was provided
+    if args.module.lower() != 'office365' and not args.host:
+        colors.color_print('[!] Hostname (-H) of target (mail.targetdomain.com) is required for all modules execept Office365', colors.red)
+        exit()
+    elif args.module.lower() == 'office365' and not args.host:
+        args.host = "Office365" # set host to Office365 for the logfile name
 
     # get usernames from file
     try:
-        with open(userlist, 'r') as f:
+        with open(args.userlist, 'r') as f:
             users = f.read().splitlines()
     except Exception:
-        colors.color_print('[!] Error reading usernames from file: %s' % (userlist), colors.red)
+        colors.color_print(f'[!] Error reading usernames from file: {args.userlist}', colors.red)
         exit()
 
     #  get passwords from file
     try:
-        with open(passlist, 'r') as f:
+        with open(args.passlist, 'r') as f:
             passwords = f.read().splitlines()
     except Exception:
-        colors.color_print('[!] Error reading passwords from file: %s' % (passlist), colors.red)
+        colors.color_print(f'[!] Error reading passwords from file: {args.passlist}', colors.red)
         exit()
 
 
-    if interval and not attempts:
+    if args.interval and not args.attempts:
         colors.color_print('[!] Number of login attempts per interval (-a) required with -i', colors.red)
         exit()
-    elif not interval and attempts:
+    elif not args.interval and args.attempts:
         colors.color_print('[!] Minutes per interval (-i) required with -a', colors.red)
         exit()
 
-    return users, passwords, args.host, args.csvfile, attempts, interval, args.equal, args.module, args.timeout, args.port, args.fireprox
+    return users, passwords, args.host, args.csvfile, args.attempts, args.interval, args.equal, args.module, args.timeout, args.port, args.fireprox
 
 
 def check_sleep(login_attempts, attempts, interval):
     if login_attempts == attempts:
         print('')
-        colors.color_print(('[*] Sleeping until %s') % ((datetime.datetime.now() + datetime.timedelta(minutes=interval)).strftime('%m-%d %H:%M:%S')), colors.yellow)
+        colors.color_print(f'[*] Sleeping until {(datetime.datetime.now() + datetime.timedelta(minutes=interval)).strftime("%m-%d %H:%M:%S")}', colors.yellow)
         time.sleep(interval * 60)
         print('')
         return 0
@@ -95,11 +101,8 @@ def print_header():
 def login(target, username, password, csvfile):
     try:
         response = target.login(username, password)
-        #print_attempt(username, password, response, csvfile)
         target.print_response(response, csvfile)
     except (requests.ConnectTimeout, requests.ReadTimeout) as e:
-        #colors.color_print('[!] Request to host timed out. Check connection to host - exiting', colors.red)
-        #print_attempt(username, password, 'timeout', csvfile)
         target.print_response(response, csvfile, timeout=True)
     except requests.ConnectionError as e:
         colors.color_print('\n[!] Connection error - sleeping for 5 seconds', colors.red)
@@ -108,14 +111,14 @@ def login(target, username, password, csvfile):
 
 
 def ascii():
-    print(f'''{colors.grey}
-    ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
-    █░░░░░░░░▀█▄▀▄▀██████░▀█▄▀▄▀██████                                    
-    ░░░░ ░░░░░░░▀█▄█▄███▀░░░ ▀█▄█▄███
+    print(f'''
 
-               Spray Charles
-    
-    {colors.end}''')
+{colors.yellow} ___  ___  ___  ___  _ _ {colors.blue} ___  _ _  ___  ___  _    ___  ___ 
+{colors.yellow}/ __>| . \| . \| . || | |{colors.blue}|  _>| | || . || . \| |  | __>/ __>
+{colors.yellow}\__ \|  _/|   /|   |\   /{colors.blue}| <__|   ||   ||   /| |_ | _> \__ \\
+{colors.yellow}<___/|_|  |_\_\|_|_| |_| {colors.blue}`___/|_|_||_|_||_\_\|___||___><___/
+                                                            
+{colors.end}''')
 
 
 def main():
@@ -153,7 +156,7 @@ def main():
 
     if attempts:
         colors.color_print('[*] Interval: ', colors.blue, '')
-        print('Attempting %d login(s) per user every %d minutes' % (attempts, interval))
+        print(f'Attempting {attempts} login(s) per user every {interval} minutes')
         
     colors.color_print('[*] Log of event times: ', colors.blue, '')
     print(log_name)
@@ -164,9 +167,8 @@ def main():
     print('')
     input('Press enter to begin:')
     print('')
-    #print_header()
-    target.print_headers(csvfile)
 
+    target.print_headers(csvfile)
 
     login_attempts = 0
 
@@ -177,7 +179,7 @@ def main():
             login(target, username, pword, csvfile)
             
             # log the login attempt
-            logging.info('Login attempted as %s' % username)
+            logging.info(f'Login attempted as {username}')
 
         login_attempts += 1
 
@@ -188,7 +190,7 @@ def main():
             login(target, username, password, csvfile)
             
             # log the login attempt
-            logging.info('Login attempted as %s' % username)
+            logging.info(f'Login attempted as {username}')
             
         login_attempts += 1
 
