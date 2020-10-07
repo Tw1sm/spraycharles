@@ -3,7 +3,7 @@
 import numpy 
 import csv
 import argparse
-
+from texttable import Texttable
 
 class Color:
     green = '\033[92m'
@@ -26,11 +26,13 @@ class Analyzer:
 
 
     def analyze(self):
-        response_codes = []
+        #response_codes = []
         response_lengths = []
 
         try:
             with open(self.resultsfile, newline='') as resultsfile:
+                print()
+                print('[*] Reading spray data from CSV...')
                 reader = csv.reader(resultsfile, delimiter=',',)
                 responses = list(reader)
         except Exception as e:
@@ -39,39 +41,71 @@ class Analyzer:
             exit()
 
 
+        # Get the columns we need for analysis
+        code_col_index = -1
+        length_col_index = -1
+        user_col_index = -1
+        pass_col_index = -1
+
+
+        for idx, header in enumerate(responses[0]):
+            if header.lower() == 'response code':
+                code_col_index = idx
+            elif header.lower() == 'response length':
+                length_col_index = idx
+            elif header.lower() == 'username':
+                user_col_index = idx
+            elif header.lower() == 'password':
+                pass_col_index = idx
+
+
+        # Make sure each of our needed columns exist
+        if code_col_index < 0   :   print('[!] CSV is missing column with header \'Response Code\'')
+        if length_col_index < 0 :   print('[!] CSV is missing column with header \'Response Length\'')
+        if user_col_index < 0   :   print('[!] CSV is missing column with header \'Username\'')
+        if pass_col_index < 0   :   print('[!] CSV is missing column with header \'Password\'')
+
         # remove header row from list
         del responses[0]
         
         len_with_timeouts = len(responses)
         # remove lines with timeouts
-        responses = [line for line in responses if line[3] != 'TIMEOUT']
+        responses = [line for line in responses if line[length_col_index] != 'TIMEOUT']
         timeouts = len_with_timeouts - len(responses)
 
+        # Get the response length column for analysis
         for indx, line in enumerate(responses):
-            response_lengths.append(int(line[3]))
-            response_codes.append(int(line[2]))
+            response_lengths.append(int(line[length_col_index]))
+            #response_codes.append(int(line[code_col_index]))
+
+        print('[*] Calculating mean and standard deviation of response lengths...')
 
         # find outlying response lengths
         length_elements = numpy.array(response_lengths)
         length_mean = numpy.mean(length_elements, axis=0)
         length_sd = numpy.std(length_elements, axis=0)
+        print('[*] Checking for outliers...')
         length_outliers = [x for x in length_elements if(x > length_mean + 2 * length_sd or x < length_mean - 2 * length_sd)]
 
+        length_outliers = list(set(length_outliers))
         len_indicies = []
 
         # find username / password combos with matching response lengths
         for hit in length_outliers:
-            len_indicies += [i for i,x in enumerate(responses) if x[3] == str(hit)]
+            len_indicies += [i for i,x in enumerate(responses) if x[length_col_index] == str(hit)]
         
         # print out logins with outlying response lengths
         if len(len_indicies) > 0:
-            self.colors.color_print('[+] Possible hits based off response length:', self.colors.green)
+            self.colors.color_print('[+] Identified potential sussessful logins!\n', self.colors.green)
+            table = Texttable()
+            table.header(['Username', 'Password'])
+            for x in len_indicies:
+                table.add_row([responses[x][user_col_index], responses[x][pass_col_index]])
+            print(table.draw())
         else:
-            self.colors.color_print('[-] Not enough data to determine statistical significance of response length or no outliers found', self.colors.red)
-            
-        for x in len_indicies:
-            print('\t%s:%s' % (responses[x][0], responses[x][1]))
+            self.colors.color_print('[-] No outliers found or not enough data to find statistical significance', self.colors.red)
 
+        print()
 
 def main():
     parser = argparse.ArgumentParser(description='Reads output file from script and analyzes reponse lengths for successful login attempts')
