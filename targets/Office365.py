@@ -100,7 +100,7 @@ class Office365:
 
             elif err == 'AADSTS50034':
                 result = 'Fail'
-                message = 'Invaild username'
+                message = 'Invalid username'
             
             # tenant does not exist. Is domain using Office365?
             elif err in ['AADSTS50128', 'AADSTS50059']:
