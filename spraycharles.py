@@ -102,9 +102,9 @@ def login(target, username, password, csvfile):
     try:
         response = target.login(username, password)
         target.print_response(response, csvfile)
-    except (requests.ConnectTimeout, requests.ReadTimeout) as e:
+    except requests.ConnectTimeout as e:
         target.print_response(response, csvfile, timeout=True)
-    except requests.ConnectionError as e:
+    except (requests.ConnectionError, requests.ReadTimeout) as e:
         colors.color_print('\n[!] Connection error - sleeping for 5 seconds', colors.red)
         sleep(5)
         login(target, username, password, csvfile)
