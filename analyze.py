@@ -49,7 +49,11 @@ class Analyzer:
 
 
         for idx, header in enumerate(responses[0]):
-            if header.lower() == 'response code':
+            # if output from smb spray, just pull successes then exit
+            if header.lower() == 'smb login':
+                self.smb_analyze(responses)
+                exit()
+            elif header.lower() == 'response code':
                 code_col_index = idx
             elif header.lower() == 'response length':
                 length_col_index = idx
@@ -105,6 +109,25 @@ class Analyzer:
         else:
             self.colors.color_print('[-] No outliers found or not enough data to find statistical significance', self.colors.red)
 
+        print()
+
+
+    # check for smb success not HTTP
+    def smb_analyze(self, responses):
+        successes = []
+        for line in responses[1:]:
+            if line[2] != 'STATUS_LOGON_FAILURE':
+                successes.append(line)
+
+        if len(successes) > 0:
+            self.colors.color_print('[+] Identified sussessful SMB logins!\n', self.colors.green)
+            table = Texttable()
+            table.header(['Username', 'Password'])
+            for x in successes:
+                table.add_row([x[0], x[1]])
+            print(table.draw())
+        else:
+            self.colors.color_print('[-] No successful SMB logins', self.colors.red)
         print()
 
 def main():

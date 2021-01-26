@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import numpy
 import time
 import argparse
 import datetime
@@ -41,6 +40,8 @@ def args():
         exit()
     elif args.module.lower() == 'office365' and not args.host:
         args.host = "Office365" # set host to Office365 for the logfile name
+    elif args.module.lower() == 'smb' and (args.timeout or args.fireprox or args.port):
+        colors.color_print('[!] Fireprox (-f), port (-b) and timeout (-t) are incompatible when spraying over SMB', colors.yellow)
 
     # get usernames from file
     try:
@@ -142,16 +143,10 @@ def main():
 
     ascii()
 
-    output = open(csvfile, 'w')
-    fieldnames = ['Username','Password','Response Code','Response Length']
-    output_writer = csv.DictWriter(output, delimiter=',', fieldnames=fieldnames)
-    output_writer.writeheader()
-    output.close()
-
     colors.color_print('[*] Target Module: ', colors.blue, '')
     print(module)
 
-    colors.color_print('[*] Spraying URL: ', colors.blue, '')
+    colors.color_print('[*] Spraying: ', colors.blue, '')
     print(target.url)
 
     if attempts:
@@ -164,9 +159,26 @@ def main():
     colors.color_print('[*] Log of spray results: ', colors.blue, '')
     print(csvfile)
 
+
     print('')
     input('Press enter to begin:')
     print('')
+
+    # if spraying over SMB, test connection to target and get host info
+    if module == "Smb":
+        colors.color_print(f'[*] Initiaing SMB connection to {host} ...', colors.yellow)
+        if target.get_conn():
+            colors.color_print(f'[+] Connected to {host} over {"SMBv1" if target.smbv1 else "SMBv3"}', colors.green)
+            colors.color_print('\t[>] Hostname:  ', colors.blue, '')
+            print(target. hostname)
+            colors.color_print('\t[>] Domain:    ', colors.blue, '')
+            print(target.domain)
+            colors.color_print('\t[>] OS:        ', colors.blue, '')
+            print(target.os)
+            print()
+        else:
+            colors.color_print(f'[!] Failed to connect to {host} over SMB', colors.red)
+            exit()
 
     target.print_headers(csvfile)
 
@@ -193,9 +205,6 @@ def main():
             logging.info(f'Login attempted as {username}')
             
         login_attempts += 1
-
-    # close files
-    output.close()
     
     # analyze the results to point out possible hits 
     analyzer = analyze.Analyzer(csvfile)
