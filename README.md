@@ -42,23 +42,23 @@ optional arguments:
 ### Examples ###
 Basic usage (Office365)
 ```
-./spraycharles -u users.txt -p passwords.txt -m Office365
+./spraycharles.py -u users.txt -p passwords.txt -m Office365
 ```
 Basic usage (non-Office365)
 ```
-./spraycharles -u users.txt -H webmail.company.com -p passwords.txt -m owa
+./spraycharles.py -u users.txt -H webmail.company.com -p passwords.txt -m owa
 ```
 Attempt 5 logins per user every 20 minutes
 ```
-./spraycharles -n users.txt -H webmail.company.com -p passwords.txt -i 20 -a 5 -m owa
+./spraycharles.py -n users.txt -H webmail.company.com -p passwords.txt -i 20 -a 5 -m owa
 ```
 Usage with fireprox (Office365)
 ```
-./spraycharles -u users.txt -H webmail.company.com -p passwords.txt -m owa -f abcdefg.execute-api.us-east-1.amazonawms.com
+./spraycharles.py -u users.txt -H webmail.company.com -p passwords.txt -m owa -f abcdefg.execute-api.us-east-1.amazonawms.com
 ```
 Spray host over SMB with 2 attempts per user every hour
 ```
-./spraycharles -u users.txt -p passwords.txt -m Smb -H 10.10.1.5 -a 2 -i 60
+./spraycharles.py -u users.txt -p passwords.txt -m Smb -H 10.10.1.5 -a 2 -i 60
 ```
 
 ### Generating Custom Spray Lists ###
