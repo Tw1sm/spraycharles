@@ -50,6 +50,12 @@ class Smb:
         self.username = username
         self.password = password
 
+        # split out domain and username if currently joined
+        domain = ''
+        if '\\' in username:
+            domain = username.split('\\')[0]
+            username = username.split('\\')[1]
+
         # get new smb connection
         if self.smbv1:
             self.conn = SMBConnection(self.host, self.host, None, 445, preferredDialect=SMB_DIALECT)
@@ -58,7 +64,7 @@ class Smb:
 
         # login
         try:
-            self.conn.login(self.username, self.password)
+            self.conn.login(username, self.password, domain)
             self.conn.logoff()
             return 'SUCCESS'
         except SessionError as e:

@@ -13,7 +13,7 @@ $ ./spraycharles.py -h
 
 ## Usage ##
 ```
-usage: spraycharles.py [-h] [-p PASSLIST] [-H HOST] -m MODULE [-o CSVFILE] -u USERLIST [-a ATTEMPTS] [-i INTERVAL] [-e] [-t TIMEOUT] [-b PORT] [-f FIREPROX]
+usage: spraycharles.py [-h] [-p PASSLIST] [-H HOST] -m MODULE [-o CSVFILE] -u USERLIST [-a ATTEMPTS] [-i INTERVAL] [-e] [-t TIMEOUT] [-b PORT] [-f FIREPROX] [-d DOMAIN]
 
 low and slow password spraying tool
 
@@ -38,6 +38,9 @@ optional arguments:
   -b PORT, --port PORT  port to connect to on the specified host. Default 443.
   -f FIREPROX, --fireprox FIREPROX
                         the url of the fireprox interface, if you are using fireprox.
+  -d DOMAIN, --domain DOMAIN
+                        HTTP: Prepend DOMAIN\ to usernames. SMB: Supply domain for smb connection
+
 ```
 ### Examples ###
 Basic usage (Office365)
@@ -46,7 +49,7 @@ Basic usage (Office365)
 ```
 Basic usage (non-Office365) with a single password, supplied via command line
 ```
-./spraycharles.py -u users.txt -H webmail.company.com -p passwords.txt -m owa
+./spraycharles.py -u users.txt -H webmail.company.com -p Password123 -m owa
 ```
 Attempt 5 logins per user every 20 minutes
 ```

@@ -30,7 +30,8 @@ def args():
     parser.add_argument("-e", "--equal", action="store_true", dest="equal", help="does 1 spray for each user where password = username", required=False)
     parser.add_argument("-t", "--timeout", type=int, dest="timeout", help="web request timeout threshold. default is 5 seconds", default=5, required=False)
     parser.add_argument("-b", "--port", type=int, dest="port", help="port to connect to on the specified host. Default 443.", default=443, required=False)
-    parser.add_argument("-f", "--fireprox", type=str, dest="fireprox", help="the url of the fireprox interface, if you are using fireprox.", default="", required=False)
+    parser.add_argument("-f", "--fireprox", type=str, dest="fireprox", help="the url of the fireprox interface, if you are using fireprox.", required=False)
+    parser.add_argument("-d", "--domain", type=str, dest="domain", help="HTTP: Prepend DOMAIN\\ to usernames. SMB: Supply domain for smb connection", required=False)
 
     args = parser.parse_args()
 
@@ -74,7 +75,7 @@ def args():
         print('')
         input('Press enter to continue anyways:')
 
-    return users, passwords, args.host, args.csvfile, args.attempts, args.interval, args.equal, args.module, args.timeout, args.port, args.fireprox
+    return users, passwords, args.host, args.csvfile, args.attempts, args.interval, args.equal, args.module, args.timeout, args.port, args.fireprox, args.domain
 
 
 def check_sleep(login_attempts, attempts, interval):
@@ -131,7 +132,7 @@ def ascii():
 
 def main():
     requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
-    users, passwords, host, csvfile, attempts, interval, equal, module, timeout, port, fireprox = args()
+    users, passwords, host, csvfile, attempts, interval, equal, module, timeout, port, fireprox, domain = args()
     # try to instantiate the specified module
     try:
         module = module.title()
@@ -206,6 +207,8 @@ def main():
     for password in passwords:
         login_attempts = check_sleep(login_attempts, attempts, interval)
         for username in users:
+            if domain:
+                username = f'{domain}\\{username}'
             login(target, username, password, csvfile)
             
             # log the login attempt
