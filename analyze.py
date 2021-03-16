@@ -101,7 +101,7 @@ class Analyzer:
         # print out logins with outlying response lengths
         if len(len_indicies) > 0:
             self.colors.color_print('[+] Identified potential sussessful logins!\n', self.colors.green)
-            table = Texttable()
+            table = Texttable(0)
             table.header(['Username', 'Password'])
             for x in len_indicies:
                 table.add_row([responses[x][user_col_index], responses[x][pass_col_index]])
