@@ -13,23 +13,28 @@ $ ./spraycharles.py -h
 
 ## Usage ##
 ```
-usage: spraycharles.py [-h] [-p PASSLIST] [-H HOST] -m MODULE [-o CSVFILE] -u USERLIST [-a ATTEMPTS] [-i INTERVAL] [-e] [-t TIMEOUT] [-b PORT] [-f FIREPROX] [-d DOMAIN]
-
-low and slow password spraying tool
+usage: spraycharles.py [-h] -p PASSLIST [-H HOST] -m MODULE [-o CSVFILE] -u
+                       USERLIST [-a ATTEMPTS] [-i INTERVAL] [-e] [-t TIMEOUT]
+                       [-b PORT] [-f FIREPROX] [-d DOMAIN]
 
 optional arguments:
   -h, --help            show this help message and exit
   -p PASSLIST, --passwords PASSLIST
-                        filepath of the passwords list or a single password to spray
-  -H HOST, --host HOST  host to password spray (ip or hostname). Can by anything when using Office365 module - only used for logfile name.
+                        filepath of the passwords list or a single password to
+                        spray
+  -H HOST, --host HOST  host to password spray (ip or hostname). Can by
+                        anything when using Office365 module - only used for
+                        logfile name.
   -m MODULE, --module MODULE
                         module corresponding to target host
   -o CSVFILE, --output CSVFILE
-                        name and path of output csv where attempts will be logged
+                        name and path of output csv where attempts will be
+                        logged
   -u USERLIST, --usernames USERLIST
                         filepath of the usernames list
   -a ATTEMPTS, --attempts ATTEMPTS
-                        number of logins submissions per interval (for each user)
+                        number of logins submissions per interval (for each
+                        user)
   -i INTERVAL, --interval INTERVAL
                         minutes inbetween login intervals
   -e, --equal           does 1 spray for each user where password = username
@@ -37,9 +42,11 @@ optional arguments:
                         web request timeout threshold. default is 5 seconds
   -b PORT, --port PORT  port to connect to on the specified host. Default 443.
   -f FIREPROX, --fireprox FIREPROX
-                        the url of the fireprox interface, if you are using fireprox.
+                        the url of the fireprox interface, if you are using
+                        fireprox.
   -d DOMAIN, --domain DOMAIN
-                        HTTP: Prepend DOMAIN\ to usernames. SMB: Supply domain for smb connection
+                        HTTP: Prepend DOMAIN\ to usernames. SMB: Specify
+                        domain for smb connection
 
 ```
 ### Examples ###
