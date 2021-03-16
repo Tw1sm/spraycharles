@@ -121,7 +121,7 @@ class Analyzer:
 
         if len(successes) > 0:
             self.colors.color_print('[+] Identified sussessful SMB logins!\n', self.colors.green)
-            table = Texttable()
+            table = Texttable(0)
             table.header(['Username', 'Password'])
             for x in successes:
                 table.add_row([x[0], x[1]])
