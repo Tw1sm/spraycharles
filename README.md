@@ -20,7 +20,7 @@ low and slow password spraying tool
 optional arguments:
   -h, --help            show this help message and exit
   -p PASSLIST, --passwords PASSLIST
-                        filepath of the passwords list
+                        filepath of the passwords list or a single password to spray
   -H HOST, --host HOST  host to password spray (ip or hostname). Can by anything when using Office365 module - only used for logfile name.
   -m MODULE, --module MODULE
                         module corresponding to target host
@@ -44,7 +44,7 @@ Basic usage (Office365)
 ```
 ./spraycharles.py -u users.txt -p passwords.txt -m Office365
 ```
-Basic usage (non-Office365)
+Basic usage (non-Office365) with a single password, supplied via command line
 ```
 ./spraycharles.py -u users.txt -H webmail.company.com -p passwords.txt -m owa
 ```

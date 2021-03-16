@@ -20,7 +20,7 @@ colors = analyze.Color()
 
 def args():
     parser = argparse.ArgumentParser(description="low and slow password spraying tool", formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("-p", "--passwords", type=str, dest="passlist", help="filepath of the passwords list", default="./passwords.txt", required=False)
+    parser.add_argument("-p", "--passwords", type=str, dest="passlist", help="filepath of the passwords list or a single password to spray", required=True)
     parser.add_argument("-H", "--host", type=str, dest="host", help="host to password spray (ip or hostname). Can by anything when using Office365 module - only used for logfile name.", required=False)
     parser.add_argument("-m", "--module", type=str, dest="module", help="module corresponding to target host", required=True)
     parser.add_argument("-o", "--output", type=str, dest="csvfile", help="name and path of output csv where attempts will be logged", default="output.csv", required=False)
@@ -40,7 +40,7 @@ def args():
         exit()
     elif args.module.lower() == 'office365' and not args.host:
         args.host = "Office365" # set host to Office365 for the logfile name
-    elif args.module.lower() == 'smb' and (args.timeout or args.fireprox or args.port):
+    elif args.module.lower() == 'smb' and (args.timeout != 5 or args.fireprox or args.port != 443):
         colors.color_print('[!] Fireprox (-f), port (-b) and timeout (-t) are incompatible when spraying over SMB', colors.yellow)
 
     # get usernames from file
@@ -51,21 +51,28 @@ def args():
         colors.color_print(f'[!] Error reading usernames from file: {args.userlist}', colors.red)
         exit()
 
-    #  get passwords from file
+    # get passwords from file, otherwise treat arg as a single password to spray
+    single_password = False
     try:
         with open(args.passlist, 'r') as f:
             passwords = f.read().splitlines()
     except Exception:
-        colors.color_print(f'[!] Error reading passwords from file: {args.passlist}', colors.red)
-        exit()
+        #colors.color_print(f'[!] Error reading passwords from file: {args.passlist}', colors.red)
+        #exit()
+        single_password = True
+        passwords = [args.passlist]
 
-
+    # check that interval and attempt args are supplied together
     if args.interval and not args.attempts:
         colors.color_print('[!] Number of login attempts per interval (-a) required with -i', colors.red)
         exit()
     elif not args.interval and args.attempts:
         colors.color_print('[!] Minutes per interval (-i) required with -a', colors.red)
         exit()
+    elif not args.interval and not args.attempts and not single_password:
+        colors.color_print('[*] You have not provided spray attempts/interval. This may lead to account lockouts', colors.yellow)
+        print('')
+        input('Press enter to continue anyways:')
 
     return users, passwords, args.host, args.csvfile, args.attempts, args.interval, args.equal, args.module, args.timeout, args.port, args.fireprox
 
