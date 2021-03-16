@@ -42,19 +42,23 @@ optional arguments:
 ### Examples ###
 Basic usage (Office365)
 ```
-./spraycharles -u users.txt -p passwords.txt -m Office365
+./spraycharles.py -u users.txt -p passwords.txt -m Office365
 ```
 Basic usage (non-Office365)
 ```
-./spraycharles -u users.txt -H webmail.company.com -p passwords.txt -m owa
+./spraycharles.py -u users.txt -H webmail.company.com -p passwords.txt -m owa
 ```
 Attempt 5 logins per user every 20 minutes
 ```
-./spraycharles -n users.txt -H webmail.company.com -p passwords.txt -i 20 -a 5 -m owa
+./spraycharles.py -n users.txt -H webmail.company.com -p passwords.txt -i 20 -a 5 -m owa
 ```
 Usage with fireprox (Office365)
 ```
-./spraycharles -u users.txt -H webmail.company.com -p passwords.txt -m owa -f abcdefg.execute-api.us-east-1.amazonawms.com
+./spraycharles.py -u users.txt -H webmail.company.com -p passwords.txt -m owa -f abcdefg.execute-api.us-east-1.amazonawms.com
+```
+Spray host over SMB with 2 attempts per user every hour
+```
+./spraycharles.py -u users.txt -p passwords.txt -m Smb -H 10.10.1.5 -a 2 -i 60
 ```
 
 ### Generating Custom Spray Lists ###
@@ -64,7 +68,7 @@ make_list.py will generate a password list based off the specifications provided
 ```
 
 ### Analyzing the results CSV file ###
-`analyze.py` can read your output CSV and determine response lengths that are statistically relevant. With enough data, it should be able to pull successful logins out of your CSV file. This is not the only way to determine successful logins, depending on your target site, and I would still recommend checking the data yourself to be sure nothing is missed.
+`analyze.py` can read your output CSV and determine response lengths that are statistically relevant. With enough data, it should be able to pull successful logins out of your CSV file. This is not the only way to determine successful logins, depending on your target site, and I would still recommend checking the data yourself to be sure nothing is missed. For SMB, it will simply find entries that contain "SUCCESS"
 ```
 ./analyze.py myresults.csv
 ```
