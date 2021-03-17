@@ -32,6 +32,8 @@ def args():
     parser.add_argument("-b", "--port", type=int, dest="port", help="port to connect to on the specified host. Default 443.", default=443, required=False)
     parser.add_argument("-f", "--fireprox", type=str, dest="fireprox", help="the url of the fireprox interface, if you are using fireprox.", required=False)
     parser.add_argument("-d", "--domain", type=str, dest="domain", help="HTTP: Prepend DOMAIN\\ to usernames. SMB: Supply domain for smb connection", required=False)
+    parser.add_argument("--analyze", action="store_true", dest="analyze_results", help="Run the results analyzer after each spray interval. False positives are more likely", required=False)
+
 
     args = parser.parse_args()
 
@@ -73,12 +75,16 @@ def args():
         print()
         input('Press enter to continue anyways:')
 
-    return users, passwords, args.host, args.csvfile, args.attempts, args.interval, args.equal, args.module, args.timeout, args.port, args.fireprox, args.domain, args.userlist, args.passlist
+    return users, passwords, args.host, args.csvfile, args.attempts, args.interval, args.equal, args.module, args.timeout, args.port, args.fireprox, args.domain, args.userlist, args.passlist, args.analyze_results
 
 
-def check_sleep(login_attempts, attempts, interval):
+def check_sleep(login_attempts, attempts, interval, csvfile, analyze_results):
     if login_attempts == attempts:
-        print()
+        if analyze_results:
+            analyzer = analyze.Analyzer(csvfile)
+            analyzer.analyze()
+        else:
+            print()
         colors.color_print(f'[*] Sleeping until {(datetime.datetime.now() + datetime.timedelta(minutes=interval)).strftime("%m-%d %H:%M:%S")}', colors.yellow)
         time.sleep(interval * 60)
         print()
@@ -143,7 +149,7 @@ def ascii():
 
 def main():
     requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
-    users, passwords, host, csvfile, attempts, interval, equal, module, timeout, port, fireprox, domain, userfile, passfile = args()
+    users, passwords, host, csvfile, attempts, interval, equal, module, timeout, port, fireprox, domain, userfile, passfile, analyze_results = args()
     # try to instantiate the specified module
     try:
         module = module.title()
@@ -217,7 +223,7 @@ def main():
     # spray using password file
     for password in passwords:
         # trigger sleep if attempts limit hit
-        login_attempts = check_sleep(login_attempts, attempts, interval)
+        login_attempts = check_sleep(login_attempts, attempts, interval, csvfile, analyze_results)
 
         # check if user/pass files have been updated and add new entries to current lists
         # this will let users add (but not remove) users/passwords into the spray as it runs
@@ -246,7 +252,7 @@ def main():
             
         login_attempts += 1
     
-    # analyze the results to point out possible hits 
+    # analyze the results to point out possible hits
     analyzer = analyze.Analyzer(csvfile)
     analyzer.analyze()
     

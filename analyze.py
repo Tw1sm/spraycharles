@@ -26,9 +26,6 @@ class Analyzer:
 
 
     def analyze(self):
-        #response_codes = []
-        response_lengths = []
-
         try:
             with open(self.resultsfile, newline='') as resultsfile:
                 print()
@@ -40,47 +37,26 @@ class Analyzer:
             print(e)
             exit()
 
-
-        # Get the columns we need for analysis
-        code_col_index = -1
-        length_col_index = -1
-        user_col_index = -1
-        pass_col_index = -1
-
-
-        for idx, header in enumerate(responses[0]):
-            # if output from smb spray, just pull successes then exit
-            if header.lower() == 'smb login':
-                self.smb_analyze(responses)
-                exit()
-            elif header.lower() == 'response code':
-                code_col_index = idx
-            elif header.lower() == 'response length':
-                length_col_index = idx
-            elif header.lower() == 'username':
-                user_col_index = idx
-            elif header.lower() == 'password':
-                pass_col_index = idx
+        if responses[0][2] == 'SMB Login':
+            self.smb_analyze(responses)
+        else:
+            self.http_analyze(responses)
+        print()
 
 
-        # Make sure each of our needed columns exist
-        if code_col_index < 0   :   print('[!] CSV is missing column with header \'Response Code\'')
-        if length_col_index < 0 :   print('[!] CSV is missing column with header \'Response Length\'')
-        if user_col_index < 0   :   print('[!] CSV is missing column with header \'Username\'')
-        if pass_col_index < 0   :   print('[!] CSV is missing column with header \'Password\'')
-
+    def http_analyze(self, responses):
         # remove header row from list
         del responses[0]
-        
+
         len_with_timeouts = len(responses)
         # remove lines with timeouts
-        responses = [line for line in responses if line[length_col_index] != 'TIMEOUT']
+        responses = [line for line in responses if line[2] != 'TIMEOUT']
         timeouts = len_with_timeouts - len(responses)
 
+        response_lengths = []
         # Get the response length column for analysis
         for indx, line in enumerate(responses):
-            response_lengths.append(int(line[length_col_index]))
-            #response_codes.append(int(line[code_col_index]))
+            response_lengths.append(int(line[3]))
 
         print('[*] Calculating mean and standard deviation of response lengths...')
 
@@ -96,20 +72,18 @@ class Analyzer:
 
         # find username / password combos with matching response lengths
         for hit in length_outliers:
-            len_indicies += [i for i,x in enumerate(responses) if x[length_col_index] == str(hit)]
+            len_indicies += [i for i,x in enumerate(responses) if x[3] == str(hit)]
         
         # print out logins with outlying response lengths
         if len(len_indicies) > 0:
             self.colors.color_print('[+] Identified potential sussessful logins!\n', self.colors.green)
             table = Texttable(0)
-            table.header(['Username', 'Password'])
+            table.header(['Username', 'Password', 'Resp Code' , 'Resp Length'])
             for x in len_indicies:
-                table.add_row([responses[x][user_col_index], responses[x][pass_col_index]])
+                table.add_row([responses[x][0], responses[x][1], responses[x][2], responses[x][3]])
             print(table.draw())
         else:
             self.colors.color_print('[-] No outliers found or not enough data to find statistical significance', self.colors.red)
-
-        print()
 
 
     # check for smb success not HTTP
@@ -128,7 +102,7 @@ class Analyzer:
             print(table.draw())
         else:
             self.colors.color_print('[-] No successful SMB logins', self.colors.red)
-        print()
+
 
 def main():
     parser = argparse.ArgumentParser(description='Reads output file from script and analyzes reponse lengths for successful login attempts')
