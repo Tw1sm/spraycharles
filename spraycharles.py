@@ -53,14 +53,12 @@ def args():
         exit()
 
     # get passwords from file, otherwise treat arg as a single password to spray
-    single_password = False
     try:
         with open(args.passlist, 'r') as f:
             passwords = f.read().splitlines()
     except Exception:
         #colors.color_print(f'[!] Error reading passwords from file: {args.passlist}', colors.red)
         #exit()
-        single_password = True
         passwords = [args.passlist]
 
     # check that interval and attempt args are supplied together
@@ -70,23 +68,36 @@ def args():
     elif not args.interval and args.attempts:
         colors.color_print('[!] Minutes per interval (-i) required with -a', colors.red)
         exit()
-    elif not args.interval and not args.attempts and not single_password:
+    elif not args.interval and not args.attempts and len(passwords) > 1:
         colors.color_print('[*] You have not provided spray attempts/interval. This may lead to account lockouts', colors.yellow)
-        print('')
+        print()
         input('Press enter to continue anyways:')
 
-    return users, passwords, args.host, args.csvfile, args.attempts, args.interval, args.equal, args.module, args.timeout, args.port, args.fireprox, args.domain
+    return users, passwords, args.host, args.csvfile, args.attempts, args.interval, args.equal, args.module, args.timeout, args.port, args.fireprox, args.domain, args.userlist, args.passlist
 
 
 def check_sleep(login_attempts, attempts, interval):
     if login_attempts == attempts:
-        print('')
+        print()
         colors.color_print(f'[*] Sleeping until {(datetime.datetime.now() + datetime.timedelta(minutes=interval)).strftime("%m-%d %H:%M:%S")}', colors.yellow)
         time.sleep(interval * 60)
-        print('')
+        print()
         return 0
     else:
         return login_attempts
+
+
+def check_file_contents(file_path, current_list):
+    new_list = []
+    try:
+        with open(file_path, 'r') as f:
+            new_list = f.read().splitlines()
+    except:
+        # file either no longer exists, or -p flag was given a password and not a file
+        pass
+    
+    additions = list(set(new_list) - set(current_list))
+    return additions    
 
 
 def print_attempt(username, password, response, csvfile):
@@ -132,7 +143,7 @@ def ascii():
 
 def main():
     requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
-    users, passwords, host, csvfile, attempts, interval, equal, module, timeout, port, fireprox, domain = args()
+    users, passwords, host, csvfile, attempts, interval, equal, module, timeout, port, fireprox, domain, userfile, passfile = args()
     # try to instantiate the specified module
     try:
         module = module.title()
@@ -168,9 +179,9 @@ def main():
     print(csvfile)
 
 
-    print('')
+    print()
     input('Press enter to begin:')
-    print('')
+    print()
 
     # if spraying over SMB, test connection to target and get host info
     if module == "Smb":
@@ -205,7 +216,26 @@ def main():
 
     # spray using password file
     for password in passwords:
+        # trigger sleep if attempts limit hit
         login_attempts = check_sleep(login_attempts, attempts, interval)
+
+        # check if user/pass files have been updated and add new entries to current lists
+        # this will let users add (but not remove) users/passwords into the spray as it runs
+        new_users = check_file_contents(userfile, users)
+        new_passwords = check_file_contents(passfile, passwords)
+        
+        if len(new_users) > 0:
+            colors.color_print(f'[>] Adding {len(new_users)} new users into the spray!', colors.blue)
+            users.extend(new_users)
+
+        if len(new_passwords) > 0:
+            colors.color_print(f'[>] Adding {len(new_passwords)} new passwords to the end of the spray!', colors.blue)
+            passwords.extend(new_passwords)
+
+        # print line separator
+        if len(new_passwords) > 0 or len(new_users) > 0:
+            print()
+
         for username in users:
             if domain:
                 username = f'{domain}\\{username}'
