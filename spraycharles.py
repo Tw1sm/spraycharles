@@ -119,11 +119,6 @@ def print_attempt(username, password, response, csvfile):
     output.close() 
 
 
-def print_header():
-    print('%-27s %-17s %-13s %-15s' % ('Username','Password','Response Code','Response Length'))
-    print('-' * 75)
-
-
 def login(target, username, password, csvfile):
     try:
         response = target.login(username, password)
