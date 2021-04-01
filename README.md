@@ -64,7 +64,7 @@ Attempt 5 logins per user every 20 minutes
 ```
 Usage with fireprox (Office365)
 ```
-./spraycharles.py -u users.txt -H webmail.company.com -p passwords.txt -m owa -f abcdefg.execute-api.us-east-1.amazonawms.com
+./spraycharles.py -u users.txt -p passwords.txt -m office365 -f abcdefg.execute-api.us-east-1.amazonawms.com
 ```
 Spray host over SMB with 2 attempts per user every hour
 ```
