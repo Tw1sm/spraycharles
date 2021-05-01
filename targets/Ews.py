@@ -1,70 +1,52 @@
 import requests
+from requests_ntlm import HttpNtlmAuth
 import csv
 
-
-class Ciscosslvpn:
+class Ews:
 
     def __init__(self, host, port, timeout, fireprox):
-        self.group = input('Enter VPN group: ')
         self.timeout = timeout
-        self.url = f'https://{host}:{port}/+webvpn+/index.html'
+        self.url = f'https://{host}:{port}/ews'
 
         if fireprox:
-            self.url = f'https://{fireprox}/fireprox/+webvpn+/index.html'
-
-        self.cookies = {
-            'webvpnlogin': '1', 
-            'webvpnLang': 'en'
-        }
+            self.url = f'https://{fireprox}/fireprox/ews'
 
         self.headers = {
-            'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/60.0',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            'Accept-Language': 'en-US,en;q=0.5',
-            'Accept-Encoding': 'gzip, deflate',
-            'Referer': f'https://{host}/+CSCOE+/logon.html',
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Connection': 'close',
-            'Upgrade-Insecure-Requests': '1'
+            'User-Agent': 'Microsoft Office/14.0 (Windows NT 6.1; Microsoft Outlook 14.0.7145; Pro)',
         }
 
         self.data = {
-            'tgroup': '',
-            'next': '',
-            'tgcookieset': '',
-            'group_list': '%s' % self.group,
             'username': '',
-            'password': '',
-            'Login': 'Login'
+            'password': ''
+            
         }
-
-    '''
+    """
         # proxy settings
-        self.http_proxy  = 'http://127.0.0.1:8080'
-        self.https_proxy = 'http://127.0.0.1:8080'
-        self.ftp_proxy   = 'http://127.0.0.1:8080'
+        self.http_proxy  = "http://127.0.0.1:8080"
+        self.https_proxy = "http://127.0.0.1:8080"
+        self.ftp_proxy   = "http://127.0.0.1:8080"
 
         self.proxyDict = { 
-              'http'  : self.http_proxy, 
-              'https' : self.https_proxy, 
-              'ftp'   : self.ftp_proxy
+              #"http"  : self.http_proxy, 
+              #"https" : self.https_proxy, 
+              #"ftp"   : self.ftp_proxy
         }
-    '''
+    """
 
     def set_username(self, username):
-        self.data['username'] = username
+        self.data['username'] = username 
 
 
     def set_password(self, password):
         self.data['password'] = password
 
-
     def login(self, username, password):
-        # set data
         self.set_username(username)
         self.set_password(password)
+        ntlm_auth = HttpNtlmAuth(username,password)
+
         # post the request
-        response = requests.post(self.url, headers=self.headers, cookies=self.cookies, data=self.data, timeout=self.timeout, verify=False)#, proxies=self.proxyDict)
+        response = requests.post(self.url, headers=self.headers, auth=ntlm_auth, timeout=self.timeout)#, verify=False, proxies=self.proxyDict)
         return response
 
 
