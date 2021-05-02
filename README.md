@@ -3,7 +3,24 @@ spraycharles
 ## Overview ##
 Low and slow password spraying tool, designed to spray on an interval over a long period of time.
 
-## Install ##
+## Install##
+
+### Using pipenv
+```bash
+git clone https://github.com/Tw1sm/spraycharles.git && cd spraycharles
+pipenv --python 3 shell
+pip3 install -r requirements.txt
+./spraycharles.py -h
+```
+
+### Using Docker
+```bash
+git clone https://github.com/Tw1sm/spraycharles.git && cd spraycharles
+docker build . -t spraycharles
+docker run -it spraycharles -h
+```
+
+### From GitHub
 ```bash
 $ git clone https://github.com/Tw1sm/spraycharles.git
 $ cd spraycharles
@@ -47,6 +64,9 @@ optional arguments:
   -d DOMAIN, --domain DOMAIN
                         HTTP: Prepend DOMAIN\ to usernames. SMB: Specify
                         domain for smb connection
+  --jitter JITTER         Jitter time between requests in seconds.
+  --jitter_min JITTER_MIN Minimum time between requests in seconds.
+   
 
 ```
 ### Examples ###
