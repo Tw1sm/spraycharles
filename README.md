@@ -3,7 +3,7 @@ spraycharles
 ## Overview ##
 Low and slow password spraying tool, designed to spray on an interval over a long period of time.
 
-## Install##
+## Install
 
 ### Using pipenv
 ```bash
