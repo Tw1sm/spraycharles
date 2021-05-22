@@ -35,7 +35,7 @@ def args():
     parser.add_argument("-d", "--domain", type=str, dest="domain", help="HTTP: Prepend DOMAIN\\ to usernames. SMB: Supply domain for smb connection", required=False)
     parser.add_argument("--analyze", action="store_true", dest="analyze_results", help="Run the results analyzer after each spray interval. False positives are more likely", required=False)
     parser.add_argument("--jitter", type=int, dest="jitter", help="Jitter time between requests in seconds.", required=False)
-    parser.add_argument("--jitter_min", type=int, dest="jitter_min", help="Minimum time between requests in seconds.", required=False)
+    parser.add_argument("--jitter-min", type=int, dest="jitter_min", help="Minimum time between requests in seconds.", required=False)
 
 
     args = parser.parse_args()
@@ -80,10 +80,10 @@ def args():
 
     # Check that jitter flags aren't supplied without independently
     if args.jitter_min and not args.jitter:
-        colors.color_print("--jitter_min flag must be set with --jitter flag", colors.red)
+        colors.color_print("--jitter-min flag must be set with --jitter flag", colors.red)
         exit()
     elif args.jitter and not args.jitter_min:
-        colors.color_print("--jitter flag must be set with --jitter_min flag", colors.red)
+        colors.color_print("--jitter flag must be set with --jitter-min flag", colors.red)
         exit()
     if args.jitter and args.jitter_min and args.jitter_min >= args.jitter:
         colors.color_print("--jitter flag must be greater than --jitter-min flag", colors.red)
@@ -187,6 +187,11 @@ def main():
     if attempts:
         colors.color_print('[*] Interval: ', colors.blue, '')
         print(f'Attempting {attempts} login(s) per user every {interval} minutes')
+    
+    if jitter:
+        colors.color_print('[*] Jitter: ', colors.blue, '')
+        print(f'Random {jitter_min}-{jitter} second delay between each login attempt.')
+
         
     colors.color_print('[*] Log of event times: ', colors.blue, '')
     print(log_name)

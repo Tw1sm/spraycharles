@@ -12,7 +12,10 @@ class Ews:
             self.url = f'https://{fireprox}/fireprox/ews'
 
         self.headers = {
-            'User-Agent': 'Microsoft Office/14.0 (Windows NT 6.1; Microsoft Outlook 14.0.7145; Pro)',
+            'User-Agent': 'AppleExchangeWebServices/814.80.3 accountsd/113',
+            'Content-Type': 'text/xml; charset=utf-8',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Connection': 'keep-alive',
         }
 
         self.data = {

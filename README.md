@@ -14,11 +14,21 @@ pip3 install -r requirements.txt
 ```
 
 ### Using Docker
+Build the container using the included Dockerfile.
+
 ```bash
 git clone https://github.com/Tw1sm/spraycharles.git && cd spraycharles
 docker build . -t spraycharles
-docker run -it spraycharles -h
 ```
+
+You will most likely want to save and use a list of usernames and passwords during spraying. The easiest way to do this is by mapping a directory on your host with the container. Use the following command in Bash to map your present workign directory to the spraycharles install directory inside the running container.
+
+```bash
+docker run -it -v $(pwd):/spraycharles/ spraycharles -h
+```
+
+Following your first run of the command above, a sparycharles directory will be created on your system where you can add username and password lists as well as access spraying logs. 
+
 
 ### From GitHub
 ```bash
@@ -65,7 +75,7 @@ optional arguments:
                         HTTP: Prepend DOMAIN\ to usernames. SMB: Specify
                         domain for smb connection
   --jitter JITTER         Jitter time between requests in seconds.
-  --jitter_min JITTER_MIN Minimum time between requests in seconds.
+  --jitter-min JITTER-MIN Minimum time between requests in seconds.
    
 
 ```
