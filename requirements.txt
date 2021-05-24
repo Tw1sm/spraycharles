@@ -1,3 +1,5 @@
 numpy
+impacket
 requests
 texttable
+requests_ntlm
