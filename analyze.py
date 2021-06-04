@@ -37,11 +37,30 @@ class Analyzer:
             print(e)
             exit()
 
-        if responses[0][2] == 'SMB Login':
+        if responses[0][1] == 'Message':
+            self.O365_analyze(responses)
+        elif responses[0][2] == 'SMB Login':
             self.smb_analyze(responses)
         else:
             self.http_analyze(responses)
         print()
+
+
+    def O365_analyze(self, responses):
+        results = []
+        for line in responses:
+            results.append(line[0])
+        success_indicies = list(filter(lambda x: results[x] == 'Success', range(len(results))))
+        # print out logins with outlying response lengths
+        if len(success_indicies) > 0:
+            self.colors.color_print('[+] Identified potential sussessful logins!\n', self.colors.green)
+            table = Texttable(0)
+            table.header(['Username', 'Password', 'Message'])
+            for x in success_indicies:
+                table.add_row([responses[x][2], responses[x][3], responses[x][1]])
+            print(table.draw())
+        else:
+            self.colors.color_print('[-] No successful Office365 logins', self.colors.red)
 
 
     def http_analyze(self, responses):
