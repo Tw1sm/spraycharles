@@ -91,11 +91,6 @@ def args(passlist, userlist, host, module, csvfile, attempts, interval, equal, t
         colors.color_print("--jitter flag must be greater than --jitter-min flag", colors.red)
         exit()
 
-    # Only allow notification params from config file
-    if notify and not config:
-        colors.color_print("No config file specified", colors.red)
-        exit()
-
     return users, passwords, host, csvfile, attempts, interval, equal, module, timeout, port, fireprox, domain, userlist, passlist, analyze_results, jitter, jitter_min
 
 def check_sleep(login_attempts, attempts, interval, csvfile, analyze_results):
