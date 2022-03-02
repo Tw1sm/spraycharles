@@ -15,6 +15,7 @@ import random
 from time import sleep
 import click 
 import click_config_file
+import notifier
 
 # initalize colors object
 colors = analyze.Color()
@@ -30,17 +31,19 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help', 'help'])
 @click.option('-i', "--interval", required=False, type=int, help="Minutes inbetween login intervals.")
 @click.option('-e', "--equal", required=False, type=int, help="Does 1 spray for each user where password = username.")
 @click.option('-t', "--timeout", required=False, type=int, help="Web request timeout threshold. default is 5 seconds.", default=5)
-@click.option('-p', "--port", required=False, type=int, help="Port to connect to on the specified host. Default is 443.", default=443)
+@click.option('-P', "--port", required=False, type=int, help="Port to connect to on the specified host. Default is 443.", default=443)
 @click.option('-f', "--fireprox", required=False, type=str, help="The url of the fireprox interface, if you are using fireprox.")
 @click.option('-d', "--domain", required=False, type=str, help="HTTP: Prepend DOMAIN\\ to usernames. SMB: Supply domain for smb connection.")
 @click.option("--analyze", 'analyze_results', required=False, type=str, help="Run the results analyzer after each spray interval. False positives are more likely")
-@click.option("--jitter", required=False, type=int, help="Jitter time between requests in seconds.")
-@click.option("--jitter-min", required=False, type=int, help="Minimum time between requests in seconds.")
+@click.option("-j", "--jitter", required=False, type=int, help="Jitter time between requests in seconds.")
+@click.option("-jm", "--jitter-min", required=False, type=int, help="Minimum time between requests in seconds.")
+@click.option("-n", "--notify", required=False, type=click.Choice(['slack', 'twillio']))
 @click_config_file.configuration_option()
 
-def args(passlist, userlist, host, module, csvfile, attempts, interval, equal, timeout, port, fireprox, domain, analyze_results, jitter, jitter_min):
+def args(passlist, userlist, host, module, csvfile, attempts, interval, equal, timeout, port, fireprox, domain, analyze_results, jitter, jitter_min, notify):
 
     """Low and slow password spraying tool..."""
+
     # if any other module than Office365 is specified, make sure hostname was provided
     if module.lower() != 'office365' and not host:
         colors.color_print('[!] Hostname (-H) of target (mail.targetdomain.com) is required for all modules execept Office365', colors.red)
@@ -77,7 +80,7 @@ def args(passlist, userlist, host, module, csvfile, attempts, interval, equal, t
         print()
         input('Press enter to continue anyways:')
 
-    # Check that jitter flags aren't supplied without independently
+    # Check that jitter flags aren't supplied independently
     if jitter_min and not jitter:
         colors.color_print("--jitter-min flag must be set with --jitter flag", colors.red)
         exit()
@@ -86,6 +89,11 @@ def args(passlist, userlist, host, module, csvfile, attempts, interval, equal, t
         exit()
     if jitter and jitter_min and jitter_min >= jitter:
         colors.color_print("--jitter flag must be greater than --jitter-min flag", colors.red)
+        exit()
+
+    # Only allow notification params from config file
+    if notify and not config:
+        colors.color_print("No config file specified", colors.red)
         exit()
 
     return users, passwords, host, csvfile, attempts, interval, equal, module, timeout, port, fireprox, domain, userlist, passlist, analyze_results, jitter, jitter_min
