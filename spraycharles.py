@@ -15,7 +15,6 @@ import random
 from time import sleep
 import click 
 import click_config_file
-import notifier
 
 # initalize colors object
 colors = analyze.Color()
@@ -37,10 +36,11 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help', 'help'])
 @click.option("--analyze", 'analyze_results', required=False, type=str, help="Run the results analyzer after each spray interval. False positives are more likely")
 @click.option("-j", "--jitter", required=False, type=int, help="Jitter time between requests in seconds.")
 @click.option("-jm", "--jitter-min", required=False, type=int, help="Minimum time between requests in seconds.")
-@click.option("-n", "--notify", required=False, type=click.Choice(['slack', 'twillio']))
+#@click.option("-n", "--notify", required=False, type=click.Choice(['slack']), help="Enable notifications to Slack for successfully guessed credentials.")
+#@click.option("-nsw", "--slack-webhook", required=False, type=str, help="Slack webhook URL.")
 @click_config_file.configuration_option()
 
-def args(passlist, userlist, host, module, csvfile, attempts, interval, equal, timeout, port, fireprox, domain, analyze_results, jitter, jitter_min, notify):
+def args(passlist, userlist, host, module, csvfile, attempts, interval, equal, timeout, port, fireprox, domain, analyze_results, jitter, jitter_min):
 
     """Low and slow password spraying tool..."""
 
