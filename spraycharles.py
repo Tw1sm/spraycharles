@@ -19,30 +19,7 @@ import click_config_file
 # initalize colors object
 colors = analyze.Color()
 
-CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help', 'help'])
-@click.command(no_args_is_help=True, context_settings=CONTEXT_SETTINGS)
-@click.option('-p', "--passwords", 'passlist', required=True, help="Filepath of the passwords list or a single password to spray.")
-@click.option('-u', "--usernames", 'userlist', required=True, help="Filepath of the usernames list.")
-@click.option('-H', "--host", required=False, type=str, help="Host to password spray (ip or hostname). Can by anything when using Office365 module - only used for logfile name.")
-@click.option('-m', "--module", required=True, help="Module corresponding to target host.")
-@click.option('-o', "--output", 'csvfile', required=False, help="Name and path of output csv where attempts will be logged.", default='output.csv')
-@click.option('-a', "--attempts", required=False, type=int, help="Number of logins submissions per interval (for each user).")
-@click.option('-i', "--interval", required=False, type=int, help="Minutes inbetween login intervals.")
-@click.option('-e', "--equal", required=False, type=int, help="Does 1 spray for each user where password = username.")
-@click.option('-t', "--timeout", required=False, type=int, help="Web request timeout threshold. default is 5 seconds.", default=5)
-@click.option('-P', "--port", required=False, type=int, help="Port to connect to on the specified host. Default is 443.", default=443)
-@click.option('-f', "--fireprox", required=False, type=str, help="The url of the fireprox interface, if you are using fireprox.")
-@click.option('-d', "--domain", required=False, type=str, help="HTTP: Prepend DOMAIN\\ to usernames. SMB: Supply domain for smb connection.")
-@click.option("--analyze", 'analyze_results', required=False, type=str, help="Run the results analyzer after each spray interval. False positives are more likely")
-@click.option("-j", "--jitter", required=False, type=int, help="Jitter time between requests in seconds.")
-@click.option("-jm", "--jitter-min", required=False, type=int, help="Minimum time between requests in seconds.")
-#@click.option("-n", "--notify", required=False, type=click.Choice(['slack']), help="Enable notifications to Slack for successfully guessed credentials.")
-#@click.option("-nsw", "--slack-webhook", required=False, type=str, help="Slack webhook URL.")
-@click_config_file.configuration_option()
-
 def args(passlist, userlist, host, module, csvfile, attempts, interval, equal, timeout, port, fireprox, domain, analyze_results, jitter, jitter_min):
-
-    """Low and slow password spraying tool..."""
 
     # if any other module than Office365 is specified, make sure hostname was provided
     if module.lower() != 'office365' and not host:
@@ -91,7 +68,7 @@ def args(passlist, userlist, host, module, csvfile, attempts, interval, equal, t
         colors.color_print("--jitter flag must be greater than --jitter-min flag", colors.red)
         exit()
 
-    return users, passwords, host, csvfile, attempts, interval, equal, module, timeout, port, fireprox, domain, userlist, passlist, analyze_results, jitter, jitter_min
+    return users, passwords, passlist, userlist, host, module, csvfile, attempts, interval, equal, timeout, port, fireprox, domain, analyze_results, jitter, jitter_min 
 
 def check_sleep(login_attempts, attempts, interval, csvfile, analyze_results):
     if login_attempts == attempts:
@@ -157,10 +134,42 @@ def ascii():
                                                             
 {colors.end}''')
 
+CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help', 'help'])
+@click.command(no_args_is_help=True, context_settings=CONTEXT_SETTINGS)
+@click.option('-p', "--passwords", 'passlist', required=True, help="Filepath of the passwords list or a single password to spray.")
+@click.option('-u', "--usernames", 'userlist', required=True, help="Filepath of the usernames list.")
+@click.option('-H', "--host", required=False, type=str, help="Host to password spray (ip or hostname). Can by anything when using Office365 module - only used for logfile name.")
+@click.option('-m', "--module", required=True, help="Module corresponding to target host.")
+@click.option('-o', "--output", 'csvfile', required=False, help="Name and path of output csv where attempts will be logged.", default='output.csv')
+@click.option('-a', "--attempts", required=False, type=int, help="Number of logins submissions per interval (for each user).")
+@click.option('-i', "--interval", required=False, type=int, help="Minutes inbetween login intervals.")
+@click.option('-e', "--equal", required=False, type=int, help="Does 1 spray for each user where password = username.")
+@click.option('-t', "--timeout", required=False, type=int, help="Web request timeout threshold. default is 5 seconds.", default=5)
+@click.option('-P', "--port", required=False, type=int, help="Port to connect to on the specified host. Default is 443.", default=443)
+@click.option('-f', "--fireprox", required=False, type=str, help="The url of the fireprox interface, if you are using fireprox.")
+@click.option('-d', "--domain", required=False, type=str, help="HTTP: Prepend DOMAIN\\ to usernames. SMB: Supply domain for smb connection.")
+@click.option("--analyze", 'analyze_results', required=False, type=str, help="Run the results analyzer after each spray interval. False positives are more likely")
+@click.option("-j", "--jitter", required=False, type=int, help="Jitter time between requests in seconds.")
+@click.option("-jm", "--jitter-min", required=False, type=int, help="Minimum time between requests in seconds.")
 
-def main():
-    requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
-    users, passwords, host, csvfile, attempts, interval, equal, module, timeout, port, fireprox, domain, userfile, passfile, analyze_results, jitter, jitter_min = args()
+# Allows user to specify configuration file with -c
+@click_config_file.configuration_option()
+
+def main(passlist, userlist, host, module, csvfile, attempts, interval, equal, timeout, port, fireprox, domain, analyze_results, jitter, jitter_min):
+
+    """Low and slow password spraying tool..."""
+
+    # Dealing with SSL Warnings
+    try:
+        import requests.packages.urllib3
+        requests.packages.urllib3.disable_warnings()
+    except Exception:
+        pass
+
+
+    # Parsing command line arguments with args() function
+    users, passwords, passfile, userfile, host, module, csvfile, attempts, interval, equal, timeout, port, fireprox, domain, analyze_results, jitter, jitter_min = args(passlist, userlist, host, module, csvfile, attempts, interval, equal, timeout, port, fireprox, domain, analyze_results, jitter, jitter_min)
+
     # try to instantiate the specified module
     try:
         module = module.title()
