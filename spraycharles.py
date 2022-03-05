@@ -19,7 +19,7 @@ import click_config_file
 # initalize colors object
 colors = analyze.Color()
 
-def args(passlist, userlist, host, module, csvfile, attempts, interval, equal, timeout, port, fireprox, domain, analyze_results, jitter, jitter_min):
+def args(passlist, userlist, host, module, path, csvfile, attempts, interval, equal, timeout, port, fireprox, domain, analyze_results, jitter, jitter_min):
 
     # if any other module than Office365 is specified, make sure hostname was provided
     if module.lower() != 'office365' and not host:
@@ -68,7 +68,12 @@ def args(passlist, userlist, host, module, csvfile, attempts, interval, equal, t
         colors.color_print("--jitter flag must be greater than --jitter-min flag", colors.red)
         exit()
 
-    return users, passwords, passlist, userlist, host, module, csvfile, attempts, interval, equal, timeout, port, fireprox, domain, analyze_results, jitter, jitter_min 
+    # Making sure user set path variable for NTLM authentication module
+    if module.lower() == 'ntlm' and path is None:
+        colors.color_print("Must set --path to use the NTLM authentication module", colors.red)
+        exit()
+
+    return users, passwords, passlist, userlist, host, module, path, csvfile, attempts, interval, equal, timeout, port, fireprox, domain, analyze_results, jitter, jitter_min 
 
 def check_sleep(login_attempts, attempts, interval, csvfile, analyze_results):
     if login_attempts == attempts:
@@ -140,6 +145,7 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help', 'help'])
 @click.option('-u', "--usernames", 'userlist', required=True, help="Filepath of the usernames list.")
 @click.option('-H', "--host", required=False, type=str, help="Host to password spray (ip or hostname). Can by anything when using Office365 module - only used for logfile name.")
 @click.option('-m', "--module", required=True, help="Module corresponding to target host.")
+@click.option("--path", required=False, help="NTLM authentication endpoint. Ex: rpc or ews")
 @click.option('-o', "--output", 'csvfile', required=False, help="Name and path of output csv where attempts will be logged.", default='output.csv')
 @click.option('-a', "--attempts", required=False, type=int, help="Number of logins submissions per interval (for each user).")
 @click.option('-i', "--interval", required=False, type=int, help="Minutes inbetween login intervals.")
@@ -155,7 +161,7 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help', 'help'])
 # Allows user to specify configuration file with --config
 @click_config_file.configuration_option()
 
-def main(passlist, userlist, host, module, csvfile, attempts, interval, equal, timeout, port, fireprox, domain, analyze_results, jitter, jitter_min):
+def main(passlist, userlist, host, module, path, csvfile, attempts, interval, equal, timeout, port, fireprox, domain, analyze_results, jitter, jitter_min):
 
     """Low and slow password spraying tool..."""
 
@@ -168,14 +174,20 @@ def main(passlist, userlist, host, module, csvfile, attempts, interval, equal, t
 
 
     # Parsing command line arguments with args() function
-    users, passwords, passfile, userfile, host, module, csvfile, attempts, interval, equal, timeout, port, fireprox, domain, analyze_results, jitter, jitter_min = args(passlist, userlist, host, module, csvfile, attempts, interval, equal, timeout, port, fireprox, domain, analyze_results, jitter, jitter_min)
+    users, passwords, passfile, userfile, host, module, path, csvfile, attempts, interval, equal, timeout, port, fireprox, domain, analyze_results, jitter, jitter_min = args(passlist, userlist, host, module, path, csvfile, attempts, interval, equal, timeout, port, fireprox, domain, analyze_results, jitter, jitter_min)
 
     # try to instantiate the specified module
     try:
-        module = module.title()
-        mod_name = getattr(sys.modules[__name__], module)
-        class_name = getattr(mod_name, module)
-        target = class_name(host, port, timeout, fireprox)
+        if module.title().lower() == 'ntlm':
+            module = module.title()
+            mod_name = getattr(sys.modules[__name__], module)
+            class_name = getattr(mod_name, module)
+            target = class_name(host, port, timeout, path, fireprox)
+        else:
+            module = module.title()
+            mod_name = getattr(sys.modules[__name__], module)
+            class_name = getattr(mod_name, module)
+            target = class_name(host, port, timeout, fireprox)
     except AttributeError:
         print(f'[!] Error loading {module} module. {module} is spelled incorrectly or does not exist')
         exit()

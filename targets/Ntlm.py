@@ -2,14 +2,14 @@ import requests
 from requests_ntlm import HttpNtlmAuth
 import csv
 
-class Ews:
+class Ntlm:
 
-    def __init__(self, host, port, timeout, fireprox):
+    def __init__(self, host, port, timeout, path, fireprox):
         self.timeout = timeout
-        self.url = f'https://{host}:{port}/ews'
+        self.url = f'https://{host}:{port}/{path}'
 
         if fireprox:
-            self.url = f'https://{fireprox}/fireprox/ews'
+            self.url = f'https://{fireprox}/fireprox/{path}'
 
         self.headers = {
             'User-Agent': 'AppleExchangeWebServices/814.80.3 accountsd/113',
