@@ -4,7 +4,6 @@ spraycharles
 Low and slow password spraying tool, designed to spray on an interval over a long period of time.
 
 
-
 ## Install ##
 
 #### Using pipenv
@@ -55,7 +54,8 @@ Options:
   -H, --host TEXT            Host to password spray (ip or hostname). Can by
                              anything when using Office365 module - only used
                              for logfile name.
-  -m, --module TEXT          Module corresponding to target host. [required]
+  -m, --module TEXT          Module corresponding to target host.  [required]
+  --path TEXT                NTLM authentication endpoint. Ex: rpc or ews
   -o, --output TEXT          Name and path of output csv where attempts will
                              be logged.
   -a, --attempts INTEGER     Number of logins submissions per interval (for
@@ -79,7 +79,7 @@ Options:
   -h, --help                 Show this message and exit.
 ```
 
-## Config File Usage ##
+#### Config File 
 It is possible to pre-populate command line arguments form a configuration file using the --config argument.
 
 An example configuration file is listed below:
@@ -129,10 +129,24 @@ Spray host over SMB with 2 attempts per user every hour
 
 <br/>
 
-### Generating Custom Spray Lists ###
+## Utilities ##
+Spraycharles is packaged with some additional utilities to assist with spraying efforts.
+<br/>
+
+#### Generating Custom Spray Lists 
 make_list.py will generate a password list based off the specifications provided in list_elements.json
 ```
 ./utils/make_list.py
+```
+
+<br/>
+
+#### Extracting Domain from NTLM over HTTP and SMB 
+ntlm_challenger.py will extract the internal domain from both NTLM over HTTP and SMB services using a command similar to the one listed below.
+
+
+```
+./utils/ntlm_challenger.py https://mail.acme.com/ews
 ```
 
 <br/>
