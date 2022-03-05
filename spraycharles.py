@@ -173,17 +173,19 @@ def main(passlist, userlist, host, module, path, csvfile, attempts, interval, eq
         pass
 
 
-    # Parsing command line arguments with args() function
+    # Parsing and validating command line arguments with args() function
     users, passwords, passfile, userfile, host, module, path, csvfile, attempts, interval, equal, timeout, port, fireprox, domain, analyze_results, jitter, jitter_min = args(passlist, userlist, host, module, path, csvfile, attempts, interval, equal, timeout, port, fireprox, domain, analyze_results, jitter, jitter_min)
 
     # try to instantiate the specified module
     try:
+        # Passing in path for NTLM over HTTP module
         if module.title().lower() == 'ntlm':
             module = module.title()
             mod_name = getattr(sys.modules[__name__], module)
             class_name = getattr(mod_name, module)
             target = class_name(host, port, timeout, path, fireprox)
         else:
+            # Else, we just pass the default arguments
             module = module.title()
             mod_name = getattr(sys.modules[__name__], module)
             class_name = getattr(mod_name, module)
@@ -213,6 +215,10 @@ def main(passlist, userlist, host, module, path, csvfile, attempts, interval, eq
     if jitter:
         colors.color_print('[*] Jitter: ', colors.blue, '')
         print(f'Random {jitter_min}-{jitter} second delay between each login attempt.')
+
+    if path:
+        colors.color_print('[*] NTLM Path: ', colors.blue, '')
+        print(f'/{path}')
 
         
     colors.color_print('[*] Log of event times: ', colors.blue, '')
