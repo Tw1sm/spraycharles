@@ -144,7 +144,7 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help', 'help'])
 @click.option('-a', "--attempts", required=False, type=int, help="Number of logins submissions per interval (for each user).")
 @click.option('-i', "--interval", required=False, type=int, help="Minutes inbetween login intervals.")
 @click.option('-e', "--equal", required=False, type=int, help="Does 1 spray for each user where password = username.")
-@click.option('-t', "--timeout", required=False, type=int, help="Web request timeout threshold. default is 5 seconds.", default=5)
+@click.option('-t', "--timeout", required=False, type=int, help="Web request timeout threshold. Default is 5 seconds.", default=5)
 @click.option('-P', "--port", required=False, type=int, help="Port to connect to on the specified host. Default is 443.", default=443)
 @click.option('-f', "--fireprox", required=False, type=str, help="The url of the fireprox interface, if you are using fireprox.")
 @click.option('-d', "--domain", required=False, type=str, help="HTTP: Prepend DOMAIN\\ to usernames. SMB: Supply domain for smb connection.")
@@ -152,7 +152,7 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help', 'help'])
 @click.option("-j", "--jitter", required=False, type=int, help="Jitter time between requests in seconds.")
 @click.option("-jm", "--jitter-min", required=False, type=int, help="Minimum time between requests in seconds.")
 
-# Allows user to specify configuration file with -c
+# Allows user to specify configuration file with --config
 @click_config_file.configuration_option()
 
 def main(passlist, userlist, host, module, csvfile, attempts, interval, equal, timeout, port, fireprox, domain, analyze_results, jitter, jitter_min):
