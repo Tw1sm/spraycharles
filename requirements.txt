@@ -5,3 +5,6 @@ texttable
 requests_ntlm
 click
 click_config_file
+notifiers
+pymsteams
+discord_webhook

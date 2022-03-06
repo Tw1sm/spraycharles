@@ -19,7 +19,7 @@ import click_config_file
 # initalize colors object
 colors = analyze.Color()
 
-def args(passlist, userlist, host, module, path, csvfile, attempts, interval, equal, timeout, port, fireprox, domain, analyze_results, jitter, jitter_min):
+def args(passlist, userlist, host, module, path, csvfile, attempts, interval, equal, timeout, port, fireprox, domain, analyze_results, jitter, jitter_min, notify, webhook):
 
     # if any other module than Office365 is specified, make sure hostname was provided
     if module.lower() != 'office365' and not host:
@@ -73,13 +73,21 @@ def args(passlist, userlist, host, module, path, csvfile, attempts, interval, eq
         colors.color_print("Must set --path to use the NTLM authentication module", colors.red)
         exit()
 
-    return users, passwords, passlist, userlist, host, module, path, csvfile, attempts, interval, equal, timeout, port, fireprox, domain, analyze_results, jitter, jitter_min 
+    if notify and webhook is None:
+        colors.color_print("Must specify a Webhook URL when the notify flag is used.", colors.red)
+        exit()
 
-def check_sleep(login_attempts, attempts, interval, csvfile, analyze_results):
+    return users, passwords, passlist, userlist, host, module, path, csvfile, attempts, interval, equal, timeout, port, fireprox, domain, analyze_results, jitter, jitter_min, notify, webhook 
+
+def check_sleep(login_attempts, attempts, interval, csvfile, analyze_results, notify, webhook, host):
     if login_attempts == attempts:
         if analyze_results:
-            analyzer = analyze.Analyzer(csvfile)
-            analyzer.analyze()
+            if notify:
+                analyzer = analyze.Analyzer(csvfile, notify, webhook, host)
+                analyzer.analyze()
+            else:
+                analyzer = analyze.Analyzer(csvfile)
+                analyzer.analyze()
         else:
             print()
         colors.color_print(f'[*] Sleeping until {(datetime.datetime.now() + datetime.timedelta(minutes=interval)).strftime("%m-%d %H:%M:%S")}', colors.yellow)
@@ -157,11 +165,13 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help', 'help'])
 @click.option("--analyze", 'analyze_results', required=False, type=str, help="Run the results analyzer after each spray interval. False positives are more likely")
 @click.option("-j", "--jitter", required=False, type=int, help="Jitter time between requests in seconds.")
 @click.option("-jm", "--jitter-min", required=False, type=int, help="Minimum time between requests in seconds.")
+@click.option("-n", "--notify", required=False, type=click.Choice(['teams', 'slack', 'discord']), help="Enable notifications for Slack, MS Teams or Discord .")
+@click.option("-w", "--webhook", required=False, type=str, help="Webhook used for specified notification module")
 
 # Allows user to specify configuration file with --config
 @click_config_file.configuration_option()
 
-def main(passlist, userlist, host, module, path, csvfile, attempts, interval, equal, timeout, port, fireprox, domain, analyze_results, jitter, jitter_min):
+def main(passlist, userlist, host, module, path, csvfile, attempts, interval, equal, timeout, port, fireprox, domain, analyze_results, jitter, jitter_min, notify, webhook):
 
     """Low and slow password spraying tool..."""
 
@@ -174,7 +184,7 @@ def main(passlist, userlist, host, module, path, csvfile, attempts, interval, eq
 
 
     # Parsing and validating command line arguments with args() function
-    users, passwords, passfile, userfile, host, module, path, csvfile, attempts, interval, equal, timeout, port, fireprox, domain, analyze_results, jitter, jitter_min = args(passlist, userlist, host, module, path, csvfile, attempts, interval, equal, timeout, port, fireprox, domain, analyze_results, jitter, jitter_min)
+    users, passwords, passfile, userfile, host, module, path, csvfile, attempts, interval, equal, timeout, port, fireprox, domain, analyze_results, jitter, jitter_min, notify, webhook = args(passlist, userlist, host, module, path, csvfile, attempts, interval, equal, timeout, port, fireprox, domain, analyze_results, jitter, jitter_min, notify, webhook)
 
     # try to instantiate the specified module
     try:
@@ -270,7 +280,7 @@ def main(passlist, userlist, host, module, path, csvfile, attempts, interval, eq
     # spray using password file
     for password in passwords:
         # trigger sleep if attempts limit hit
-        login_attempts = check_sleep(login_attempts, attempts, interval, csvfile, analyze_results)
+        login_attempts = check_sleep(login_attempts, attempts, interval, csvfile, analyze_results, notify, webhook, host)
 
         # check if user/pass files have been updated and add new entries to current lists
         # this will let users add (but not remove) users/passwords into the spray as it runs
@@ -304,8 +314,12 @@ def main(passlist, userlist, host, module, path, csvfile, attempts, interval, eq
         login_attempts += 1
     
     # analyze the results to point out possible hits
-    analyzer = analyze.Analyzer(csvfile)
-    analyzer.analyze()
+    if notify:
+        analyzer = analyze.Analyzer(csvfile, notify, webhook, host)
+        analyzer.analyze()
+    else:
+        analyzer = analyze.Analyzer(csvfile)
+        analyzer.analyze()
     
 
 # stock boilerplate

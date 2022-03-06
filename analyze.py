@@ -4,6 +4,7 @@ import numpy
 import csv
 import argparse
 from texttable import Texttable
+from utils.notify import slack, teams, discord
 
 class Color:
     green = '\033[92m'
@@ -20,8 +21,11 @@ class Color:
 
 class Analyzer:
 
-    def __init__(self, resultsfile):
+    def __init__(self, resultsfile, notify, webhook, host):
         self.resultsfile = resultsfile
+        self.notify = notify
+        self.webhook = webhook
+        self.host = host
         self.colors = Color()
 
 
@@ -58,7 +62,17 @@ class Analyzer:
             table.header(['Username', 'Password', 'Message'])
             for x in success_indicies:
                 table.add_row([responses[x][2], responses[x][3], responses[x][1]])
+
+            if self.notify == 'slack':
+                slack(self.webhook, self.host)
+            elif self.notify == 'teams':
+                teams(self.webhook, self.host)
+            elif self.notify == 'discord':
+                teams(self.webhook, self.host)
+
             print(table.draw())
+
+
         else:
             self.colors.color_print('[-] No successful Office365 logins', self.colors.red)
 
@@ -68,6 +82,7 @@ class Analyzer:
         del responses[0]
 
         len_with_timeouts = len(responses)
+
         # remove lines with timeouts
         responses = [line for line in responses if line[2] != 'TIMEOUT']
         timeouts = len_with_timeouts - len(responses)
@@ -100,7 +115,17 @@ class Analyzer:
             table.header(['Username', 'Password', 'Resp Code' , 'Resp Length'])
             for x in len_indicies:
                 table.add_row([responses[x][0], responses[x][1], responses[x][2], responses[x][3]])
+            
+            if self.notify == 'slack':
+                slack(self.webhook, self.host)
+            elif self.notify == 'teams':
+                teams(self.webhook, self.host)
+            elif self.notify == 'discord':
+                teams(self.webhook, self.host)
+
             print(table.draw())
+
+
         else:
             self.colors.color_print('[-] No outliers found or not enough data to find statistical significance', self.colors.red)
 
@@ -118,7 +143,17 @@ class Analyzer:
             table.header(['Username', 'Password'])
             for x in successes:
                 table.add_row([x[0], x[1]])
+
+            if self.notify == 'slack':
+                slack(self.webhook, self.host)
+            elif self.notify == 'teams':
+                teams(self.webhook, self.host)
+            elif self.notify == 'discord':
+                teams(self.webhook, self.host)
+
             print(table.draw())
+
+
         else:
             self.colors.color_print('[-] No successful SMB logins', self.colors.red)
 
