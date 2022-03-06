@@ -42,11 +42,17 @@ class Analyzer:
             exit()
 
         if responses[0][1] == 'Message':
-            self.O365_analyze(responses)
+            success = self.O365_analyze(responses)
+            return success
+
         elif responses[0][2] == 'SMB Login':
-            self.smb_analyze(responses)
+            success = self.smb_analyze(responses)
+            return success
+
         else:
-            self.http_analyze(responses)
+            success = self.http_analyze(responses)
+            return success
+
         print()
 
 
@@ -55,6 +61,7 @@ class Analyzer:
         for line in responses:
             results.append(line[0])
         success_indicies = list(filter(lambda x: results[x] == 'Success', range(len(results))))
+
         # print out logins with outlying response lengths
         if len(success_indicies) > 0:
             self.colors.color_print('[+] Identified potential sussessful logins!\n', self.colors.green)
@@ -71,6 +78,8 @@ class Analyzer:
                 teams(self.webhook, self.host)
 
             print(table.draw())
+
+            return True
 
 
         else:
@@ -124,6 +133,7 @@ class Analyzer:
                 teams(self.webhook, self.host)
 
             print(table.draw())
+            return True
 
         else:
             self.colors.color_print('[-] No outliers found or not enough data to find statistical significance', self.colors.red)
@@ -151,6 +161,7 @@ class Analyzer:
                 teams(self.webhook, self.host)
 
             print(table.draw())
+            return True
 
 
         else:
