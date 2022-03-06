@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-import numpy 
 import csv
-import argparse
+import numpy 
+import click
 from texttable import Texttable
 from utils.notify import slack, teams, discord
 
@@ -125,7 +125,6 @@ class Analyzer:
 
             print(table.draw())
 
-
         else:
             self.colors.color_print('[-] No outliers found or not enough data to find statistical significance', self.colors.red)
 
@@ -157,13 +156,15 @@ class Analyzer:
         else:
             self.colors.color_print('[-] No successful SMB logins', self.colors.red)
 
+CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
+@click.command(no_args_is_help=True, context_settings=CONTEXT_SETTINGS)
+@click.argument('file', type=str, required=True)
+@click.option("-n", "--notify", required=False, type=click.Choice(['teams', 'slack', 'discord']),            help="Enable notifications for Slack, MS Teams or Discord.")
+@click.option("-w", "--webhook", required=False, type=str, default=False, help="Webhook used for specified   notification module")
+@click.option("-H", "--host", required=False, type=str, default=False, help="Target host associated with CSV file")
+def main(file, notify, webhook, host):
 
-def main():
-    parser = argparse.ArgumentParser(description='Reads output file from script and analyzes reponse lengths for successful login attempts')
-    parser.add_argument('input', type=str, help='script output file to analyze')
-    args = parser.parse_args()
-
-    analyzer = Analyzer(args.input)
+    analyzer = Analyzer(file, notify, webhook, host)
     analyzer.analyze()
 
 
