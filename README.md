@@ -126,6 +126,8 @@ webhook = 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXX
 
 Notifications sent to any of the providers will include the targeted hostname associated with the spraying job. This is expecially useful when spraying multiple targets at once using spraycharles. Note that unless you specify the --pause flag on execution, a notification will be issued following every spray iteration. 
 
+<br/>
+
 ### Examples ###
 Basic usage (Office365)
 ```
