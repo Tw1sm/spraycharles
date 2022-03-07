@@ -70,6 +70,7 @@ class Analyzer:
             for x in success_indicies:
                 table.add_row([responses[x][2], responses[x][3], responses[x][1]])
 
+            # Calling notifications if specified
             if self.notify == 'slack':
                 slack(self.webhook, self.host)
             elif self.notify == 'teams':
@@ -79,6 +80,7 @@ class Analyzer:
 
             print(table.draw())
 
+            # Returning true to indicate a successfully guessed credential
             return True
 
 
@@ -125,6 +127,7 @@ class Analyzer:
             for x in len_indicies:
                 table.add_row([responses[x][0], responses[x][1], responses[x][2], responses[x][3]])
             
+            # Calling notifications if specified
             if self.notify == 'slack':
                 slack(self.webhook, self.host)
             elif self.notify == 'teams':
@@ -133,6 +136,8 @@ class Analyzer:
                 teams(self.webhook, self.host)
 
             print(table.draw())
+
+            # Returning true to indicate a successfully guessed credential
             return True
 
         else:
@@ -153,6 +158,7 @@ class Analyzer:
             for x in successes:
                 table.add_row([x[0], x[1]])
 
+            # Calling notifications if specified
             if self.notify == 'slack':
                 slack(self.webhook, self.host)
             elif self.notify == 'teams':
@@ -161,6 +167,8 @@ class Analyzer:
                 teams(self.webhook, self.host)
 
             print(table.draw())
+
+            # Returning true to indicate a successfully guessed credential
             return True
 
 

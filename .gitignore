@@ -2,6 +2,7 @@ custom_passwords.txt
 output.csv
 config.ini
 logs/*
+TODO.md
 
 # Environments
 .env
