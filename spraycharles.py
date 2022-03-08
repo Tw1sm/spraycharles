@@ -175,7 +175,7 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help', 'help'])
 @click.option("-j", "--jitter", required=False, type=int, help="Jitter time between requests in seconds.")
 @click.option("-jm", "--jitter-min", required=False, type=int, help="Minimum time between requests in seconds.")
 @click.option("-n", "--notify", required=False, type=click.Choice(['teams', 'slack', 'discord']), help="Enable notifications for Slack, MS Teams or Discord.")
-@click.option("-w", "--webhook", required=False, type=str, default=False, help="Webhook used for specified notification module")
+@click.option("-w", "--webhook", required=False, type=str, help="Webhook used for specified notification module")
 
 # Allows user to specify configuration file with --config
 @click_config_file.configuration_option()
