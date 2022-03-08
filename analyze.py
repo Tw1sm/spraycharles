@@ -49,7 +49,7 @@ class Analyzer:
             console.print(
                 f"[!] Error reading from file: {self.resultsfile}", style="danger"
             )
-            print(e)
+            console.print_exception(show_locals=True)
             exit()
 
         # Calling analyze function based on responses content returned above

@@ -520,9 +520,9 @@ def main(
     ascii()
 
     console = Console()
-    spray_info = Table(show_header=False, show_footer=False, width=61)
+    spray_info = Table(show_header=False, show_footer=False, width=61, title=f'Module: {module.upper()}', title_justify='left', title_style='bold reverse')
 
-    spray_info.add_row("Module", f"{module.upper()}")
+    # spray_info.add_row("Module", f"{module.upper()}")
     spray_info.add_row("Target", f"{target.url}")
 
     if domain:

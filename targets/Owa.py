@@ -68,6 +68,7 @@ class Owa:
 
     # handle CSV out output headers. Can be customized per module
     def print_headers(self, csvfile):
+
         # print table headers
         print(
             "%-35s %-17s %-13s %-15s"
