@@ -15,6 +15,8 @@ import random
 from time import sleep
 import click
 import click_config_file
+from rich.console import Console
+from rich.table import Table
 
 # initalize colors object
 colors = analyze.Color()
@@ -373,7 +375,6 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help", "help"])
     "--webhook",
     required=False,
     type=str,
-    default=False,
     help="Webhook used for specified notification module",
 )
 
@@ -488,29 +489,30 @@ def main(
 
     ascii()
 
-    colors.color_print("[*] Target Module: ", colors.blue, "")
-    print(module)
+    console = Console()
+    spray_info = Table(show_header=False, show_footer=False, width=61)
 
-    colors.color_print("[*] Spraying: ", colors.blue, "")
-    print(target.url)
+    spray_info.add_row('Module', f'{module.upper()}')
+    spray_info.add_row('Target', f'{target.url}')
+
+    if domain:
+        spray_info.add_row('Domain', f'{domain}')
 
     if attempts:
-        colors.color_print("[*] Interval: ", colors.blue, "")
-        print(f"Attempting {attempts} login(s) per user every {interval} minutes")
+        spray_info.add_row('Interval', f'{interval} minutes')
+        spray_info.add_row('Attempts', f'{attempts} per interval')
 
     if jitter:
-        colors.color_print("[*] Jitter: ", colors.blue, "")
-        print(f"Random {jitter_min}-{jitter} second delay between each login attempt.")
+        spray_info.add_row('Jitter', f'{jitter_min}-{jitter} seconds')
 
-    if path:
-        colors.color_print("[*] NTLM Path: ", colors.blue, "")
-        print(f"/{path}")
+    if notify:
+        spray_info.add_row('Notify', f'True ({notify})')
 
-    colors.color_print("[*] Log of event times: ", colors.blue, "")
-    print(log_name)
+    spray_info.add_row('Logfile', f'{log_name}')
+    spray_info.add_row('Results', f'{csvfile}')
 
-    colors.color_print("[*] Log of spray results: ", colors.blue, "")
-    print(csvfile)
+    console.print(spray_info)
+
 
     print()
     input("Press enter to begin:")
