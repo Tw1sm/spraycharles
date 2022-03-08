@@ -3,6 +3,7 @@ output.csv
 config.ini
 logs/*
 TODO.md
+*.swp
 
 # Environments
 .env
