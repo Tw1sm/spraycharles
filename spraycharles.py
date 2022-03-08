@@ -245,6 +245,8 @@ def ascii():
 
 
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help", "help"])
+
+
 @click.command(no_args_is_help=True, context_settings=CONTEXT_SETTINGS)
 @click.option(
     "-p",
@@ -492,27 +494,26 @@ def main(
     console = Console()
     spray_info = Table(show_header=False, show_footer=False, width=61)
 
-    spray_info.add_row('Module', f'{module.upper()}')
-    spray_info.add_row('Target', f'{target.url}')
+    spray_info.add_row("Module", f"{module.upper()}")
+    spray_info.add_row("Target", f"{target.url}")
 
     if domain:
-        spray_info.add_row('Domain', f'{domain}')
+        spray_info.add_row("Domain", f"{domain}")
 
     if attempts:
-        spray_info.add_row('Interval', f'{interval} minutes')
-        spray_info.add_row('Attempts', f'{attempts} per interval')
+        spray_info.add_row("Interval", f"{interval} minutes")
+        spray_info.add_row("Attempts", f"{attempts} per interval")
 
     if jitter:
-        spray_info.add_row('Jitter', f'{jitter_min}-{jitter} seconds')
+        spray_info.add_row("Jitter", f"{jitter_min}-{jitter} seconds")
 
     if notify:
-        spray_info.add_row('Notify', f'True ({notify})')
+        spray_info.add_row("Notify", f"True ({notify})")
 
-    spray_info.add_row('Logfile', f'{log_name}')
-    spray_info.add_row('Results', f'{csvfile}')
+    spray_info.add_row("Logfile", f"{log_name}")
+    spray_info.add_row("Results", f"{csvfile}")
 
     console.print(spray_info)
-
 
     print()
     input("Press enter to begin:")
