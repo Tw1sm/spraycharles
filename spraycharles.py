@@ -17,9 +17,21 @@ import click
 import click_config_file
 from rich.console import Console
 from rich.table import Table
+from rich.theme import Theme
+from rich import print
+from rich.prompt import Confirm
 
-# initalize colors object
-colors = analyze.Color()
+# Defining theme
+custom_theme = Theme(
+    {
+        "info": "blue",
+        "good": "bold bright_green",
+        "warning": "bold yellow",
+        "danger": "bold bright_red",
+    }
+)
+
+console = Console(theme=custom_theme)
 
 
 def args(
@@ -46,17 +58,19 @@ def args(
 
     # if any other module than Office365 is specified, make sure hostname was provided
     if module.lower() != "office365" and not host:
-        colors.color_print(
+        console.print(
             "[!] Hostname (-H) of target (mail.targetdomain.com) is required for all modules execept Office365",
-            colors.red,
+            style="danger",
         )
         exit()
+
     elif module.lower() == "office365" and not host:
         host = "Office365"  # set host to Office365 for the logfile name
+
     elif module.lower() == "smb" and (timeout != 5 or fireprox or port != 443):
-        colors.color_print(
+        console.print(
             "[!] Fireprox (-f), port (-b) and timeout (-t) are incompatible when spraying over SMB",
-            colors.yellow,
+            style="warning",
         )
 
     # get usernames from file
@@ -64,8 +78,8 @@ def args(
         with open(userlist, "r") as f:
             users = f.read().splitlines()
     except Exception:
-        colors.color_print(
-            f"[!] Error reading usernames from file: {userlist}", colors.red
+        console.print(
+            f"[!] Error reading usernames from file: {userlist}", style="danger"
         )
         exit()
 
@@ -78,49 +92,59 @@ def args(
 
     # check that interval and attempt args are supplied together
     if interval and not attempts:
-        colors.color_print(
+        console.print(
             "[!] Number of login attempts per interval (-a) required with -i",
-            colors.red,
+            style="danger",
         )
         exit()
+
     elif not interval and attempts:
-        colors.color_print("[!] Minutes per interval (-i) required with -a", colors.red)
+        console.print("[!] Minutes per interval (-i) required with -a", style="danger")
         exit()
+
     elif not interval and not attempts and len(passwords) > 1:
-        colors.color_print(
+        console.print(
             "[*] You have not provided spray attempts/interval. This may lead to account lockouts",
-            colors.yellow,
+            style="warning",
         )
         print()
-        input("Press enter to continue anyways:")
+        Confirm.ask(
+            "[yellow]Press enter to continue anyways",
+            default=True,
+            show_choices=False,
+            show_default=False,
+        )
 
     # Check that jitter flags aren't supplied independently
     if jitter_min and not jitter:
-        colors.color_print(
-            "--jitter-min flag must be set with --jitter flag", colors.red
+        console.print(
+            "--jitter-min flag must be set with --jitter flag", style="danger"
         )
         exit()
+
     elif jitter and not jitter_min:
-        colors.color_print(
-            "--jitter flag must be set with --jitter-min flag", colors.red
+        console.print(
+            "[!] --jitter flag must be set with --jitter-min flag", style="danger"
         )
         exit()
+
     if jitter and jitter_min and jitter_min >= jitter:
-        colors.color_print(
-            "--jitter flag must be greater than --jitter-min flag", colors.red
+        console.print(
+            "[!] --jitter flag must be greater than --jitter-min flag", style="danger"
         )
         exit()
 
     # Making sure user set path variable for NTLM authentication module
     if module.lower() == "ntlm" and path is None:
-        colors.color_print(
-            "Must set --path to use the NTLM authentication module", colors.red
+        console.print(
+            "[!] Must set --path to use the NTLM authentication module", style="danger"
         )
         exit()
 
     if notify and webhook is None:
-        colors.color_print(
-            "Must specify a Webhook URL when the notify flag is used.", colors.red
+        console.print(
+            "[!] Must specify a Webhook URL when the notify flag is used.",
+            style="danger",
         )
         exit()
 
@@ -168,19 +192,24 @@ def check_sleep(
         # Pausing if specified by user before continuing with spray
         if success is True and pause:
             print()
-            colors.color_print(
-                "[+] Successful login potentially identified. Pausing...", colors.yellow
+            console.print(
+                f"[+] Successful login potentially identified. Pausing...", style="good"
             )
             print()
-            input("Press enter to continue:")
+            Confirm.ask(
+                "[blue]Press enter to continue",
+                default=True,
+                show_choices=False,
+                show_default=False,
+            )
 
             return 0
 
         else:
             print()
-            colors.color_print(
+            console.print(
                 f'[*] Sleeping until {(datetime.datetime.now() + datetime.timedelta(minutes=interval)).strftime("%m-%d %H:%M:%S")}',
-                colors.yellow,
+                style="warning",
             )
             time.sleep(interval * 60)
             print()
@@ -224,9 +253,7 @@ def login(target, username, password, csvfile):
     except requests.ConnectTimeout as e:
         target.print_response(response, csvfile, timeout=True)
     except (requests.ConnectionError, requests.ReadTimeout) as e:
-        colors.color_print(
-            "\n[!] Connection error - sleeping for 5 seconds", colors.red
-        )
+        console.print("\n[!] Connection error - sleeping for 5 seconds", style="danger")
         sleep(5)
         login(target, username, password, csvfile)
 
@@ -235,12 +262,12 @@ def ascii():
     print(
         f"""
 
-{colors.yellow} ___  ___  ___  ___  _ _ {colors.blue} ___  _ _  ___  ___  _    ___  ___ 
-{colors.yellow}/ __>| . \| . \| . || | |{colors.blue}|  _>| | || . || . \| |  | __>/ __>
-{colors.yellow}\__ \|  _/|   /|   |\   /{colors.blue}| <__|   ||   ||   /| |_ | _> \__ \\
-{colors.yellow}<___/|_|  |_\_\|_|_| |_| {colors.blue}`___/|_|_||_|_||_\_\|___||___><___/
+[yellow] ___  ___  ___  ___  _ _ [blue] ___  _ _  ___  ___  _    ___  ___ 
+[yellow]/ __>| . \| . \| . || | |[blue]|  _>| | || . || . \| |  | __>/ __>
+[yellow]\__ \|  _/|   /|   |\   /[blue]| <__|   ||   ||   /| |_ | _> \__ \\
+[yellow]<___/|_|  |_\_\|_|_| |_| [blue]`___/|_|_||_|_||_\_\|___||___><___/
                                                             
-{colors.end}"""
+"""
     )
 
 
@@ -474,8 +501,9 @@ def main(
             class_name = getattr(mod_name, module)
             target = class_name(host, port, timeout, fireprox)
     except AttributeError:
-        print(
-            f"[!] Error loading {module} module. {module} is spelled incorrectly or does not exist"
+        console.print(
+            f"[!] Error loading {module} module. {module} is spelled incorrectly or does not exist",
+            style="danger",
         )
         exit()
 
@@ -516,26 +544,31 @@ def main(
     console.print(spray_info)
 
     print()
-    input("Press enter to begin:")
+    Confirm.ask(
+        "[blue]Press enter to begin:",
+        default=True,
+        show_choices=False,
+        show_default=False,
+    )
+
     print()
 
     # if spraying over SMB, test connection to target and get host info
     if module == "Smb":
-        colors.color_print(f"[*] Initiaing SMB connection to {host} ...", colors.yellow)
+        console.print(f"[*] Initiaing SMB connection to {host} ...", style="warning")
         if target.get_conn():
-            colors.color_print(
+            console.print(
                 f'[+] Connected to {host} over {"SMBv1" if target.smbv1 else "SMBv3"}',
-                colors.green,
+                style="good",
             )
-            colors.color_print("\t[>] Hostname:  ", colors.blue, "")
-            print(target.hostname)
-            colors.color_print("\t[>] Domain:    ", colors.blue, "")
-            print(target.domain)
-            colors.color_print("\t[>] OS:        ", colors.blue, "")
-            print(target.os)
+
+            console.print(f"\t[>] Hostname: {target.hostname} ", style="info")
+            console.print(f"\t[>] Domain: {target.domain} ", style="info")
+            console.print(f"\t[>] OS: {target.os} ", style="info")
             print()
+
         else:
-            colors.color_print(f"[!] Failed to connect to {host} over SMB", colors.red)
+            console.print(f"[!] Failed to connect to {host} over SMB", style="danger")
             exit()
 
     target.print_headers(csvfile)
@@ -578,15 +611,15 @@ def main(
         new_passwords = check_file_contents(passfile, passwords)
 
         if len(new_users) > 0:
-            colors.color_print(
-                f"[>] Adding {len(new_users)} new users into the spray!", colors.blue
+            console.print(
+                f"[>] Adding {len(new_users)} new users into the spray!", style="info"
             )
             users.extend(new_users)
 
         if len(new_passwords) > 0:
-            colors.color_print(
+            console.print(
                 f"[>] Adding {len(new_passwords)} new passwords to the end of the spray!",
-                colors.blue,
+                style="info",
             )
             passwords.extend(new_passwords)
 
@@ -615,11 +648,16 @@ def main(
     # Pausing if specified by user before continuing with spray
     if success is True and pause:
         print()
-        colors.color_print(
-            "[+] Successful login potentially identified. Pausing...", colors.yellow
+        console.print(
+            f"[+] Successful login potentially identified. Pausing...", style="good"
         )
         print()
-        input("Press enter to continue:")
+        Confirm.ask(
+            "[blue]Press enter to continue",
+            default=True,
+            show_choices=False,
+            show_default=False,
+        )
 
 
 # stock boilerplate

@@ -5,36 +5,40 @@ import numpy
 import click
 from texttable import Texttable
 from utils.notify import slack, teams, discord
+from rich.console import Console
+from rich.table import Table
+from rich.theme import Theme
 
+# from rich import print
 
-# Defining colors for later use
-class Color:
-    green = "\033[92m"
-    yellow = "\033[93m"
-    blue = "\033[94m"
-    red = "\033[91m"
-    grey = "\033[37m"
-    end = "\033[0m"
+# Defining theme
+custom_theme = Theme(
+    {
+        "info": "blue",
+        "good": "bold bright_green",
+        "warning": "bold yellow",
+        "danger": "bold bright_red",
+    }
+)
 
-    def color_print(self, string, color, end="\n"):
-        print(color + string + self.end, end=end)
+console = Console(theme=custom_theme)
 
 
 class Analyzer:
-
     def __init__(self, resultsfile, notify, webhook, host):
         self.resultsfile = resultsfile
         self.notify = notify
         self.webhook = webhook
         self.host = host
-        self.colors = Color()
 
     # Performs basic reading a parsing for output csv file
     def analyze(self):
         try:
             with open(self.resultsfile, newline="") as resultsfile:
                 print()
-                print("[*] Reading spray data from CSV...")
+                print("")
+                console.print("[*] Reading spray data from CSV...", style="info")
+
                 reader = csv.reader(
                     resultsfile,
                     delimiter=",",
@@ -42,8 +46,8 @@ class Analyzer:
                 responses = list(reader)
 
         except Exception as e:
-            self.colors.color_print(
-                "[!] Error reading from file: %s" % (self.resultsfile), self.colors.red
+            console.print(
+                f"[!] Error reading from file: {self.resultsfile}", style="danger"
             )
             print(e)
             exit()
@@ -74,9 +78,7 @@ class Analyzer:
 
         # print out logins with outlying response lengths
         if len(success_indicies) > 0:
-            self.colors.color_print(
-                "[+] Identified potential sussessful logins!\n", self.colors.green
-            )
+            console.print("[+] Identified potential sussessful logins!\n", style="good")
             table = Texttable(0)
             table.header(["Username", "Password", "Message"])
             for x in success_indicies:
@@ -96,9 +98,7 @@ class Analyzer:
             return True
 
         else:
-            self.colors.color_print(
-                "[-] No successful Office365 logins", self.colors.red
-            )
+            console.print("[!] No successful Office365 logins", style="danger")
 
     def http_analyze(self, responses):
 
@@ -117,13 +117,16 @@ class Analyzer:
         for indx, line in enumerate(responses):
             response_lengths.append(int(line[3]))
 
-        print("[*] Calculating mean and standard deviation of response lengths...")
+        console.print(
+            "[*] Calculating mean and standard deviation of response lengths...",
+            style="info",
+        )
 
         # find outlying response lengths
         length_elements = numpy.array(response_lengths)
         length_mean = numpy.mean(length_elements, axis=0)
         length_sd = numpy.std(length_elements, axis=0)
-        print("[*] Checking for outliers...")
+        console.print("[*] Checking for outliers...", style="info")
         length_outliers = [
             x
             for x in length_elements
@@ -139,9 +142,7 @@ class Analyzer:
 
         # print out logins with outlying response lengths
         if len(len_indicies) > 0:
-            self.colors.color_print(
-                "[+] Identified potential sussessful logins!\n", self.colors.green
-            )
+            console.print("[+] Identified potential sussessful logins!\n", style="good")
             table = Texttable(0)
             table.header(["Username", "Password", "Resp Code", "Resp Length"])
             for x in len_indicies:
@@ -163,9 +164,9 @@ class Analyzer:
             return True
 
         else:
-            self.colors.color_print(
-                "[-] No outliers found or not enough data to find statistical significance",
-                self.colors.red,
+            console.print(
+                "[!] No outliers found or not enough data to find statistical significance ",
+                style="danger",
             )
 
     # check for smb success not HTTP
@@ -176,9 +177,8 @@ class Analyzer:
                 successes.append(line)
 
         if len(successes) > 0:
-            self.colors.color_print(
-                "[+] Identified sussessful SMB logins!\n", self.colors.green
-            )
+            console.print("[+] Identified potential sussessful logins!\n", style="good")
+
             table = Texttable(0)
             table.header(["Username", "Password"])
             for x in successes:
@@ -198,10 +198,12 @@ class Analyzer:
             return True
 
         else:
-            self.colors.color_print("[-] No successful SMB logins", self.colors.red)
+            console.print("[!] No successful SMB logins", style="danger")
 
 
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
+
+
 @click.command(no_args_is_help=True, context_settings=CONTEXT_SETTINGS)
 @click.argument("file", type=str, required=True)
 @click.option(
@@ -211,7 +213,6 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
     type=click.Choice(["teams", "slack", "discord"]),
     help="Enable notifications for Slack, MS Teams or Discord.",
 )
-
 @click.option(
     "-w",
     "--webhook",
@@ -220,7 +221,6 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
     default=False,
     help="Webhook used for specified   notification module",
 )
-
 @click.option(
     "-H",
     "--host",
@@ -229,7 +229,6 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
     default=False,
     help="Target host associated with CSV file",
 )
-
 def main(file, notify, webhook, host):
 
     analyzer = Analyzer(file, notify, webhook, host)
