@@ -85,19 +85,24 @@ def check_sleep(login_attempts, attempts, interval, csvfile, analyze_results, no
             analyzer = analyze.Analyzer(csvfile, notify, webhook, host)
             success = analyzer.analyze()
 
-            # Pausing if specified by user before continuing with spray
-            if success is True and pause:
-                print()
-                colors.color_print('[+] Successful login potentially identified. Pausing...', colors.yellow)
-                print()
-                input('Press enter to continue:')
+        # Pausing if specified by user before continuing with spray
+        if success is True and pause:
+            print()
+            colors.color_print('[+] Successful login potentially identified. Pausing...', colors.yellow)
+            print()
+            input('Press enter to continue:')
+
+            return 0
+
         else:
             print()
             colors.color_print(f'[*] Sleeping until {(datetime.datetime.now() + datetime.timedelta(minutes=interval)).strftime("%m-%d %H:%M:%S")}', colors.yellow)
             time.sleep(interval * 60)
             print()
+
             return 0
     else:
+
         return login_attempts
 
 
