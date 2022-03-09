@@ -64,35 +64,43 @@ Usage: spraycharles.py [OPTIONS]
   Low and slow password spraying tool...
 
 Options:
-  -p, --passwords TEXT       Filepath of the passwords list or a single
-                             password to spray.  [required]
-  -u, --usernames TEXT       Filepath of the usernames list.  [required]
-  -H, --host TEXT            Host to password spray (ip or hostname). Can by
-                             anything when using Office365 module - only used
-                             for logfile name.
-  -m, --module TEXT          Module corresponding to target host.  [required]
-  --path TEXT                NTLM authentication endpoint. Ex: rpc or ews
-  -o, --output TEXT          Name and path of output csv where attempts will
-                             be logged.
-  -a, --attempts INTEGER     Number of logins submissions per interval (for
-                             each user).
-  -i, --interval INTEGER     Minutes inbetween login intervals.
-  -e, --equal INTEGER        Does 1 spray for each user where password =
-                             username.
-  -t, --timeout INTEGER      Web request timeout threshold. Default is 5
-                             seconds.
-  -P, --port INTEGER         Port to connect to on the specified host. Default
-                             is 443.
-  -f, --fireprox TEXT        The url of the fireprox interface, if you are
-                             using fireprox.
-  -d, --domain TEXT          HTTP: Prepend DOMAIN\ to usernames. SMB: Supply
-                             domain for smb connection.
-  --analyze TEXT             Run the results analyzer after each spray
-                             interval. False positives are more likely
-  -j, --jitter INTEGER       Jitter time between requests in seconds.
-  -jm, --jitter-min INTEGER  Minimum time between requests in seconds.
-  --config FILE              Read configuration from FILE.
-  -h, --help                 Show this message and exit.
+  -p, --passwords TEXT            Filepath of the passwords list or a single
+                                  password to spray.  [required]
+  -u, --usernames TEXT            Filepath of the usernames list.  [required]
+  -H, --host TEXT                 Host to password spray (ip or hostname). Can
+                                  by anything when using Office365 module -
+                                  only used for logfile name.
+  -m, --module TEXT               Module corresponding to target host.
+                                  [required]
+  --path TEXT                     NTLM authentication endpoint. Ex: rpc or ews
+  -o, --output TEXT               Name and path of output csv where attempts
+                                  will be logged.
+  -a, --attempts INTEGER          Number of logins submissions per interval
+                                  (for each user).
+  -i, --interval INTEGER          Minutes inbetween login intervals.
+  -e, --equal INTEGER             Does 1 spray for each user where password =
+                                  username.
+  -t, --timeout INTEGER           Web request timeout threshold. Default is 5
+                                  seconds.
+  -P, --port INTEGER              Port to connect to on the specified host.
+                                  Default is 443.
+  -f, --fireprox TEXT             The url of the fireprox interface, if you
+                                  are using fireprox.
+  -d, --domain TEXT               HTTP: Prepend DOMAIN\ to usernames. SMB:
+                                  Supply domain for smb connection.
+  --analyze                       Run the results analyzer after each spray
+                                  interval. False positives are more likely
+  --pause                         Pause the spray following a potentially
+                                  successful login
+  -j, --jitter INTEGER            Jitter time between requests in seconds.
+  -jm, --jitter-min INTEGER       Minimum time between requests in seconds.
+  -n, --notify [teams|slack|discord]
+                                  Enable notifications for Slack, MS Teams or
+                                  Discord.
+  -w, --webhook TEXT              Webhook used for specified notification
+                                  module
+  --config FILE                   Read configuration from FILE.
+  -h, --help                      Show this message and exit.
 ```
 
 #### Config File 
@@ -118,6 +126,21 @@ Note: Due to internal script logic the following variables must be defined diffe
 * usernames = userlist
 * passwords = passlist
 * output = csvfile
+
+<br/>
+
+
+### Notifications ###
+Spraycharles has the ability to issue notifications to Discord, Slack and Microsoft Teams following a potentially successful login attempt. This list of notification providers can augmented using the utils/notify.py script. For any of the potential notification agents, you must specify its name and a webhook URL. 
+
+It is best to specify this information using the configuration file to keep your command shorter:
+
+```
+notify = 'slack'
+webhook = 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'
+```
+
+Notifications sent to any of the providers will include the targeted hostname associated with the spraying job. This is expecially useful when spraying multiple targets at once using spraycharles. Note that unless you specify the --pause flag on execution, a notification will be issued following every spray iteration. 
 
 <br/>
 

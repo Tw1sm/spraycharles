@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
-import numpy 
 import csv
-import argparse
+import numpy 
+import click
 from texttable import Texttable
+from utils.notify import slack, teams, discord
 
 class Color:
     green = '\033[92m'
@@ -20,8 +21,11 @@ class Color:
 
 class Analyzer:
 
-    def __init__(self, resultsfile):
+    def __init__(self, resultsfile, notify, webhook, host):
         self.resultsfile = resultsfile
+        self.notify = notify
+        self.webhook = webhook
+        self.host = host
         self.colors = Color()
 
 
@@ -38,11 +42,17 @@ class Analyzer:
             exit()
 
         if responses[0][1] == 'Message':
-            self.O365_analyze(responses)
+            success = self.O365_analyze(responses)
+            return success
+
         elif responses[0][2] == 'SMB Login':
-            self.smb_analyze(responses)
+            success = self.smb_analyze(responses)
+            return success
+
         else:
-            self.http_analyze(responses)
+            success = self.http_analyze(responses)
+            return success
+
         print()
 
 
@@ -51,6 +61,7 @@ class Analyzer:
         for line in responses:
             results.append(line[0])
         success_indicies = list(filter(lambda x: results[x] == 'Success', range(len(results))))
+
         # print out logins with outlying response lengths
         if len(success_indicies) > 0:
             self.colors.color_print('[+] Identified potential sussessful logins!\n', self.colors.green)
@@ -58,7 +69,21 @@ class Analyzer:
             table.header(['Username', 'Password', 'Message'])
             for x in success_indicies:
                 table.add_row([responses[x][2], responses[x][3], responses[x][1]])
+
+            # Calling notifications if specified
+            if self.notify == 'slack':
+                slack(self.webhook, self.host)
+            elif self.notify == 'teams':
+                teams(self.webhook, self.host)
+            elif self.notify == 'discord':
+                teams(self.webhook, self.host)
+
             print(table.draw())
+
+            # Returning true to indicate a successfully guessed credential
+            return True
+
+
         else:
             self.colors.color_print('[-] No successful Office365 logins', self.colors.red)
 
@@ -68,6 +93,7 @@ class Analyzer:
         del responses[0]
 
         len_with_timeouts = len(responses)
+
         # remove lines with timeouts
         responses = [line for line in responses if line[2] != 'TIMEOUT']
         timeouts = len_with_timeouts - len(responses)
@@ -100,7 +126,20 @@ class Analyzer:
             table.header(['Username', 'Password', 'Resp Code' , 'Resp Length'])
             for x in len_indicies:
                 table.add_row([responses[x][0], responses[x][1], responses[x][2], responses[x][3]])
+            
+            # Calling notifications if specified
+            if self.notify == 'slack':
+                slack(self.webhook, self.host)
+            elif self.notify == 'teams':
+                teams(self.webhook, self.host)
+            elif self.notify == 'discord':
+                teams(self.webhook, self.host)
+
             print(table.draw())
+
+            # Returning true to indicate a successfully guessed credential
+            return True
+
         else:
             self.colors.color_print('[-] No outliers found or not enough data to find statistical significance', self.colors.red)
 
@@ -118,17 +157,33 @@ class Analyzer:
             table.header(['Username', 'Password'])
             for x in successes:
                 table.add_row([x[0], x[1]])
+
+            # Calling notifications if specified
+            if self.notify == 'slack':
+                slack(self.webhook, self.host)
+            elif self.notify == 'teams':
+                teams(self.webhook, self.host)
+            elif self.notify == 'discord':
+                teams(self.webhook, self.host)
+
             print(table.draw())
+
+            # Returning true to indicate a successfully guessed credential
+            return True
+
+
         else:
             self.colors.color_print('[-] No successful SMB logins', self.colors.red)
 
+CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
+@click.command(no_args_is_help=True, context_settings=CONTEXT_SETTINGS)
+@click.argument('file', type=str, required=True)
+@click.option("-n", "--notify", required=False, type=click.Choice(['teams', 'slack', 'discord']),            help="Enable notifications for Slack, MS Teams or Discord.")
+@click.option("-w", "--webhook", required=False, type=str, default=False, help="Webhook used for specified   notification module")
+@click.option("-H", "--host", required=False, type=str, default=False, help="Target host associated with CSV file")
+def main(file, notify, webhook, host):
 
-def main():
-    parser = argparse.ArgumentParser(description='Reads output file from script and analyzes reponse lengths for successful login attempts')
-    parser.add_argument('input', type=str, help='script output file to analyze')
-    args = parser.parse_args()
-
-    analyzer = Analyzer(args.input)
+    analyzer = Analyzer(file, notify, webhook, host)
     analyzer.analyze()
 
 
