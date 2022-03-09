@@ -79,31 +79,29 @@ def args(passlist, userlist, host, module, path, csvfile, attempts, interval, eq
 
     return users, passwords, passlist, userlist, host, module, path, csvfile, attempts, interval, equal, timeout, port, fireprox, domain, analyze_results, jitter, jitter_min, notify, webhook, pause
 
-def check_sleep(login_attempts, attempts, interval, csvfile, analyze_results, notify, webhook, host, pause):
+def check_sleep(login_attempts, attempts, interval, csvfile, analyze_results, notify, webhook, host, pause, total_hits):
     if login_attempts == attempts:
         if analyze_results:
-            analyzer = analyze.Analyzer(csvfile, notify, webhook, host)
-            success = analyzer.analyze()
+            analyzer = analyze.Analyzer(csvfile, notify, webhook, host, total_hits)
+            new_hit_total = analyzer.analyze()
 
-        # Pausing if specified by user before continuing with spray
-        if success is True and pause:
-            print()
-            colors.color_print('[+] Successful login potentially identified. Pausing...', colors.yellow)
-            print()
-            input('Press enter to continue:')
-
-            return 0
-
+            # Pausing if specified by user before continuing with spray
+            if new_hit_total > total_hits and pause:
+                print()
+                colors.color_print('[+] Successful login potentially identified. Pausing...', colors.yellow)
+                print()
+                input('Press enter to continue:')
+                print()
         else:
+            new_hit_total = 0 # just set to zero since results aren't being analyzed mid-spray
             print()
-            colors.color_print(f'[*] Sleeping until {(datetime.datetime.now() + datetime.timedelta(minutes=interval)).strftime("%m-%d %H:%M:%S")}', colors.yellow)
-            time.sleep(interval * 60)
-            print()
-
-            return 0
+            
+        colors.color_print(f'[*] Sleeping until {(datetime.datetime.now() + datetime.timedelta(minutes=interval)).strftime("%m-%d %H:%M:%S")}', colors.yellow)
+        time.sleep(interval * 60)
+        print()
+        return 0, new_hit_total
     else:
-
-        return login_attempts
+        return login_attempts, total_hits
 
 
 
@@ -194,6 +192,9 @@ def main(passlist, userlist, host, module, path, csvfile, attempts, interval, eq
 
     # Parsing and validating command line arguments with args() function
     users, passwords, passfile, userfile, host, module, path, csvfile, attempts, interval, equal, timeout, port, fireprox, domain, analyze_results, jitter, jitter_min, notify, webhook, pause = args(passlist, userlist, host, module, path, csvfile, attempts, interval, equal, timeout, port, fireprox, domain, analyze_results, jitter, jitter_min, notify, webhook, pause)
+
+    # Counter for potential successful logins idenitified
+    total_hits = 0
 
     # try to instantiate the specified module
     try:
@@ -289,7 +290,7 @@ def main(passlist, userlist, host, module, path, csvfile, attempts, interval, eq
     # spray using password file
     for password in passwords:
         # trigger sleep if attempts limit hit
-        login_attempts = check_sleep(login_attempts, attempts, interval, csvfile, analyze_results, notify, webhook, host, pause)
+        login_attempts, total_hits = check_sleep(login_attempts, attempts, interval, csvfile, analyze_results, notify, webhook, host, pause, total_hits)
 
         # check if user/pass files have been updated and add new entries to current lists
         # this will let users add (but not remove) users/passwords into the spray as it runs
@@ -323,7 +324,7 @@ def main(passlist, userlist, host, module, path, csvfile, attempts, interval, eq
         login_attempts += 1
     
     # analyze the results to point out possible hits
-    analyzer = analyze.Analyzer(csvfile, notify, webhook, host)
+    analyzer = analyze.Analyzer(csvfile, notify, webhook, host, total_hits)
     success = analyzer.analyze()
 
     # Pausing if specified by user before continuing with spray

@@ -21,11 +21,12 @@ class Color:
 
 class Analyzer:
 
-    def __init__(self, resultsfile, notify, webhook, host):
+    def __init__(self, resultsfile, notify, webhook, host, hit_count=0):
         self.resultsfile = resultsfile
         self.notify = notify
         self.webhook = webhook
         self.host = host
+        self.hit_count = hit_count
         self.colors = Color()
 
 
@@ -42,18 +43,11 @@ class Analyzer:
             exit()
 
         if responses[0][1] == 'Message':
-            success = self.O365_analyze(responses)
-            return success
-
+            return self.O365_analyze(responses)
         elif responses[0][2] == 'SMB Login':
-            success = self.smb_analyze(responses)
-            return success
-
+            return self.smb_analyze(responses)
         else:
-            success = self.http_analyze(responses)
-            return success
-
-        print()
+            return self.http_analyze(responses)
 
 
     def O365_analyze(self, responses):
@@ -70,22 +64,15 @@ class Analyzer:
             for x in success_indicies:
                 table.add_row([responses[x][2], responses[x][3], responses[x][1]])
 
-            # Calling notifications if specified
-            if self.notify == 'slack':
-                slack(self.webhook, self.host)
-            elif self.notify == 'teams':
-                teams(self.webhook, self.host)
-            elif self.notify == 'discord':
-                teams(self.webhook, self.host)
-
+            self.send_notification(len(success_indicies))
+            
             print(table.draw())
 
             # Returning true to indicate a successfully guessed credential
-            return True
-
-
+            return len(success_indicies)
         else:
             self.colors.color_print('[-] No successful Office365 logins', self.colors.red)
+            return 0
 
 
     def http_analyze(self, responses):
@@ -127,21 +114,17 @@ class Analyzer:
             for x in len_indicies:
                 table.add_row([responses[x][0], responses[x][1], responses[x][2], responses[x][3]])
             
-            # Calling notifications if specified
-            if self.notify == 'slack':
-                slack(self.webhook, self.host)
-            elif self.notify == 'teams':
-                teams(self.webhook, self.host)
-            elif self.notify == 'discord':
-                teams(self.webhook, self.host)
+            self.send_notification(len(len_indicies))
 
             print(table.draw())
+            print()
 
             # Returning true to indicate a successfully guessed credential
-            return True
-
+            return len(len_indicies)
         else:
             self.colors.color_print('[-] No outliers found or not enough data to find statistical significance', self.colors.red)
+            print()
+            return 0
 
 
     # check for smb success not HTTP
@@ -158,6 +141,22 @@ class Analyzer:
             for x in successes:
                 table.add_row([x[0], x[1]])
 
+            self.send_notification(len(successes))
+
+            print(table.draw())
+            print()
+
+            # Returning true to indicate a successfully guessed credential
+            return len(successes)
+        else:
+            self.colors.color_print('[-] No successful SMB logins', self.colors.red)
+            print()
+            return 0
+
+
+    def send_notification(self, hit_total):
+        # we'll only send notifications if NEW successes are found
+        if hit_total > self.hit_count:
             # Calling notifications if specified
             if self.notify == 'slack':
                 slack(self.webhook, self.host)
@@ -165,15 +164,6 @@ class Analyzer:
                 teams(self.webhook, self.host)
             elif self.notify == 'discord':
                 teams(self.webhook, self.host)
-
-            print(table.draw())
-
-            # Returning true to indicate a successfully guessed credential
-            return True
-
-
-        else:
-            self.colors.color_print('[-] No successful SMB logins', self.colors.red)
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.command(no_args_is_help=True, context_settings=CONTEXT_SETTINGS)
