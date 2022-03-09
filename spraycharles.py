@@ -16,6 +16,8 @@ from time import sleep
 import click 
 import click_config_file
 
+VERSION = 1.0
+
 # initalize colors object
 colors = analyze.Color()
 
@@ -150,7 +152,8 @@ def ascii():
 {colors.yellow}/ __>| . \| . \| . || | |{colors.blue}|  _>| | || . || . \| |  | __>/ __>
 {colors.yellow}\__ \|  _/|   /|   |\   /{colors.blue}| <__|   ||   ||   /| |_ | _> \__ \\
 {colors.yellow}<___/|_|  |_\_\|_|_| |_| {colors.blue}`___/|_|_||_|_||_\_\|___||___><___/
-                                                            
+
+{colors.yellow}                        v{colors.blue}{VERSION}                          
 {colors.end}''')
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help', 'help'])
