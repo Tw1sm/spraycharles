@@ -12,6 +12,7 @@ Associated [blog post](https://www.sprocketsecurity.com/blog/how-to-bypass-mfa-a
   - [From GitHub](#from-github)
 - [Usage](#usage)
   - [Config File](#config-file)
+  - [Notifications](#notifications)
   - [Examples](#examples)
 - [Utilities](#utilities)
   - [Generating Custom Spray Lists](#generating-custom-spray-lists)
@@ -115,7 +116,7 @@ csvfile = 'mail.acme.com.csv'
 module = 'owa'
 host = 'mail.acme.com'
 domain = 'ACME'
-analyze = 'True'
+analyze_results = 'True'
 attempts = '1'
 interval = '30'
 timeout = '25'
@@ -126,6 +127,7 @@ Note: Due to internal script logic the following variables must be defined diffe
 * usernames = userlist
 * passwords = passlist
 * output = csvfile
+* analyze = analyze_results
 
 <br/>
 
