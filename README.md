@@ -4,7 +4,6 @@ spraycharles
 Low and slow password spraying tool, designed to spray on an interval over a long period of time.
 
 
-
 ## Install ##
 
 #### Using pipenv
@@ -44,44 +43,65 @@ $ ./spraycharles.py -h
 
 ## Usage ##
 ```
-usage: spraycharles.py [-h] -p PASSLIST [-H HOST] -m MODULE [-o CSVFILE] -u
-                       USERLIST [-a ATTEMPTS] [-i INTERVAL] [-e] [-t TIMEOUT]
-                       [-b PORT] [-f FIREPROX] [-d DOMAIN]
+Usage: spraycharles.py [OPTIONS]
 
-optional arguments:
-  -h, --help            show this help message and exit
-  -p PASSLIST, --passwords PASSLIST
-                        filepath of the passwords list or a single password to
-                        spray
-  -H HOST, --host HOST  host to password spray (ip or hostname). Can by
-                        anything when using Office365 module - only used for
-                        logfile name.
-  -m MODULE, --module MODULE
-                        module corresponding to target host
-  -o CSVFILE, --output CSVFILE
-                        name and path of output csv where attempts will be
-                        logged
-  -u USERLIST, --usernames USERLIST
-                        filepath of the usernames list
-  -a ATTEMPTS, --attempts ATTEMPTS
-                        number of logins submissions per interval (for each
-                        user)
-  -i INTERVAL, --interval INTERVAL
-                        minutes inbetween login intervals
-  -e, --equal           does 1 spray for each user where password = username
-  -t TIMEOUT, --timeout TIMEOUT
-                        web request timeout threshold. default is 5 seconds
-  -b PORT, --port PORT  port to connect to on the specified host. Default 443.
-  -f FIREPROX, --fireprox FIREPROX
-                        the url of the fireprox interface, if you are using
-                        fireprox.
-  -d DOMAIN, --domain DOMAIN
-                        HTTP: Prepend DOMAIN\ to usernames. SMB: Specify
-                        domain for smb connection
-  --jitter JITTER         Jitter time between requests in seconds.
-  --jitter-min JITTER-MIN Minimum time between requests in seconds.
-   
+  Low and slow password spraying tool...
+
+Options:
+  -p, --passwords TEXT       Filepath of the passwords list or a single
+                             password to spray.  [required]
+  -u, --usernames TEXT       Filepath of the usernames list.  [required]
+  -H, --host TEXT            Host to password spray (ip or hostname). Can by
+                             anything when using Office365 module - only used
+                             for logfile name.
+  -m, --module TEXT          Module corresponding to target host.  [required]
+  --path TEXT                NTLM authentication endpoint. Ex: rpc or ews
+  -o, --output TEXT          Name and path of output csv where attempts will
+                             be logged.
+  -a, --attempts INTEGER     Number of logins submissions per interval (for
+                             each user).
+  -i, --interval INTEGER     Minutes inbetween login intervals.
+  -e, --equal INTEGER        Does 1 spray for each user where password =
+                             username.
+  -t, --timeout INTEGER      Web request timeout threshold. Default is 5
+                             seconds.
+  -P, --port INTEGER         Port to connect to on the specified host. Default
+                             is 443.
+  -f, --fireprox TEXT        The url of the fireprox interface, if you are
+                             using fireprox.
+  -d, --domain TEXT          HTTP: Prepend DOMAIN\ to usernames. SMB: Supply
+                             domain for smb connection.
+  --analyze TEXT             Run the results analyzer after each spray
+                             interval. False positives are more likely
+  -j, --jitter INTEGER       Jitter time between requests in seconds.
+  -jm, --jitter-min INTEGER  Minimum time between requests in seconds.
+  --config FILE              Read configuration from FILE.
+  -h, --help                 Show this message and exit.
 ```
+
+#### Config File 
+It is possible to pre-populate command line arguments form a configuration file using the --config argument.
+
+An example configuration file is listed below:
+
+```
+userlist = '/tmp/users.txt'
+passlist = '/tmp/passwords.txt'
+csvfile = 'mail.acme.com.csv'
+module = 'owa'
+host = 'mail.acme.com'
+domain = 'ACME'
+analyze = 'True'
+attempts = '1'
+interval = '30'
+timeout = '25'
+```
+
+Note: Due to internal script logic the following variables must be defined differently than they would be via CLI:
+
+* usernames = userlist
+* passwords = passlist
+* output = csvfile
 
 <br/>
 
@@ -109,10 +129,24 @@ Spray host over SMB with 2 attempts per user every hour
 
 <br/>
 
-### Generating Custom Spray Lists ###
+## Utilities ##
+Spraycharles is packaged with some additional utilities to assist with spraying efforts.
+<br/>
+
+#### Generating Custom Spray Lists 
 make_list.py will generate a password list based off the specifications provided in list_elements.json
 ```
-./make_list.py
+./utils/make_list.py
+```
+
+<br/>
+
+#### Extracting Domain from NTLM over HTTP and SMB 
+ntlm_challenger.py will extract the internal domain from both NTLM over HTTP and SMB services using a command similar to the one listed below.
+
+
+```
+./utils/ntlm_challenger.py https://mail.acme.com/ews
 ```
 
 <br/>

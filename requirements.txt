@@ -3,3 +3,5 @@ impacket
 requests
 texttable
 requests_ntlm
+click
+click_config_file

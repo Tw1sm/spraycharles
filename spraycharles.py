@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import time
-import argparse
 import datetime
 import json
 import os
@@ -14,83 +13,67 @@ import requests
 import warnings
 import random
 from time import sleep
-
+import click 
+import click_config_file
 
 # initalize colors object
 colors = analyze.Color()
 
-def args():
-    parser = argparse.ArgumentParser(description="Low and slow password spraying tool", formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("-p", "--passwords", type=str, dest="passlist", help="filepath of the passwords list or a single password to spray", required=True)
-    parser.add_argument("-H", "--host", type=str, dest="host", help="host to password spray (ip or hostname). Can by anything when using Office365 module - only used for logfile name.", required=False)
-    parser.add_argument("-m", "--module", type=str, dest="module", help="module corresponding to target host", required=True)
-    parser.add_argument("-o", "--output", type=str, dest="csvfile", help="name and path of output csv where attempts will be logged", default="output.csv", required=False)
-    parser.add_argument("-u", "--usernames", type=str, dest="userlist", help="filepath of the usernames list", required=True)
-    parser.add_argument("-a", "--attempts", type=int, dest="attempts", help="number of logins submissions per interval (for each user)", required=False)
-    parser.add_argument("-i", "--interval", type=int, dest="interval", help="minutes inbetween login intervals", required=False)
-    parser.add_argument("-e", "--equal", action="store_true", dest="equal", help="does 1 spray for each user where password = username", required=False)
-    parser.add_argument("-t", "--timeout", type=int, dest="timeout", help="web request timeout threshold. default is 5 seconds", default=5, required=False)
-    parser.add_argument("-b", "--port", type=int, dest="port", help="port to connect to on the specified host. Default 443.", default=443, required=False)
-    parser.add_argument("-f", "--fireprox", type=str, dest="fireprox", help="the url of the fireprox interface, if you are using fireprox.", required=False)
-    parser.add_argument("-d", "--domain", type=str, dest="domain", help="HTTP: Prepend DOMAIN\\ to usernames. SMB: Supply domain for smb connection", required=False)
-    parser.add_argument("--analyze", action="store_true", dest="analyze_results", help="Run the results analyzer after each spray interval. False positives are more likely", required=False)
-    parser.add_argument("--jitter", type=int, dest="jitter", help="Jitter time between requests in seconds.", required=False)
-    parser.add_argument("--jitter-min", type=int, dest="jitter_min", help="Minimum time between requests in seconds.", required=False)
-
-
-    args = parser.parse_args()
+def args(passlist, userlist, host, module, path, csvfile, attempts, interval, equal, timeout, port, fireprox, domain, analyze_results, jitter, jitter_min):
 
     # if any other module than Office365 is specified, make sure hostname was provided
-    if args.module.lower() != 'office365' and not args.host:
+    if module.lower() != 'office365' and not host:
         colors.color_print('[!] Hostname (-H) of target (mail.targetdomain.com) is required for all modules execept Office365', colors.red)
         exit()
-    elif args.module.lower() == 'office365' and not args.host:
-        args.host = "Office365" # set host to Office365 for the logfile name
-    elif args.module.lower() == 'smb' and (args.timeout != 5 or args.fireprox or args.port != 443):
+    elif module.lower() == 'office365' and not host:
+        host = "Office365" # set host to Office365 for the logfile name
+    elif module.lower() == 'smb' and (timeout != 5 or fireprox or port != 443):
         colors.color_print('[!] Fireprox (-f), port (-b) and timeout (-t) are incompatible when spraying over SMB', colors.yellow)
 
     # get usernames from file
     try:
-        with open(args.userlist, 'r') as f:
+        with open(userlist, 'r') as f:
             users = f.read().splitlines()
     except Exception:
-        colors.color_print(f'[!] Error reading usernames from file: {args.userlist}', colors.red)
+        colors.color_print(f'[!] Error reading usernames from file: {userlist}', colors.red)
         exit()
 
     # get passwords from file, otherwise treat arg as a single password to spray
     try:
-        with open(args.passlist, 'r') as f:
+        with open(passlist, 'r') as f:
             passwords = f.read().splitlines()
     except Exception:
-        #colors.color_print(f'[!] Error reading passwords from file: {args.passlist}', colors.red)
-        #exit()
-        passwords = [args.passlist]
+        passwords = [passlist]
 
     # check that interval and attempt args are supplied together
-    if args.interval and not args.attempts:
+    if interval and not attempts:
         colors.color_print('[!] Number of login attempts per interval (-a) required with -i', colors.red)
         exit()
-    elif not args.interval and args.attempts:
+    elif not interval and attempts:
         colors.color_print('[!] Minutes per interval (-i) required with -a', colors.red)
         exit()
-    elif not args.interval and not args.attempts and len(passwords) > 1:
+    elif not interval and not attempts and len(passwords) > 1:
         colors.color_print('[*] You have not provided spray attempts/interval. This may lead to account lockouts', colors.yellow)
         print()
         input('Press enter to continue anyways:')
 
-    # Check that jitter flags aren't supplied without independently
-    if args.jitter_min and not args.jitter:
+    # Check that jitter flags aren't supplied independently
+    if jitter_min and not jitter:
         colors.color_print("--jitter-min flag must be set with --jitter flag", colors.red)
         exit()
-    elif args.jitter and not args.jitter_min:
+    elif jitter and not jitter_min:
         colors.color_print("--jitter flag must be set with --jitter-min flag", colors.red)
         exit()
-    if args.jitter and args.jitter_min and args.jitter_min >= args.jitter:
+    if jitter and jitter_min and jitter_min >= jitter:
         colors.color_print("--jitter flag must be greater than --jitter-min flag", colors.red)
         exit()
 
-    return users, passwords, args.host, args.csvfile, args.attempts, args.interval, args.equal, args.module, args.timeout, args.port, args.fireprox, args.domain, args.userlist, args.passlist, args.analyze_results, args.jitter, args.jitter_min
+    # Making sure user set path variable for NTLM authentication module
+    if module.lower() == 'ntlm' and path is None:
+        colors.color_print("Must set --path to use the NTLM authentication module", colors.red)
+        exit()
 
+    return users, passwords, passlist, userlist, host, module, path, csvfile, attempts, interval, equal, timeout, port, fireprox, domain, analyze_results, jitter, jitter_min 
 
 def check_sleep(login_attempts, attempts, interval, csvfile, analyze_results):
     if login_attempts == attempts:
@@ -156,16 +139,57 @@ def ascii():
                                                             
 {colors.end}''')
 
+CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help', 'help'])
+@click.command(no_args_is_help=True, context_settings=CONTEXT_SETTINGS)
+@click.option('-p', "--passwords", 'passlist', required=True, help="Filepath of the passwords list or a single password to spray.")
+@click.option('-u', "--usernames", 'userlist', required=True, help="Filepath of the usernames list.")
+@click.option('-H', "--host", required=False, type=str, help="Host to password spray (ip or hostname). Can by anything when using Office365 module - only used for logfile name.")
+@click.option('-m', "--module", required=True, help="Module corresponding to target host.")
+@click.option("--path", required=False, help="NTLM authentication endpoint. Ex: rpc or ews")
+@click.option('-o', "--output", 'csvfile', required=False, help="Name and path of output csv where attempts will be logged.", default='output.csv')
+@click.option('-a', "--attempts", required=False, type=int, help="Number of logins submissions per interval (for each user).")
+@click.option('-i', "--interval", required=False, type=int, help="Minutes inbetween login intervals.")
+@click.option('-e', "--equal", required=False, type=int, is_flag=True, help="Does 1 spray for each user where password = username.")
+@click.option('-t', "--timeout", required=False, type=int, help="Web request timeout threshold. Default is 5 seconds.", default=5)
+@click.option('-P', "--port", required=False, type=int, help="Port to connect to on the specified host. Default is 443.", default=443)
+@click.option('-f', "--fireprox", required=False, type=str, help="The url of the fireprox interface, if you are using fireprox.")
+@click.option('-d', "--domain", required=False, type=str, help="HTTP: Prepend DOMAIN\\ to usernames. SMB: Supply domain for smb connection.")
+@click.option("--analyze", 'analyze_results', default=False, is_flag=True, required=False, type=str, help="Run the results analyzer after each spray interval. False positives are more likely")
+@click.option("-j", "--jitter", required=False, type=int, help="Jitter time between requests in seconds.")
+@click.option("-jm", "--jitter-min", required=False, type=int, help="Minimum time between requests in seconds.")
 
-def main():
-    requests.packages.urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
-    users, passwords, host, csvfile, attempts, interval, equal, module, timeout, port, fireprox, domain, userfile, passfile, analyze_results, jitter, jitter_min = args()
+# Allows user to specify configuration file with --config
+@click_config_file.configuration_option()
+
+def main(passlist, userlist, host, module, path, csvfile, attempts, interval, equal, timeout, port, fireprox, domain, analyze_results, jitter, jitter_min):
+
+    """Low and slow password spraying tool..."""
+
+    # Dealing with SSL Warnings
+    try:
+        import requests.packages.urllib3
+        requests.packages.urllib3.disable_warnings()
+    except Exception:
+        pass
+
+
+    # Parsing and validating command line arguments with args() function
+    users, passwords, passfile, userfile, host, module, path, csvfile, attempts, interval, equal, timeout, port, fireprox, domain, analyze_results, jitter, jitter_min = args(passlist, userlist, host, module, path, csvfile, attempts, interval, equal, timeout, port, fireprox, domain, analyze_results, jitter, jitter_min)
+
     # try to instantiate the specified module
     try:
-        module = module.title()
-        mod_name = getattr(sys.modules[__name__], module)
-        class_name = getattr(mod_name, module)
-        target = class_name(host, port, timeout, fireprox)
+        # Passing in path for NTLM over HTTP module
+        if module.title().lower() == 'ntlm':
+            module = module.title()
+            mod_name = getattr(sys.modules[__name__], module)
+            class_name = getattr(mod_name, module)
+            target = class_name(host, port, timeout, path, fireprox)
+        else:
+            # Else, we just pass the default arguments
+            module = module.title()
+            mod_name = getattr(sys.modules[__name__], module)
+            class_name = getattr(mod_name, module)
+            target = class_name(host, port, timeout, fireprox)
     except AttributeError:
         print(f'[!] Error loading {module} module. {module} is spelled incorrectly or does not exist')
         exit()
@@ -191,6 +215,10 @@ def main():
     if jitter:
         colors.color_print('[*] Jitter: ', colors.blue, '')
         print(f'Random {jitter_min}-{jitter} second delay between each login attempt.')
+
+    if path:
+        colors.color_print('[*] NTLM Path: ', colors.blue, '')
+        print(f'/{path}')
 
         
     colors.color_print('[*] Log of event times: ', colors.blue, '')
