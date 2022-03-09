@@ -206,4 +206,4 @@ This tool is designed for use during penetration testing; usage of this tool for
 
 ## Credits ##
 - [@sprocket_ed](https://twitter.com/sprocket_ed) for contributing: several spray modules, many of features that make spraycharles great, and the associated blog post
-- [@b17zr](https://twitter.com/b17zr) for the ntlm_challenger.py script, which is included in the `utils` folder
+- [@b17zr](https://twitter.com/b17zr) for the `ntlm_challenger.py` script, which is included in the `utils` folder
