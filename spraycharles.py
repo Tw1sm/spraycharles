@@ -17,6 +17,7 @@ import click
 import click_config_file
 from rich.console import Console
 from rich.table import Table
+from rich.live import Live
 from rich.theme import Theme
 from rich import print
 from rich.prompt import Confirm
@@ -246,16 +247,20 @@ def print_attempt(username, password, response, csvfile):
     output.close()
 
 
-def login(target, username, password, csvfile):
+def login(target, username, password, csvfile, table):
     try:
         response = target.login(username, password)
-        target.print_response(response, csvfile)
+        ruser, rpass, rcode, rlength = target.print_response(response, csvfile)
     except requests.ConnectTimeout as e:
-        target.print_response(response, csvfile, timeout=True)
+        ruser, rpass, rcode, rlength = target.print_response(
+            response, csvfile, timeout=True
+        )
     except (requests.ConnectionError, requests.ReadTimeout) as e:
         console.print("\n[!] Connection error - sleeping for 5 seconds", style="danger")
         sleep(5)
-        login(target, username, password, csvfile)
+        login(target, username, password, csvfile, table)
+
+    return ruser, rpass, rcode, rlength
 
 
 def ascii():
@@ -520,7 +525,14 @@ def main(
     ascii()
 
     console = Console()
-    spray_info = Table(show_header=False, show_footer=False, width=61, title=f'Module: {module.upper()}', title_justify='left', title_style='bold reverse')
+    spray_info = Table(
+        show_header=False,
+        show_footer=False,
+        width=61,
+        title=f"Module: {module.upper()}",
+        title_justify="left",
+        title_style="bold reverse",
+    )
 
     # spray_info.add_row("Module", f"{module.upper()}")
     spray_info.add_row("Target", f"{target.url}")
@@ -571,7 +583,7 @@ def main(
             console.print(f"[!] Failed to connect to {host} over SMB", style="danger")
             exit()
 
-    target.print_headers(csvfile)
+    table = target.print_headers(csvfile)
 
     login_attempts = 0
 
@@ -583,7 +595,7 @@ def main(
                 if jitter_min is None:
                     jitter_min = 0
                 time.sleep(random.randint(jitter_min, jitter))
-            login(target, username, pword, csvfile)
+            login(target, username, pword, csvfile, table)
 
             # log the login attempt
             logging.info(f"Login attempted as {username}")
@@ -627,14 +639,20 @@ def main(
         if len(new_passwords) > 0 or len(new_users) > 0:
             print()
 
-        for username in users:
-            if domain:
-                username = f"{domain}\\{username}"
-            if jitter is not None:
-                if jitter_min is None:
-                    jitter_min = 0
-                time.sleep(random.randint(jitter_min, jitter))
-            login(target, username, password, csvfile)
+        with Live(table):
+            for username in users:
+                if domain:
+                    username = f"{domain}\\{username}"
+                if jitter is not None:
+                    if jitter_min is None:
+                        jitter_min = 0
+                    time.sleep(random.randint(jitter_min, jitter))
+
+                ruser, rpass, rcode, rlength = login(
+                    target, username, password, csvfile, table
+                )
+
+                table.add_row(f"{ruser}", f"{rpass}", f"{rcode}", f"{rlength}")
 
             # log the login attempt
             logging.info(f"Login attempted as {username}")

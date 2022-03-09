@@ -1,5 +1,6 @@
 import requests
 from requests_ntlm import HttpNtlmAuth
+from rich.table import Table
 import csv
 
 
@@ -52,12 +53,19 @@ class Ntlm:
 
     # handle CSV out output headers. Can be customized per module
     def print_headers(self, csvfile):
+
+        ntlm_table = Table(highlight=True, min_width=61)
+        ntlm_table.add_column("Username")
+        ntlm_table.add_column("Password")
+        ntlm_table.add_column("Response Code", justify="right")
+        ntlm_table.add_column("Response Length", justify="right")
+
         # print table headers
-        print(
-            "%-35s %-17s %-13s %-15s"
-            % ("Username", "Password", "Response Code", "Response Length")
-        )
-        print("-" * 83)
+        #print(
+        #    "%-35s %-17s %-13s %-15s"
+        #    % ("Username", "Password", "Response Code", "Response Length")
+        #)
+        #print("-" * 83)
 
         # create CSV file
         output = open(csvfile, "w")
@@ -65,6 +73,8 @@ class Ntlm:
         output_writer = csv.DictWriter(output, delimiter=",", fieldnames=fieldnames)
         output_writer.writeheader()
         output.close()
+
+        return ntlm_table
 
     # handle target's response evaluation. Can be customized per module
     def print_response(self, response, csvfile, timeout=False):
@@ -76,10 +86,10 @@ class Ntlm:
             length = str(len(response.content))
 
         # print result to screen
-        print(
-            "%-35s %-17s %13s %15s"
-            % (self.data["username"], self.data["password"], code, length)
-        )
+        #print(
+        #    "%-35s %-17s %13s %15s"
+        #    % (self.data["username"], self.data["password"], code, length)
+        #)
 
         # print to CSV file
         output = open(csvfile, "a")
@@ -87,3 +97,6 @@ class Ntlm:
             f'{self.data["username"]},{self.data["password"]},{code},{length}\n'
         )
         output.close()
+
+        return self.data["username"], self.data["password"], code, length
+
