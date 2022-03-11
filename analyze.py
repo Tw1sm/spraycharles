@@ -165,7 +165,7 @@ class Analyzer:
 
         else:
             console.print(
-                "[!] No outliers found or not enough data to find statistical significance ",
+                "[!] No outliers found or not enough data to find statistical significance.",
                 style="danger",
             )
 
