@@ -1,4 +1,5 @@
 import requests
+from rich.table import Table
 import csv
 
 
@@ -60,12 +61,13 @@ class Adfs:
 
     # handle CSV out output headers. Can be customized per module
     def print_headers(self, csvfile):
+
         # print table headers
-        print(
-            "%-35s %-17s %-13s %-15s"
-            % ("Username", "Password", "Response Code", "Response Length")
-        )
-        print("-" * 83)
+        adfs_table = Table(highlight=True, min_width=61)
+        adfs_table.add_column("Username")
+        adfs_table.add_column("Password")
+        adfs_table.add_column("Response Code", justify="right")
+        adfs_table.add_column("Response Length", justify="right")
 
         # create CSV file
         output = open(csvfile, "w")
@@ -73,6 +75,8 @@ class Adfs:
         output_writer = csv.DictWriter(output, delimiter=",", fieldnames=fieldnames)
         output_writer.writeheader()
         output.close()
+
+        return adfs_table
 
     # handle target's response evaluation. Can be customized per module
     def print_response(self, response, csvfile, timeout=False):
@@ -83,15 +87,11 @@ class Adfs:
             code = response.status_code
             length = str(len(response.content))
 
-        # print result to screen
-        print(
-            "%-35s %-17s %13s %15s"
-            % (self.data["UserName"], self.data["Password"], code, length)
-        )
-
         # print to CSV file
         output = open(csvfile, "a")
         output.write(
             f'{self.data["UserName"]},{self.data["Password"]},{code},{length}\n'
         )
         output.close()
+
+        return self.data["username"], self.data["password"], code, length

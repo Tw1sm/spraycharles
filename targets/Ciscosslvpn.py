@@ -1,4 +1,5 @@
 import requests
+from rich.table import Table
 import csv
 
 
@@ -70,12 +71,13 @@ class Ciscosslvpn:
 
     # handle CSV out output headers. Can be customized per module
     def print_headers(self, csvfile):
+
         # print table headers
-        print(
-            "%-35s %-17s %-13s %-15s"
-            % ("Username", "Password", "Response Code", "Response Length")
-        )
-        print("-" * 83)
+        ciscosslvpn_table = Table(highlight=True, min_width=61)
+        ciscosslvpn_table.add_column("Username")
+        ciscosslvpn_table.add_column("Password")
+        ciscosslvpn_table.add_column("Response Code", justify="right")
+        ciscosslvpn_table.add_column("Response Length", justify="right")        
 
         # create CSV file
         output = open(csvfile, "w")
@@ -83,6 +85,8 @@ class Ciscosslvpn:
         output_writer = csv.DictWriter(output, delimiter=",", fieldnames=fieldnames)
         output_writer.writeheader()
         output.close()
+
+        return ciscosslvpn_table
 
     # handle target's response evaluation. Can be customized per module
     def print_response(self, response, csvfile, timeout=False):
@@ -93,15 +97,11 @@ class Ciscosslvpn:
             code = response.status_code
             length = str(len(response.content))
 
-        # print result to screen
-        print(
-            "%-35s %-17s %13s %15s"
-            % (self.data["username"], self.data["password"], code, length)
-        )
-
         # print to CSV file
         output = open(csvfile, "a")
         output.write(
             f'{self.data["username"]},{self.data["password"]},{code},{length}\n'
         )
         output.close()
+
+        return self.data["username"], self.data["password"], code, length

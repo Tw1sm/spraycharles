@@ -1,4 +1,5 @@
 import requests
+from rich.table import Table
 import json
 import csv
 
@@ -47,19 +48,28 @@ class Office365:
 
     # handle CSV out output headers. Can be customized per module
     def print_headers(self, csvfile):
+
         # print table headers
-        print(
-            "%-13s %-30s %-35s %-17s %-13s %-15s"
-            % (
-                "Result",
-                "Message",
-                "Username",
-                "Password",
-                "Response Code",
-                "Response Length",
-            )
-        )
-        print("-" * 128)
+        #print(
+        #    "%-13s %-30s %-35s %-17s %-13s %-15s"
+        #    % (
+        #        "Result",
+        #        "Message",
+        #        "Username",
+        #        "Password",
+        #        "Response Code",
+        #        "Response Length",
+        #    )
+        #)
+        #print("-" * 128)
+
+        o365_table = Table(highlight=True, min_width=61)
+        o365_table.add_column("Result")
+        o365_table.add_column("Message")
+        o365_table.add_column("Username")
+        o365_table.add_column("Password")
+        o365_table.add_column("Response Code", justify="right")
+        o365_table.add_column("Response Length", justify="right")
 
         # create CSV file
         output = open(csvfile, "w")
@@ -74,6 +84,8 @@ class Office365:
         output_writer = csv.DictWriter(output, delimiter=",", fieldnames=fieldnames)
         output_writer.writeheader()
         output.close()
+
+        return o365_table
 
     # handle target's response evaluation. Can be customized per module
     def print_response(self, response, csvfile, timeout=False):
@@ -137,17 +149,17 @@ class Office365:
                 message = "Unknown error code returned"
 
         # print result to screen
-        print(
-            "%-13s %-30s %-35s %-17s %13s %15s"
-            % (
-                result,
-                message,
-                self.data["username"],
-                self.data["password"],
-                code,
-                length,
-            )
-        )
+        #print(
+        #    "%-13s %-30s %-35s %-17s %13s %15s"
+        #    % (
+        #        result,
+        #        message,
+        #        self.data["username"],
+        #        self.data["password"],
+        #        code,
+        #        length,
+        #    )
+        #)
 
         # print to CSV file
         output = open(csvfile, "a")
@@ -155,3 +167,5 @@ class Office365:
             f'{result},{message},{self.data["username"]},{self.data["password"]},{code},{length}\n'
         )
         output.close()
+
+        return result, message, self.data["username"], self.data["password"], code, length

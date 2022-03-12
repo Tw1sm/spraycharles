@@ -105,12 +105,12 @@ def args(
 
     elif not interval and not attempts and len(passwords) > 1:
         console.print(
-            "[*] You have not provided spray attempts/interval. This may lead to account lockouts",
+            "[*] You have not provided spray attempts/interval. This may lead to account lockouts!",
             style="warning",
         )
         print()
         Confirm.ask(
-            "[yellow]Press enter to continue anyways",
+            "[yellow]Press enter to continue anyways:",
             default=True,
             show_choices=False,
             show_default=False,
@@ -142,6 +142,7 @@ def args(
         )
         exit()
 
+    # Making sure webhook is specified when using notify flag
     if notify and webhook is None:
         console.print(
             "[!] Must specify a Webhook URL when the notify flag is used.",
@@ -248,19 +249,42 @@ def print_attempt(username, password, response, csvfile):
 
 
 def login(target, username, password, csvfile, table):
+
+    # Getting class name real quick
+    name = type(target).__name__
+
     try:
         response = target.login(username, password)
-        ruser, rpass, rcode, rlength = target.print_response(response, csvfile)
+
+        # If module office365, we need to return more info
+        if name.lower() == "office365":
+            result, message, ruser, rpass, rcode, rlength = target.print_response(
+                response, csvfile
+            )
+
+        # If its anything else we just return the usual
+        else:
+            ruser, rpass, rcode, rlength = target.print_response(response, csvfile)
+
     except requests.ConnectTimeout as e:
-        ruser, rpass, rcode, rlength = target.print_response(
-            response, csvfile, timeout=True
-        )
+
+        if name.lower() == "office365":
+            result, message, ruser, rpass, rcode, rlength = target.print_response(
+                response, csvfile, timeout=True
+            )
+
+        else:
+            ruser, rpass, rcode, rlength = target.print_response(response, csvfile)
+
     except (requests.ConnectionError, requests.ReadTimeout) as e:
         console.print("\n[!] Connection error - sleeping for 5 seconds", style="danger")
         sleep(5)
         login(target, username, password, csvfile, table)
 
-    return ruser, rpass, rcode, rlength
+    if name.lower() == "office365":
+        return result, message, ruser, rpass, rcode, rlength
+    else:
+        return ruser, rpass, rcode, rlength
 
 
 def ascii():
@@ -639,6 +663,9 @@ def main(
         if len(new_passwords) > 0 or len(new_users) > 0:
             print()
 
+        name = type(target).__name__
+
+        # instantiating live table
         with Live(table):
             for username in users:
                 if domain:
@@ -648,11 +675,35 @@ def main(
                         jitter_min = 0
                     time.sleep(random.randint(jitter_min, jitter))
 
-                ruser, rpass, rcode, rlength = login(
-                    target, username, password, csvfile, table
-                )
+                # Printing table differently if use office365 module
+                if name.lower() == "office365":
+                    result, message, ruser, rpass, rcode, rlength = login(
+                        target, username, password, csvfile, table
+                    )
 
-                table.add_row(f"{ruser}", f"{rpass}", f"{rcode}", f"{rlength}")
+                    table.add_row(
+                        f"{result}",
+                        f"{message}",
+                        f"{ruser}",
+                        f"{rpass}",
+                        f"{rcode}",
+                        f"{rlength}",
+                    )
+
+                # Printing table differently if using SMB module
+                elif name.lower() == "smb":
+                    ruser, rpass, rsmb = login(
+                        target, username, password, csvfile, table
+                    )
+                    table.add_row(f"ruser", f"{rpass}", f"{rsmb}")
+
+                # Print table normally
+                else:
+                    ruser, rpass, rcode, rlength = login(
+                        target, username, password, csvfile, table
+                    )
+
+                    table.add_row(f"{ruser}", f"{rpass}", f"{rcode}", f"{rlength}")
 
             # log the login attempt
             logging.info(f"Login attempted as {username}")

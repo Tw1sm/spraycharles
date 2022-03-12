@@ -78,19 +78,18 @@ class Analyzer:
 
         # print out logins with outlying response lengths
         if len(success_indicies) > 0:
-            console.print("[+] Identified potential sussessful logins!\n", style="good")
+            console.print("[+] Identified potentially sussessful logins!\n", style="good")
 
-            success_table = Table(
-                show_footer=False,
-                highlight=True
-            )
+            success_table = Table(show_footer=False, highlight=True)
 
             success_table.add_column("Username")
             success_table.add_column("Password")
             success_table.add_column("Message", justify="right")
 
             for x in len_indicies:
-                success_table.add_row(f'{responses[x][2]}', f'{responses[x][3]}', f'{responses[x][1]}')
+                success_table.add_row(
+                    f"{responses[x][2]}", f"{responses[x][3]}", f"{responses[x][1]}"
+                )
 
             console.print(success_table)
 
@@ -150,20 +149,22 @@ class Analyzer:
 
         # print out logins with outlying response lengths
         if len(len_indicies) > 0:
-            console.print("[+] Identified potential sussessful logins!\n", style="good")
+            console.print("[+] Identified potentially sussessful logins!\n", style="good")
 
-            success_table = Table(
-                show_footer=False,
-                highlight=True
-            )
-	    
+            success_table = Table(show_footer=False, highlight=True)
+
             success_table.add_column("Username")
             success_table.add_column("Password")
             success_table.add_column("Response Code", justify="right")
-            success_table.add_column("Response Length", justify="right")	
+            success_table.add_column("Response Length", justify="right")
 
             for x in len_indicies:
-                success_table.add_row(f'{responses[x][0]}', f'{responses[x][1]}', f'{responses[x][2]}', f'{responses[x][3]}')
+                success_table.add_row(
+                    f"{responses[x][0]}",
+                    f"{responses[x][1]}",
+                    f"{responses[x][2]}",
+                    f"{responses[x][3]}",
+                )
 
             console.print(success_table)
 
@@ -174,7 +175,6 @@ class Analyzer:
                 teams(self.webhook, self.host)
             elif self.notify == "discord":
                 teams(self.webhook, self.host)
-
 
             # Returning true to indicate a successfully guessed credential
             return True
@@ -193,18 +193,15 @@ class Analyzer:
                 successes.append(line)
 
         if len(successes) > 0:
-            console.print("[+] Identified potential sussessful logins!\n", style="good")
+            console.print("[+] Identified potentially sussessful logins!\n", style="good")
 
-            success_table = Table(
-                show_footer=False,
-                highlight=True
-            )
+            success_table = Table(show_footer=False, highlight=True)
 
             success_table.add_column("Username")
             success_table.add_column("Password")
 
             for x in len_indicies:
-                success_table.add_row(f'{x[0]}', f'{x[1]}')
+                success_table.add_row(f"{x[0]}", f"{x[1]}")
 
             console.print(success_table)
 

@@ -60,13 +60,6 @@ class Ntlm:
         ntlm_table.add_column("Response Code", justify="right")
         ntlm_table.add_column("Response Length", justify="right")
 
-        # print table headers
-        #print(
-        #    "%-35s %-17s %-13s %-15s"
-        #    % ("Username", "Password", "Response Code", "Response Length")
-        #)
-        #print("-" * 83)
-
         # create CSV file
         output = open(csvfile, "w")
         fieldnames = ["Username", "Password", "Response Code", "Response Length"]
@@ -84,12 +77,6 @@ class Ntlm:
         else:
             code = response.status_code
             length = str(len(response.content))
-
-        # print result to screen
-        #print(
-        #    "%-35s %-17s %13s %15s"
-        #    % (self.data["username"], self.data["password"], code, length)
-        #)
 
         # print to CSV file
         output = open(csvfile, "a")

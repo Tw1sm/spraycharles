@@ -79,9 +79,15 @@ class Smb:
 
     # handle CSV out output headers. Can be customized per module
     def print_headers(self, csvfile):
+
         # print table headers
-        print("%-25s %-17s %-23s" % ("Username", "Password", "SMB Login"))
-        print("-" * 68)
+        # print("%-25s %-17s %-23s" % ("Username", "Password", "SMB Login"))
+        # print("-" * 68)
+
+        smb_table = Table(highlight=True, min_width=61)
+        smb_table.add_column("Username")
+        smb_table.add_column("Password")
+        smb_table.add_column("SMB Login", justify="right")
 
         # create CSV file
         output = open(csvfile, "w")
@@ -89,13 +95,18 @@ class Smb:
         output_writer = csv.DictWriter(output, delimiter=",", fieldnames=fieldnames)
         output_writer.writeheader()
         output.close()
+	
+        return smb_table
 
     # handle target's response evaluation. Can be customized per module
     def print_response(self, response, csvfile, timeout=False):
+
         # print result to screen
-        print("%-25s %-17s %-23s" % (self.username, self.password, response))
+        # print("%-25s %-17s %-23s" % (self.username, self.password, response))
 
         # print to CSV file
         output = open(csvfile, "a")
         output.write(f"{self.username},{self.password},{response}\n")
         output.close()
+
+        return self.username, self.password, response

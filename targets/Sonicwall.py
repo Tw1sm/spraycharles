@@ -1,4 +1,5 @@
 import requests
+from rich.table import Table
 import csv
 
 
@@ -69,11 +70,17 @@ class Sonicwall:
     # handle CSV out output headers. Can be customized per module
     def print_headers(self, csvfile):
         # print table headers
-        print(
-            "%-35s %-17s %-13s %-15s"
-            % ("Username", "Password", "Response Code", "Response Length")
-        )
-        print("-" * 83)
+        #print(
+        #    "%-35s %-17s %-13s %-15s"
+        #    % ("Username", "Password", "Response Code", "Response Length")
+        #)
+        #print("-" * 83)
+
+        sonicwall_table = Table(highlight=True, min_width=61)
+        sonicwall_table.add_column("Username")
+        sonicwall_table.add_column("Password")
+        sonicwall_table.add_column("Response Code", justify="right")
+        sonicwall_table.add_column("Response Length", justify="right")
 
         # create CSV file
         output = open(csvfile, "w")
@@ -81,6 +88,8 @@ class Sonicwall:
         output_writer = csv.DictWriter(output, delimiter=",", fieldnames=fieldnames)
         output_writer.writeheader()
         output.close()
+
+        return sonicwall_table
 
     # handle target's response evaluation. Can be customized per module
     def print_response(self, response, csvfile, timeout=False):
@@ -92,12 +101,14 @@ class Sonicwall:
             length = str(len(response.content))
 
         # print result to screen
-        print(
-            "%-35s %-17s %13s %15s"
-            % (self.data["uName"], self.data["pass"], code, length)
-        )
+        #print(
+        #    "%-35s %-17s %13s %15s"
+        #    % (self.data["uName"], self.data["pass"], code, length)
+        #)
 
         # print to CSV file
         output = open(csvfile, "a")
         output.write(f'{self.data["uName"]},{self.data["pass"]},{code},{length}\n')
         output.close()
+
+        return self.data["uName"], self.data["pass"], code, length
