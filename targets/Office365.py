@@ -49,20 +49,6 @@ class Office365:
     # handle CSV out output headers. Can be customized per module
     def print_headers(self, csvfile):
 
-        # print table headers
-        #print(
-        #    "%-13s %-30s %-35s %-17s %-13s %-15s"
-        #    % (
-        #        "Result",
-        #        "Message",
-        #        "Username",
-        #        "Password",
-        #        "Response Code",
-        #        "Response Length",
-        #    )
-        #)
-        #print("-" * 128)
-
         o365_table = Table(highlight=True, min_width=61)
         o365_table.add_column("Result")
         o365_table.add_column("Message")
@@ -112,17 +98,17 @@ class Office365:
             # Microsoft's MFA in use
             elif err in ["AADSTS50076", "AADSTS50079"]:
                 result = "Success"
-                message = "Microsoft MFA in use"
+                message = "MS MFA in use"
 
             # DUO or other MFA in use
             elif err == "AADSTS50158":
                 result = "Success"
-                message = "Non-Microsoft MFA in use"
+                message = "Non-MS MFA in use"
 
             # user password expired
             elif err == "AADSTS50055":
                 result = "Success"
-                message = "User's password is expired"
+                message = "Password expired"
 
             elif err == "AADSTS50034":
                 result = "Fail"
@@ -131,7 +117,7 @@ class Office365:
             # tenant does not exist. Is domain using Office365?
             elif err in ["AADSTS50128", "AADSTS50059"]:
                 result = "Fail"
-                message = "Tenant account does not exist"
+                message = "Account doesn't exist"
 
             # locked account
             elif err == "AADSTS50053":
@@ -147,19 +133,6 @@ class Office365:
             else:
                 result = "Fail"
                 message = "Unknown error code returned"
-
-        # print result to screen
-        #print(
-        #    "%-13s %-30s %-35s %-17s %13s %15s"
-        #    % (
-        #        result,
-        #        message,
-        #        self.data["username"],
-        #        self.data["password"],
-        #        code,
-        #        length,
-        #    )
-        #)
 
         # print to CSV file
         output = open(csvfile, "a")

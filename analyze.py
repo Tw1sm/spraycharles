@@ -9,8 +9,6 @@ from rich.console import Console
 from rich.table import Table
 from rich.theme import Theme
 
-# from rich import print
-
 # Defining theme
 custom_theme = Theme(
     {
@@ -25,11 +23,12 @@ console = Console(theme=custom_theme)
 
 
 class Analyzer:
-    def __init__(self, resultsfile, notify, webhook, host):
+    def __init__(self, resultsfile, notify, webhook, host, hit_count=0):
         self.resultsfile = resultsfile
         self.notify = notify
         self.webhook = webhook
         self.host = host
+        self.hit_count = hit_count
 
     # Performs basic reading a parsing for output csv file
     def analyze(self):
@@ -54,16 +53,13 @@ class Analyzer:
 
         # Calling analyze function based on responses content returned above
         if responses[0][1] == "Message":
-            success = self.O365_analyze(responses)
-            return success
+            return self.O365_analyze(responses)
 
         elif responses[0][2] == "SMB Login":
-            success = self.smb_analyze(responses)
-            return success
+            return self.smb_analyze(responses)
 
         else:
-            success = self.http_analyze(responses)
-            return success
+            return self.http_analyze(responses)
 
         print()
 
@@ -78,7 +74,9 @@ class Analyzer:
 
         # print out logins with outlying response lengths
         if len(success_indicies) > 0:
-            console.print("[+] Identified potentially sussessful logins!\n", style="good")
+            console.print(
+                "[+] Identified potentially sussessful logins!", style='good',
+            )
 
             success_table = Table(show_footer=False, highlight=True)
 
@@ -86,26 +84,21 @@ class Analyzer:
             success_table.add_column("Password")
             success_table.add_column("Message", justify="right")
 
-            for x in len_indicies:
+            for x in success_indicies:
                 success_table.add_row(
                     f"{responses[x][2]}", f"{responses[x][3]}", f"{responses[x][1]}"
                 )
 
             console.print(success_table)
 
-            # Calling notifications if specified
-            if self.notify == "slack":
-                slack(self.webhook, self.host)
-            elif self.notify == "teams":
-                teams(self.webhook, self.host)
-            elif self.notify == "discord":
-                teams(self.webhook, self.host)
+            self.send_notification(len(success_indicies))
 
             # Returning true to indicate a successfully guessed credential
-            return True
+            return len(success_indicies)
 
         else:
             console.print("[!] No successful Office365 logins", style="danger")
+            return 0
 
     def http_analyze(self, responses):
 
@@ -149,7 +142,9 @@ class Analyzer:
 
         # print out logins with outlying response lengths
         if len(len_indicies) > 0:
-            console.print("[+] Identified potentially sussessful logins!\n", style="good")
+            console.print(
+                "[+] Identified potentially sussessful logins!\n", style="good"
+            )
 
             success_table = Table(show_footer=False, highlight=True)
 
@@ -169,21 +164,17 @@ class Analyzer:
             console.print(success_table)
 
             # Calling notifications if specified
-            if self.notify == "slack":
-                slack(self.webhook, self.host)
-            elif self.notify == "teams":
-                teams(self.webhook, self.host)
-            elif self.notify == "discord":
-                teams(self.webhook, self.host)
+            self.send_notification(len(len_indicies))
 
             # Returning true to indicate a successfully guessed credential
-            return True
+            return len(len_indicies)
 
         else:
             console.print(
                 "[!] No outliers found or not enough data to find statistical significance.",
                 style="danger",
             )
+            return 0
 
     # check for smb success not HTTP
     def smb_analyze(self, responses):
@@ -193,7 +184,9 @@ class Analyzer:
                 successes.append(line)
 
         if len(successes) > 0:
-            console.print("[+] Identified potentially sussessful logins!\n", style="good")
+            console.print(
+                "[+] Identified potentially sussessful logins!\n", style="good"
+            )
 
             success_table = Table(show_footer=False, highlight=True)
 
@@ -206,23 +199,28 @@ class Analyzer:
             console.print(success_table)
 
             # Calling notifications if specified
-            if self.notify == "slack":
-                slack(self.webhook, self.host)
-            elif self.notify == "teams":
-                teams(self.webhook, self.host)
-            elif self.notify == "discord":
-                teams(self.webhook, self.host)
+            self.send_notification(len(len_indicies))
 
-            # Returning true to indicate a successfully guessed credential
-            return True
+            # Returning length of successfully guessed credentials count
+            return len(len_indicies)
 
         else:
             console.print("[!] No successful SMB logins", style="danger")
+            return 0
+
+    def send_notification(self, hit_total):
+
+        # we'll only send notifications if NEW successes are found
+        if hit_total > self.hit_count:
+            if self.notify == "slack":
+                slack(self.webhook, self.host)
+            if self.notify == "discord":
+                discord(self.webhook, self.host)
+            if self.notify == "teams":
+                teams(self.webhook, self.host)
 
 
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
-
-
 @click.command(no_args_is_help=True, context_settings=CONTEXT_SETTINGS)
 @click.argument("file", type=str, required=True)
 @click.option(

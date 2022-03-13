@@ -110,7 +110,7 @@ def args(
         )
         print()
         Confirm.ask(
-            "[yellow]Press enter to continue anyways:",
+            "[yellow]Press enter to continue anyways",
             default=True,
             show_choices=False,
             show_default=False,
@@ -185,41 +185,42 @@ def check_sleep(
     webhook,
     host,
     pause,
+    total_hits,
 ):
     if login_attempts == attempts:
         if analyze_results:
-            analyzer = analyze.Analyzer(csvfile, notify, webhook, host)
-            success = analyzer.analyze()
+            analyzer = analyze.Analyzer(csvfile, notify, webhook, host, total_hits)
+            new_hit_total = analyzer.analyze()
 
-        # Pausing if specified by user before continuing with spray
-        if success is True and pause:
-            print()
-            console.print(
-                f"[+] Successful login potentially identified. Pausing...", style="good"
-            )
-            print()
-            Confirm.ask(
-                "[blue]Press enter to continue",
-                default=True,
-                show_choices=False,
-                show_default=False,
-            )
+            # Pausing if specified by user before continuing with spray
+            if new_hit_total > total_hits and pause:
+                print()
+                console.print(
+                    f"[+] Successful login potentially identified. Pausing...",
+                    style="good",
+                )
 
-            return 0
+                Confirm.ask(
+                    "[blue]Press enter to continue",
+                    default=True,
+                    show_choices=False,
+                    show_default=False,
+                )
 
         else:
-            print()
-            console.print(
-                f'[*] Sleeping until {(datetime.datetime.now() + datetime.timedelta(minutes=interval)).strftime("%m-%d %H:%M:%S")}',
-                style="warning",
-            )
-            time.sleep(interval * 60)
+            new_hit_total = 0
             print()
 
-            return 0
+        console.print(
+            f'[*] Sleeping until {(datetime.datetime.now() + datetime.timedelta(minutes=interval)).strftime("%m-%d %H:%M:%S")}',
+            style="warning",
+        )
+        time.sleep(interval * 60)
+        print()
+        return 0, new_hit_total
+
     else:
-
-        return login_attempts
+        return login_attempts, total_hits
 
 
 def check_file_contents(file_path, current_list):
@@ -228,6 +229,7 @@ def check_file_contents(file_path, current_list):
         with open(file_path, "r") as f:
             new_list = f.read().splitlines()
     except:
+
         # file either no longer exists, or -p flag was given a password and not a file
         pass
 
@@ -515,6 +517,9 @@ def main(
         pause,
     )
 
+    # Counter for potential successful logins idenitified
+    total_hits = 0
+
     # try to instantiate the specified module
     try:
         # Passing in path for NTLM over HTTP module
@@ -558,7 +563,6 @@ def main(
         title_style="bold reverse",
     )
 
-    # spray_info.add_row("Module", f"{module.upper()}")
     spray_info.add_row("Target", f"{target.url}")
 
     if domain:
@@ -581,7 +585,7 @@ def main(
 
     print()
     Confirm.ask(
-        "[blue]Press enter to begin:",
+        "[blue]Press enter to begin",
         default=True,
         show_choices=False,
         show_default=False,
@@ -629,7 +633,7 @@ def main(
     # spray using password file
     for password in passwords:
         # trigger sleep if attempts limit hit
-        login_attempts = check_sleep(
+        login_attempts, total_hits = check_sleep(
             login_attempts,
             attempts,
             interval,
@@ -639,6 +643,7 @@ def main(
             webhook,
             host,
             pause,
+            total_hits,
         )
 
         # check if user/pass files have been updated and add new entries to current lists
@@ -711,14 +716,15 @@ def main(
         login_attempts += 1
 
     # analyze the results to point out possible hits
-    analyzer = analyze.Analyzer(csvfile, notify, webhook, host)
-    success = analyzer.analyze()
+    analyzer = analyze.Analyzer(csvfile, notify, webhook, host, total_hits)
+    new_hit_total = analyzer.analyze()
 
     # Pausing if specified by user before continuing with spray
-    if success is True and pause:
+    if new_hit_total > total_hits and pause:
         print()
         console.print(
-            f"[+] Successful login potentially identified. Pausing...", style="good"
+            "[+] Successful login potentially identified. Pausing...",
+            style="bold bright_green",
         )
         print()
         Confirm.ask(
