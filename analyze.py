@@ -36,7 +36,7 @@ class Analyzer:
             with open(self.resultsfile, newline="") as resultsfile:
                 print()
                 print("")
-                console.print("[*] Reading spray data from CSV...", style="info")
+                console.print("[*] Reading spray data from CSV", style="info")
 
                 reader = csv.reader(
                     resultsfile,
