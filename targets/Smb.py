@@ -95,7 +95,7 @@ class Smb:
         output_writer = csv.DictWriter(output, delimiter=",", fieldnames=fieldnames)
         output_writer.writeheader()
         output.close()
-	
+
         return smb_table
 
     # handle target's response evaluation. Can be customized per module

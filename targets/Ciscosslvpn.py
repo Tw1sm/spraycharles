@@ -77,7 +77,7 @@ class Ciscosslvpn:
         ciscosslvpn_table.add_column("Username")
         ciscosslvpn_table.add_column("Password")
         ciscosslvpn_table.add_column("Response Code", justify="right")
-        ciscosslvpn_table.add_column("Response Length", justify="right")        
+        ciscosslvpn_table.add_column("Response Length", justify="right")
 
         # create CSV file
         output = open(csvfile, "w")

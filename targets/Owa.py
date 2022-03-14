@@ -76,7 +76,6 @@ class Owa:
         owa_table.add_column("Response Code", justify="right")
         owa_table.add_column("Response Length", justify="right")
 
-
         # create CSV file
         output = open(csvfile, "w")
         fieldnames = ["Username", "Password", "Response Code", "Response Length"]
@@ -94,7 +93,6 @@ class Owa:
         else:
             code = response.status_code
             length = str(len(response.content))
-
 
         # print to CSV file
         output = open(csvfile, "a")

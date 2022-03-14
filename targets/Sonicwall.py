@@ -70,11 +70,11 @@ class Sonicwall:
     # handle CSV out output headers. Can be customized per module
     def print_headers(self, csvfile):
         # print table headers
-        #print(
+        # print(
         #    "%-35s %-17s %-13s %-15s"
         #    % ("Username", "Password", "Response Code", "Response Length")
-        #)
-        #print("-" * 83)
+        # )
+        # print("-" * 83)
 
         sonicwall_table = Table(highlight=True, min_width=61)
         sonicwall_table.add_column("Username")
@@ -101,10 +101,10 @@ class Sonicwall:
             length = str(len(response.content))
 
         # print result to screen
-        #print(
+        # print(
         #    "%-35s %-17s %13s %15s"
         #    % (self.data["uName"], self.data["pass"], code, length)
-        #)
+        # )
 
         # print to CSV file
         output = open(csvfile, "a")

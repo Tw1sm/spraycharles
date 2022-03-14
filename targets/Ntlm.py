@@ -86,4 +86,3 @@ class Ntlm:
         output.close()
 
         return self.data["username"], self.data["password"], code, length
-

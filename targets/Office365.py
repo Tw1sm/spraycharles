@@ -141,4 +141,11 @@ class Office365:
         )
         output.close()
 
-        return result, message, self.data["username"], self.data["password"], code, length
+        return (
+            result,
+            message,
+            self.data["username"],
+            self.data["password"],
+            code,
+            length,
+        )

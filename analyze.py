@@ -75,7 +75,8 @@ class Analyzer:
         # print out logins with outlying response lengths
         if len(success_indicies) > 0:
             console.print(
-                "[+] Identified potentially sussessful logins!", style='good',
+                "[+] Identified potentially sussessful logins!",
+                style="good",
             )
 
             success_table = Table(show_footer=False, highlight=True)
@@ -221,6 +222,8 @@ class Analyzer:
 
 
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
+
+
 @click.command(no_args_is_help=True, context_settings=CONTEXT_SETTINGS)
 @click.argument("file", type=str, required=True)
 @click.option(
