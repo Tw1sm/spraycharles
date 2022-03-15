@@ -553,7 +553,6 @@ def main(
 
     ascii()
 
-    # console = Console()
     spray_info = Table(
         show_header=False,
         show_footer=False,
