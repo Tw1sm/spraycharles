@@ -285,7 +285,9 @@ def login(target, username, password, csvfile, table):
 
     if name.lower() == "office365":
         return result, message, ruser, rpass, rcode, rlength
-    else:
+    elif name.lower() == "smb":
+        return ruser, rpass, rcode
+     else:
         return ruser, rpass, rcode, rlength
 
 
