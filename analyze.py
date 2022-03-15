@@ -194,16 +194,16 @@ class Analyzer:
             success_table.add_column("Username")
             success_table.add_column("Password")
 
-            for x in len_indicies:
+            for x in successes:
                 success_table.add_row(f"{x[0]}", f"{x[1]}")
 
             console.print(success_table)
 
             # Calling notifications if specified
-            self.send_notification(len(len_indicies))
+            self.send_notification(len(successes))
 
             # Returning length of successfully guessed credentials count
-            return len(len_indicies)
+            return len(successes)
 
         else:
             console.print("[!] No successful SMB logins", style="danger")

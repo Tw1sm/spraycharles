@@ -553,11 +553,10 @@ def main(
 
     ascii()
 
-    console = Console()
+    # console = Console()
     spray_info = Table(
         show_header=False,
         show_footer=False,
-        width=61,
         title=f"Module: {module.upper()}",
         title_justify="left",
         title_style="bold reverse",
@@ -671,7 +670,7 @@ def main(
         name = type(target).__name__
 
         # instantiating live table
-        with Live(table):
+        with Live(table, vertical_overflow="visible"):
             for username in users:
                 if domain:
                     username = f"{domain}\\{username}"
