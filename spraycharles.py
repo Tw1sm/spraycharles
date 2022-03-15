@@ -263,7 +263,10 @@ def login(target, username, password, csvfile, table):
             result, message, ruser, rpass, rcode, rlength = target.print_response(
                 response, csvfile
             )
-
+        elif name.lower() == "smb":
+           ruser, rpass, rcode = target.print_response(
+                response, csvfile
+            )
         # If its anything else we just return the usual
         else:
             ruser, rpass, rcode, rlength = target.print_response(response, csvfile)
