@@ -11,5 +11,4 @@ discord_webhook
 rich
 pre-commit
 isort
-autopep8
 black
