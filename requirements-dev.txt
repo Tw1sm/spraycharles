@@ -1,0 +1,15 @@
+numpy
+impacket
+requests
+texttable
+requests_ntlm
+click
+click_config_file
+notifiers
+pymsteams
+discord_webhook
+rich
+pre-commit
+isort
+autopep8
+black

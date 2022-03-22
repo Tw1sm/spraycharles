@@ -156,9 +156,7 @@ def check_sleep(login_attempts, attempts, interval, csvfile, analyze_results, no
             print()
             
         console.print(
-            f'[*] Sleeping until {(datetime.datetime.now() + datetime.timedelta(minutes=interval)).strftime("%m-%d %H:%M:%S")}',
-            style="warning",
-        )
+            f'[yellow][*] Sleeping until {(datetime.datetime.now() + datetime.timedelta(minutes=interval)).strftime("%m-%d %H:%M:%S")}[/yellow]')
         time.sleep(interval * 60)
         print()
         return 0, new_hit_total
@@ -291,6 +289,7 @@ def main(passlist, userlist, host, module, path, csvfile, attempts, interval, eq
     spray_info = Table(
         show_header=False,
         show_footer=False,
+        min_width=61,
         title=f"Module: {module.upper()}",
         title_justify="left",
         title_style="bold reverse",
@@ -348,8 +347,8 @@ def main(passlist, userlist, host, module, path, csvfile, attempts, interval, eq
 
     # spray once with password = username if flag present
     if equal:
-        with Progress() as progress:
-            task = progress.add_task(f"Equal set...", total=len(users))
+        with Progress(transient=True) as progress:
+            task = progress.add_task(f"[yellow]Equal Set", total=len(users))
             for username in users:
                 pword = username.split('@')[0]
                 if jitter is not None:
@@ -391,7 +390,7 @@ def main(passlist, userlist, host, module, path, csvfile, attempts, interval, eq
         if len(new_passwords) > 0 or len(new_users) > 0:
             print()
 
-        with Progress() as progress:
+        with Progress(transient=True) as progress:
             task = progress.add_task(f"[green]Spraying: {password}", total=len(users))
             while not progress.finished:
                 for username in users:
