@@ -203,6 +203,14 @@ ntlm_challenger.py will extract the internal domain from both NTLM over HTTP and
 ## Disclaimer ##
 This tool is designed for use during penetration testing; usage of this tool for attacking targets without prior mutual consent is illegal. It is the end user's responsibility to obey all applicable local, state and federal laws. Developers assume no liability and are not responsible for any misuse of this program.
 
+## Development ##
+Git pre-commit is used to maintain code quality and ensure uniform formatting. To begin developing with spraycharles:
+
+```
+pip3 install pre-commit
+pip3 install -r requirements-dev.txt
+pre-commit install
+```
 
 ## Credits ##
 - [@sprocket_ed](https://twitter.com/sprocket_ed) for contributing: several spray modules, many of features that make spraycharles great, and the associated blog post
