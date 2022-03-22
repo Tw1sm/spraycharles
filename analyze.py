@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 
 import csv
-import numpy 
+
 import click
-from utils.notify import slack, teams, discord
+import numpy
 from rich.console import Console
 from rich.table import Table
 from rich.theme import Theme
+
+from utils.notify import discord, slack, teams
 
 # Defining theme
 custom_theme = Theme(
@@ -20,8 +22,8 @@ custom_theme = Theme(
 
 console = Console(theme=custom_theme)
 
-class Analyzer:
 
+class Analyzer:
     def __init__(self, resultsfile, notify, webhook, host, hit_count=0):
         self.resultsfile = resultsfile
         self.notify = notify
@@ -29,13 +31,15 @@ class Analyzer:
         self.host = host
         self.hit_count = hit_count
 
-
     def analyze(self):
         try:
-            with open(self.resultsfile, newline='') as resultsfile:
+            with open(self.resultsfile, newline="") as resultsfile:
                 print()
                 console.print("[*] Reading spray data from CSV", style="info")
-                reader = csv.reader(resultsfile, delimiter=',',)
+                reader = csv.reader(
+                    resultsfile,
+                    delimiter=",",
+                )
                 responses = list(reader)
         except Exception as e:
             console.print(
@@ -44,19 +48,20 @@ class Analyzer:
             print(e)
             exit()
 
-        if responses[0][1] == 'Message':
+        if responses[0][1] == "Message":
             return self.O365_analyze(responses)
-        elif responses[0][2] == 'SMB Login':
+        elif responses[0][2] == "SMB Login":
             return self.smb_analyze(responses)
         else:
             return self.http_analyze(responses)
-
 
     def O365_analyze(self, responses):
         results = []
         for line in responses:
             results.append(line[0])
-        success_indicies = list(filter(lambda x: results[x] == 'Success', range(len(results))))
+        success_indicies = list(
+            filter(lambda x: results[x] == "Success", range(len(results)))
+        )
 
         if len(success_indicies) > 0:
             console.print(
@@ -84,7 +89,6 @@ class Analyzer:
 
             return 0
 
-
     def http_analyze(self, responses):
         # remove header row from list
         del responses[0]
@@ -92,7 +96,7 @@ class Analyzer:
         len_with_timeouts = len(responses)
 
         # remove lines with timeouts
-        responses = [line for line in responses if line[2] != 'TIMEOUT']
+        responses = [line for line in responses if line[2] != "TIMEOUT"]
         timeouts = len_with_timeouts - len(responses)
 
         response_lengths = []
@@ -110,15 +114,19 @@ class Analyzer:
         length_mean = numpy.mean(length_elements, axis=0)
         length_sd = numpy.std(length_elements, axis=0)
         console.print("[*] Checking for outliers.", style="info")
-        length_outliers = [x for x in length_elements if(x > length_mean + 2 * length_sd or x < length_mean - 2 * length_sd)]
+        length_outliers = [
+            x
+            for x in length_elements
+            if (x > length_mean + 2 * length_sd or x < length_mean - 2 * length_sd)
+        ]
 
         length_outliers = list(set(length_outliers))
         len_indicies = []
 
         # find username / password combos with matching response lengths
         for hit in length_outliers:
-            len_indicies += [i for i,x in enumerate(responses) if x[3] == str(hit)]
-        
+            len_indicies += [i for i, x in enumerate(responses) if x[3] == str(hit)]
+
         # print out logins with outlying response lengths
         if len(len_indicies) > 0:
             console.print(
@@ -153,12 +161,11 @@ class Analyzer:
             print()
             return 0
 
-
     # check for smb success not HTTP
     def smb_analyze(self, responses):
         successes = []
         for line in responses[1:]:
-            if line[2] != 'STATUS_LOGON_FAILURE':
+            if line[2] != "STATUS_LOGON_FAILURE":
                 successes.append(line)
 
         if len(successes) > 0:
@@ -184,29 +191,51 @@ class Analyzer:
             print()
             return 0
 
-
     def send_notification(self, hit_total):
         # we'll only send notifications if NEW successes are found
         if hit_total > self.hit_count:
             # Calling notifications if specified
-            if self.notify == 'slack':
+            if self.notify == "slack":
                 slack(self.webhook, self.host)
-            elif self.notify == 'teams':
+            elif self.notify == "teams":
                 teams(self.webhook, self.host)
-            elif self.notify == 'discord':
+            elif self.notify == "discord":
                 teams(self.webhook, self.host)
 
-CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
+
+CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
+
+
 @click.command(no_args_is_help=True, context_settings=CONTEXT_SETTINGS)
-@click.argument('file', type=str, required=True)
-@click.option("-n", "--notify", required=False, type=click.Choice(['teams', 'slack', 'discord']),            help="Enable notifications for Slack, MS Teams or Discord.")
-@click.option("-w", "--webhook", required=False, type=str, default=False, help="Webhook used for specified   notification module")
-@click.option("-H", "--host", required=False, type=str, default=False, help="Target host associated with CSV file")
+@click.argument("file", type=str, required=True)
+@click.option(
+    "-n",
+    "--notify",
+    required=False,
+    type=click.Choice(["teams", "slack", "discord"]),
+    help="Enable notifications for Slack, MS Teams or Discord.",
+)
+@click.option(
+    "-w",
+    "--webhook",
+    required=False,
+    type=str,
+    default=False,
+    help="Webhook used for specified   notification module",
+)
+@click.option(
+    "-H",
+    "--host",
+    required=False,
+    type=str,
+    default=False,
+    help="Target host associated with CSV file",
+)
 def main(file, notify, webhook, host):
 
     analyzer = Analyzer(file, notify, webhook, host)
     analyzer.analyze()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
