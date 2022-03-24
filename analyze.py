@@ -168,10 +168,14 @@ class Analyzer:
             if line[2] != "STATUS_LOGON_FAILURE":
                 successes.append(line)
 
+
+
         if len(successes) > 0:
             console.print(
                 "[+] Identified potentially sussessful logins!\n", style="good"
             )
+
+            success_table = Table(show_footer=False, highlight=True)
 
             success_table.add_column("Username")
             success_table.add_column("Password")

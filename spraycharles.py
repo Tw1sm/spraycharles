@@ -664,21 +664,6 @@ def main(
     analyzer = analyze.Analyzer(csvfile, notify, webhook, host, total_hits)
     new_hit_total = analyzer.analyze()
 
-    if new_hit_total > total_hits and pause:
-        print()
-        console.print(
-            "[+] Successful login potentially identified. Pausing!",
-            style="bold bright_green",
-        )
-        print()
-        Confirm.ask(
-            "[blue]Press enter to continue",
-            default=True,
-            show_choices=False,
-            show_default=False,
-        )
-
-
 # stock boilerplate
 if __name__ == "__main__":
     main()
