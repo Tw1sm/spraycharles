@@ -24,7 +24,7 @@ from rich.theme import Theme
 import analyze
 from targets import *
 
-VERSION = 1.0
+VERSION = 1.01
 
 # Defining theme
 custom_theme = Theme(
@@ -662,7 +662,8 @@ def main(
 
     # analyze the results to point out possible hits
     analyzer = analyze.Analyzer(csvfile, notify, webhook, host, total_hits)
-    new_hit_total = analyzer.analyze()
+    analyzer.analyze()
+
 
 # stock boilerplate
 if __name__ == "__main__":
