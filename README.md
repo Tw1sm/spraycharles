@@ -110,27 +110,19 @@ It is possible to pre-populate command line arguments form a configuration file 
 An example configuration file is listed below:
 
 ```
-userlist = '/tmp/users.txt'
-passlist = '/tmp/passwords.txt'
-csvfile = 'mail.acme.com.csv'
+usernames = '/tmp/users.txt'
+passwords = '/tmp/passwords.txt'
+output = 'mail.acme.com.csv'
 module = 'owa'
 host = 'mail.acme.com'
 domain = 'ACME'
-analyze_results = 'True'
+analyze = 'True'
 attempts = '1'
 interval = '30'
 timeout = '25'
 ```
 
-Note: Due to internal script logic the following variables must be defined differently than they would be via CLI:
-
-* usernames = userlist
-* passwords = passlist
-* output = csvfile
-* analyze = analyze_results
-
 <br/>
-
 
 ### Notifications ###
 Spraycharles has the ability to issue notifications to Discord, Slack and Microsoft Teams following a potentially successful login attempt. This list of notification providers can augmented using the utils/notify.py script. For any of the potential notification agents, you must specify its name and a webhook URL.

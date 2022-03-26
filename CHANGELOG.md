@@ -7,6 +7,7 @@
 - Pre-commit hooks for formatting
 ### Changed
 - Code reformatted using black library
+- Internal variable names in spraycharles.py to allow config file variable names to match CLI flag names
 ### Removed
 - OpenVPN module
 

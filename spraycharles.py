@@ -21,7 +21,7 @@ from rich.prompt import Confirm
 from rich.table import Table
 from rich.theme import Theme
 
-import analyze
+from analyze import Analyzer
 from targets import *
 
 VERSION = 1.01
@@ -40,8 +40,8 @@ console = Console(theme=custom_theme)
 
 
 def args(
-    passlist,
-    userlist,
+    passwords,
+    users,
     host,
     module,
     path,
@@ -79,20 +79,18 @@ def args(
 
     # get usernames from file
     try:
-        with open(userlist, "r") as f:
-            users = f.read().splitlines()
+        with open(users, "r") as f:
+            user_list = f.read().splitlines()
     except Exception:
-        console.print(
-            f"[!] Error reading usernames from file: {userlist}", style="danger"
-        )
+        console.print(f"[!] Error reading usernames from file: {users}", style="danger")
         exit()
 
     # get passwords from file, otherwise treat arg as a single password to spray
     try:
-        with open(passlist, "r") as f:
-            passwords = f.read().splitlines()
+        with open(passwords, "r") as f:
+            password_list = f.read().splitlines()
     except Exception:
-        passwords = [passlist]
+        password_list = [passwords]
 
     # check that interval and attempt args are supplied together
     if interval and not attempts:
@@ -104,7 +102,7 @@ def args(
     elif not interval and attempts:
         console.print("[!] Minutes per interval (-i) required with -a", style="danger")
         exit()
-    elif not interval and not attempts and len(passwords) > 1:
+    elif not interval and not attempts and len(password_list) > 1:
         console.print(
             "[*] You have not provided spray attempts/interval. This may lead to account lockouts!",
             style="warning",
@@ -152,10 +150,10 @@ def args(
         exit()
 
     return (
-        users,
+        user_list,
+        password_list,
         passwords,
-        passlist,
-        userlist,
+        users,
         host,
         module,
         path,
@@ -181,7 +179,7 @@ def check_sleep(
     attempts,
     interval,
     csvfile,
-    analyze_results,
+    analyze,
     notify,
     webhook,
     host,
@@ -189,8 +187,8 @@ def check_sleep(
     total_hits,
 ):
     if login_attempts == attempts:
-        if analyze_results:
-            analyzer = analyze.Analyzer(csvfile, notify, webhook, host, total_hits)
+        if analyze:
+            analyzer = Analyzer(csvfile, notify, webhook, host, total_hits)
             new_hit_total = analyzer.analyze()
 
             # Pausing if specified by user before continuing with spray
@@ -283,14 +281,14 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help", "help"])
 @click.option(
     "-p",
     "--passwords",
-    "passlist",
+    "passwords",
     required=True,
     help="Filepath of the passwords list or a single password to spray.",
 )
 @click.option(
     "-u",
     "--usernames",
-    "userlist",
+    "usernames",
     required=True,
     help="Filepath of the usernames list.",
 )
@@ -310,7 +308,7 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help", "help"])
 @click.option(
     "-o",
     "--output",
-    "csvfile",
+    "output",
     required=False,
     help="Name and path of output csv where attempts will be logged.",
     default="output.csv",
@@ -378,7 +376,7 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help", "help"])
 )
 @click.option(
     "--analyze",
-    "analyze_results",
+    "analyze",
     default=False,
     is_flag=True,
     required=False,
@@ -416,12 +414,12 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help", "help"])
 # Allows user to specify configuration file with --config
 @click_config_file.configuration_option()
 def main(
-    passlist,
-    userlist,
+    passwords,
+    usernames,
     host,
     module,
     path,
-    csvfile,
+    output,
     attempts,
     interval,
     equal,
@@ -429,7 +427,7 @@ def main(
     port,
     fireprox,
     domain,
-    analyze_results,
+    analyze,
     jitter,
     jitter_min,
     notify,
@@ -448,14 +446,14 @@ def main(
 
     # Parsing and validating command line arguments with args() function
     (
-        users,
-        passwords,
+        user_list,
+        password_list,
         passfile,
         userfile,
         host,
         module,
         path,
-        csvfile,
+        output,
         attempts,
         interval,
         equal,
@@ -463,19 +461,19 @@ def main(
         port,
         fireprox,
         domain,
-        analyze_results,
+        analyze,
         jitter,
         jitter_min,
         notify,
         webhook,
         pause,
     ) = args(
-        passlist,
-        userlist,
+        passwords,
+        usernames,
         host,
         module,
         path,
-        csvfile,
+        output,
         attempts,
         interval,
         equal,
@@ -483,7 +481,7 @@ def main(
         port,
         fireprox,
         domain,
-        analyze_results,
+        analyze,
         jitter,
         jitter_min,
         notify,
@@ -552,7 +550,7 @@ def main(
         spray_info.add_row("Notify", f"True ({notify})")
 
     spray_info.add_row("Logfile", f"{log_name}")
-    spray_info.add_row("Results", f"{csvfile}")
+    spray_info.add_row("Results", f"{output}")
 
     console.print(spray_info)
 
@@ -582,21 +580,21 @@ def main(
             console.print(f"[!] Failed to connect to {host} over SMB", style="danger")
             exit()
 
-    target.print_headers(csvfile)
+    target.print_headers(output)
 
     login_attempts = 0
 
     # spray once with password = username if flag present
     if equal:
         with Progress(transient=True) as progress:
-            task = progress.add_task(f"[yellow]Equal Set", total=len(users))
-            for username in users:
+            task = progress.add_task(f"[yellow]Equal Set", total=len(user_list))
+            for username in user_list:
                 pword = username.split("@")[0]
                 if jitter is not None:
                     if jitter_min is None:
                         jitter_min = 0
                     time.sleep(random.randint(jitter_min, jitter))
-                login(target, username, pword, csvfile)
+                login(target, username, pword, output)
                 progress.update(task, advance=1)
 
             # log the login attempt
@@ -605,14 +603,14 @@ def main(
         login_attempts += 1
 
     # spray using password file
-    for password in passwords:
+    for password in password_list:
         # trigger sleep if attempts limit hit
         login_attempts, total_hits = check_sleep(
             login_attempts,
             attempts,
             interval,
-            csvfile,
-            analyze_results,
+            output,
+            analyze,
             notify,
             webhook,
             host,
@@ -622,37 +620,39 @@ def main(
 
         # check if user/pass files have been updated and add new entries to current lists
         # this will let users add (but not remove) users/passwords into the spray as it runs
-        new_users = check_file_contents(userfile, users)
-        new_passwords = check_file_contents(passfile, passwords)
+        new_users = check_file_contents(userfile, user_list)
+        new_passwords = check_file_contents(passfile, password_list)
 
         if len(new_users) > 0:
             console.print(
                 f"[>] Adding {len(new_users)} new users into the spray!", style="info"
             )
-            users.extend(new_users)
+            user_list.extend(new_users)
 
         if len(new_passwords) > 0:
             console.print(
                 f"[>] Adding {len(new_passwords)} new passwords to the end of the spray!",
                 style="info",
             )
-            passwords.extend(new_passwords)
+            password_list.extend(new_passwords)
 
         # print line separator
         if len(new_passwords) > 0 or len(new_users) > 0:
             print()
 
         with Progress(transient=True) as progress:
-            task = progress.add_task(f"[green]Spraying: {password}", total=len(users))
+            task = progress.add_task(
+                f"[green]Spraying: {password}", total=len(user_list)
+            )
             while not progress.finished:
-                for username in users:
+                for username in user_list:
                     if domain:
                         username = f"{domain}\\{username}"
                     if jitter is not None:
                         if jitter_min is None:
                             jitter_min = 0
                         time.sleep(random.randint(jitter_min, jitter))
-                    login(target, username, password, csvfile)
+                    login(target, username, password, output)
                     progress.update(task, advance=1)
 
             # log the login attempt
@@ -661,7 +661,7 @@ def main(
         login_attempts += 1
 
     # analyze the results to point out possible hits
-    analyzer = analyze.Analyzer(csvfile, notify, webhook, host, total_hits)
+    analyzer = Analyzer(output, notify, webhook, host, total_hits)
     analyzer.analyze()
 
 
