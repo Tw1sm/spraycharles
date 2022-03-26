@@ -46,7 +46,7 @@ You will most likely want to save and use a list of usernames and passwords duri
 docker run -it -v $(pwd):/spraycharles/ spraycharles -h
 ```
 
-Following your first run of the command above, a sparycharles directory will be created on your system where you can add username and password lists as well as access spraying logs. 
+Following your first run of the command above, a sparycharles directory will be created on your system where you can add username and password lists as well as access spraying logs.
 
 #### From GitHub
 ```bash
@@ -104,7 +104,7 @@ Options:
   -h, --help                      Show this message and exit.
 ```
 
-#### Config File 
+#### Config File
 It is possible to pre-populate command line arguments form a configuration file using the `--config` argument.
 
 An example configuration file is listed below:
@@ -133,7 +133,7 @@ Note: Due to internal script logic the following variables must be defined diffe
 
 
 ### Notifications ###
-Spraycharles has the ability to issue notifications to Discord, Slack and Microsoft Teams following a potentially successful login attempt. This list of notification providers can augmented using the utils/notify.py script. For any of the potential notification agents, you must specify its name and a webhook URL. 
+Spraycharles has the ability to issue notifications to Discord, Slack and Microsoft Teams following a potentially successful login attempt. This list of notification providers can augmented using the utils/notify.py script. For any of the potential notification agents, you must specify its name and a webhook URL.
 
 It is best to specify this information using the configuration file to keep your command shorter:
 
@@ -142,7 +142,7 @@ notify = 'slack'
 webhook = 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'
 ```
 
-Notifications sent to any of the providers will include the targeted hostname associated with the spraying job. This is expecially useful when spraying multiple targets at once using spraycharles. Note that unless you specify the --pause flag on execution, a notification will be issued following every spray iteration. 
+Notifications sent to any of the providers will include the targeted hostname associated with the spraying job. This is expecially useful when spraying multiple targets at once using spraycharles. Note that unless you specify the --pause flag on execution, a notification will be issued following every spray iteration.
 
 <br/>
 
@@ -174,7 +174,7 @@ Spray host over SMB with 2 attempts per user every hour
 Spraycharles is packaged with some additional utilities to assist with spraying efforts.
 <br/>
 
-#### Generating Custom Spray Lists 
+#### Generating Custom Spray Lists
 make_list.py will generate a password list based off the specifications provided in list_elements.json
 ```
 ./utils/make_list.py
@@ -182,7 +182,7 @@ make_list.py will generate a password list based off the specifications provided
 
 <br/>
 
-#### Extracting Domain from NTLM over HTTP and SMB 
+#### Extracting Domain from NTLM over HTTP and SMB
 ntlm_challenger.py will extract the internal domain from both NTLM over HTTP and SMB services using a command similar to the one listed below.
 
 
@@ -203,6 +203,14 @@ ntlm_challenger.py will extract the internal domain from both NTLM over HTTP and
 ## Disclaimer ##
 This tool is designed for use during penetration testing; usage of this tool for attacking targets without prior mutual consent is illegal. It is the end user's responsibility to obey all applicable local, state and federal laws. Developers assume no liability and are not responsible for any misuse of this program.
 
+## Development ##
+Git pre-commit is used to maintain code quality and ensure uniform formatting. To begin developing with spraycharles:
+
+```
+pip3 install pre-commit
+pip3 install -r requirements-dev.txt
+pre-commit install
+```
 
 ## Credits ##
 - [@sprocket_ed](https://twitter.com/sprocket_ed) for contributing: several spray modules, many of features that make spraycharles great, and the associated blog post

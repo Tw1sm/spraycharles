@@ -1,79 +1,93 @@
 #!/usr/bin/env python3
 
 import csv
-import numpy 
+
 import click
-from texttable import Texttable
-from utils.notify import slack, teams, discord
+import numpy
+from rich.console import Console
+from rich.table import Table
+from rich.theme import Theme
 
-class Color:
-    green = '\033[92m'
-    yellow = '\033[93m'
-    blue = '\033[94m'
-    red = '\033[91m'
-    grey = '\033[37m'
-    end = '\033[0m'
+from utils.notify import discord, slack, teams
 
+# Defining theme
+custom_theme = Theme(
+    {
+        "info": "blue",
+        "good": "bold bright_green",
+        "warning": "bold yellow",
+        "danger": "bold bright_red",
+    }
+)
 
-    def color_print(self, string, color, end='\n'):
-        print(color + string + self.end, end=end)
+console = Console(theme=custom_theme)
 
 
 class Analyzer:
-
     def __init__(self, resultsfile, notify, webhook, host, hit_count=0):
         self.resultsfile = resultsfile
         self.notify = notify
         self.webhook = webhook
         self.host = host
         self.hit_count = hit_count
-        self.colors = Color()
-
 
     def analyze(self):
         try:
-            with open(self.resultsfile, newline='') as resultsfile:
+            with open(self.resultsfile, newline="") as resultsfile:
                 print()
-                print('[*] Reading spray data from CSV...')
-                reader = csv.reader(resultsfile, delimiter=',',)
+                console.print("[*] Reading spray data from CSV", style="info")
+                reader = csv.reader(
+                    resultsfile,
+                    delimiter=",",
+                )
                 responses = list(reader)
         except Exception as e:
-            self.colors.color_print('[!] Error reading from file: %s' % (self.resultsfile), self.colors.red)
+            console.print(
+                f"[!] Error reading from file: {self.resultsfile}", style="danger"
+            )
             print(e)
             exit()
 
-        if responses[0][1] == 'Message':
+        if responses[0][1] == "Message":
             return self.O365_analyze(responses)
-        elif responses[0][2] == 'SMB Login':
+        elif responses[0][2] == "SMB Login":
             return self.smb_analyze(responses)
         else:
             return self.http_analyze(responses)
-
 
     def O365_analyze(self, responses):
         results = []
         for line in responses:
             results.append(line[0])
-        success_indicies = list(filter(lambda x: results[x] == 'Success', range(len(results))))
+        success_indicies = list(
+            filter(lambda x: results[x] == "Success", range(len(results)))
+        )
 
-        # print out logins with outlying response lengths
         if len(success_indicies) > 0:
-            self.colors.color_print('[+] Identified potential sussessful logins!\n', self.colors.green)
-            table = Texttable(0)
-            table.header(['Username', 'Password', 'Message'])
+            console.print(
+                "[+] Identified potentially sussessful logins!",
+                style="good",
+            )
+            success_table = Table(show_footer=False, highlight=True)
+
+            success_table.add_column("Username")
+            success_table.add_column("Password")
+            success_table.add_column("Message", justify="right")
             for x in success_indicies:
-                table.add_row([responses[x][2], responses[x][3], responses[x][1]])
+                success_table.add_row(
+                    f"{responses[x][2]}", f"{responses[x][3]}", f"{responses[x][1]}"
+                )
+
+            console.print(success_table)
 
             self.send_notification(len(success_indicies))
-            
-            print(table.draw())
 
             # Returning true to indicate a successfully guessed credential
             return len(success_indicies)
         else:
-            self.colors.color_print('[-] No successful Office365 logins', self.colors.red)
-            return 0
+            console.print("[!] No successful Office365 logins", style="danger")
 
+            return 0
 
     def http_analyze(self, responses):
         # remove header row from list
@@ -82,7 +96,7 @@ class Analyzer:
         len_with_timeouts = len(responses)
 
         # remove lines with timeouts
-        responses = [line for line in responses if line[2] != 'TIMEOUT']
+        responses = [line for line in responses if line[2] != "TIMEOUT"]
         timeouts = len_with_timeouts - len(responses)
 
         response_lengths = []
@@ -90,92 +104,142 @@ class Analyzer:
         for indx, line in enumerate(responses):
             response_lengths.append(int(line[3]))
 
-        print('[*] Calculating mean and standard deviation of response lengths...')
+        console.print(
+            "[*] Calculating mean and standard deviation of response lengths.",
+            style="info",
+        )
 
         # find outlying response lengths
         length_elements = numpy.array(response_lengths)
         length_mean = numpy.mean(length_elements, axis=0)
         length_sd = numpy.std(length_elements, axis=0)
-        print('[*] Checking for outliers...')
-        length_outliers = [x for x in length_elements if(x > length_mean + 2 * length_sd or x < length_mean - 2 * length_sd)]
+        console.print("[*] Checking for outliers.", style="info")
+        length_outliers = [
+            x
+            for x in length_elements
+            if (x > length_mean + 2 * length_sd or x < length_mean - 2 * length_sd)
+        ]
 
         length_outliers = list(set(length_outliers))
         len_indicies = []
 
         # find username / password combos with matching response lengths
         for hit in length_outliers:
-            len_indicies += [i for i,x in enumerate(responses) if x[3] == str(hit)]
-        
+            len_indicies += [i for i, x in enumerate(responses) if x[3] == str(hit)]
+
         # print out logins with outlying response lengths
         if len(len_indicies) > 0:
-            self.colors.color_print('[+] Identified potential sussessful logins!\n', self.colors.green)
-            table = Texttable(0)
-            table.header(['Username', 'Password', 'Resp Code' , 'Resp Length'])
-            for x in len_indicies:
-                table.add_row([responses[x][0], responses[x][1], responses[x][2], responses[x][3]])
-            
-            self.send_notification(len(len_indicies))
+            console.print(
+                "[+] Identified potentially sussessful logins!\n", style="good"
+            )
 
-            print(table.draw())
+            success_table = Table(show_footer=False, highlight=True)
+
+            success_table.add_column("Username")
+            success_table.add_column("Password")
+            success_table.add_column("Response Code", justify="right")
+            success_table.add_column("Response Length", justify="right")
+            for x in len_indicies:
+                success_table.add_row(
+                    f"{responses[x][0]}",
+                    f"{responses[x][1]}",
+                    f"{responses[x][2]}",
+                    f"{responses[x][3]}",
+                )
+
+            console.print(success_table)
+
             print()
 
             # Returning true to indicate a successfully guessed credential
             return len(len_indicies)
         else:
-            self.colors.color_print('[-] No outliers found or not enough data to find statistical significance', self.colors.red)
+            console.print(
+                "[!] No outliers found or not enough data to find statistical significance.",
+                style="danger",
+            )
             print()
             return 0
-
 
     # check for smb success not HTTP
     def smb_analyze(self, responses):
         successes = []
         for line in responses[1:]:
-            if line[2] != 'STATUS_LOGON_FAILURE':
+            if line[2] != "STATUS_LOGON_FAILURE":
                 successes.append(line)
 
+
+
         if len(successes) > 0:
-            self.colors.color_print('[+] Identified sussessful SMB logins!\n', self.colors.green)
-            table = Texttable(0)
-            table.header(['Username', 'Password'])
+            console.print(
+                "[+] Identified potentially sussessful logins!\n", style="good"
+            )
+
+            success_table = Table(show_footer=False, highlight=True)
+
+            success_table.add_column("Username")
+            success_table.add_column("Password")
             for x in successes:
-                table.add_row([x[0], x[1]])
+                success_table.add_row(f"{x[0]}", f"{x[1]}")
+
+            console.print(success_table)
 
             self.send_notification(len(successes))
 
-            print(table.draw())
             print()
 
             # Returning true to indicate a successfully guessed credential
             return len(successes)
         else:
-            self.colors.color_print('[-] No successful SMB logins', self.colors.red)
+            console.print("[!] No successful SMB logins", style="danger")
             print()
             return 0
-
 
     def send_notification(self, hit_total):
         # we'll only send notifications if NEW successes are found
         if hit_total > self.hit_count:
             # Calling notifications if specified
-            if self.notify == 'slack':
+            if self.notify == "slack":
                 slack(self.webhook, self.host)
-            elif self.notify == 'teams':
+            elif self.notify == "teams":
                 teams(self.webhook, self.host)
-            elif self.notify == 'discord':
+            elif self.notify == "discord":
                 teams(self.webhook, self.host)
 
-CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
+
+CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
+
+
 @click.command(no_args_is_help=True, context_settings=CONTEXT_SETTINGS)
-@click.argument('file', type=str, required=True)
-@click.option("-n", "--notify", required=False, type=click.Choice(['teams', 'slack', 'discord']),            help="Enable notifications for Slack, MS Teams or Discord.")
-@click.option("-w", "--webhook", required=False, type=str, default=False, help="Webhook used for specified   notification module")
-@click.option("-H", "--host", required=False, type=str, default=False, help="Target host associated with CSV file")
+@click.argument("file", type=str, required=True)
+@click.option(
+    "-n",
+    "--notify",
+    required=False,
+    type=click.Choice(["teams", "slack", "discord"]),
+    help="Enable notifications for Slack, MS Teams or Discord.",
+)
+@click.option(
+    "-w",
+    "--webhook",
+    required=False,
+    type=str,
+    default=False,
+    help="Webhook used for specified   notification module",
+)
+@click.option(
+    "-H",
+    "--host",
+    required=False,
+    type=str,
+    default=False,
+    help="Target host associated with CSV file",
+)
 def main(file, notify, webhook, host):
 
     analyzer = Analyzer(file, notify, webhook, host)
     analyzer.analyze()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

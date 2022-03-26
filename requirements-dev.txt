@@ -9,3 +9,6 @@ notifiers
 pymsteams
 discord_webhook
 rich
+pre-commit
+isort
+black
