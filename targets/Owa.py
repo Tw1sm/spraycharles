@@ -2,6 +2,8 @@ import csv
 
 import requests
 
+from .classes.BaseHttpTarget import BaseHttpTarget
+
 
 class Owa:
     def __init__(self, host, port, timeout, fireprox):
