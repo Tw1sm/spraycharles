@@ -149,6 +149,8 @@ class Analyzer:
 
             console.print(success_table)
 
+            self.send_notification(len(len_indicies))
+
             print()
 
             # Returning true to indicate a successfully guessed credential
@@ -167,8 +169,6 @@ class Analyzer:
         for line in responses[1:]:
             if line[2] != "STATUS_LOGON_FAILURE":
                 successes.append(line)
-
-
 
         if len(successes) > 0:
             console.print(
@@ -199,6 +199,10 @@ class Analyzer:
         # we'll only send notifications if NEW successes are found
         if hit_total > self.hit_count:
             # Calling notifications if specified
+            print()
+            console.print(
+                f"[*] Sending notification to {self.notify} webhook", style="info"
+            )
             if self.notify == "slack":
                 slack(self.webhook, self.host)
             elif self.notify == "teams":
