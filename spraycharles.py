@@ -24,7 +24,7 @@ from rich.theme import Theme
 from analyze import Analyzer
 from targets import *
 
-VERSION = 1.01
+VERSION = 1.02
 
 # Defining theme
 custom_theme = Theme(
@@ -78,7 +78,7 @@ class Spraycharles:
             host = "Office365"  # set host to Office365 for the logfile name
         elif module.lower() == "smb" and (timeout != 5 or fireprox or port != 443):
             console.print(
-                "[!] Fireprox (-f), port (-b) and timeout (-t) are incompatible when spraying over SMB",
+                "[!] Fireprox (-f), port (-P) and timeout (-t) are incompatible when spraying over SMB",
                 style="warning",
             )
 
@@ -195,7 +195,7 @@ class Spraycharles:
             if self.module.title().lower() == "ntlm":
                 self.module = self.module.title()
                 mod_name = getattr(sys.modules[__name__], self.module)
-                class_name = getattr(mod_name, module)
+                class_name = getattr(mod_name, self.module)
                 self.target = class_name(
                     self.host, self.port, self.timeout, self.path, self.fireprox
                 )
