@@ -597,8 +597,8 @@ def main(
                 login(target, username, pword, output)
                 progress.update(task, advance=1)
 
-            # log the login attempt
-            logging.info(f"Login attempted as {username}")
+                # log the login attempt
+                logging.info(f"Login attempted as {username}")
 
         login_attempts += 1
 
@@ -655,8 +655,8 @@ def main(
                     login(target, username, password, output)
                     progress.update(task, advance=1)
 
-            # log the login attempt
-            logging.info(f"Login attempted as {username}")
+                    # log the login attempt
+                    logging.info(f"Login attempted as {username}")
 
         login_attempts += 1
 
