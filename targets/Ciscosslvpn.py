@@ -1,6 +1,3 @@
-import csv
-from lib2to3.pytree import Base
-
 import requests
 
 from .classes.BaseHttpTarget import BaseHttpTarget

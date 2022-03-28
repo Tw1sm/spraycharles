@@ -1,11 +1,9 @@
-import csv
-
 import requests
 
 from .classes.BaseHttpTarget import BaseHttpTarget
 
 
-class Sonicwall:
+class Sonicwall(BaseHttpTarget):
     def __init__(self, host, port, timeout, fireprox):
         self.domain = input("Enter domain: ")
         self.timeout = timeout
