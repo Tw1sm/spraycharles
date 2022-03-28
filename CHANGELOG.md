@@ -1,4 +1,12 @@
 # Changelog
+## [v1.02] - 3/27/2022
+### Added
+- Added a base class for HTTP targets so that most target modules can inherit classes to print output, headers, etc
+### Changed
+- Refactored spraycharles.py to utilize a class
+- Fixed reference to port CLI flag
+- Fixed http_analyze function to also send notifications
+- Made the ADFS, Ciscosslvpn, Citrix, Ntlm, Owa and Sonicwall targets subclasses of BaseHttpTarget to minimize code reuse
 
 ## [v1.01] - 3/26/2022
 ### Added
