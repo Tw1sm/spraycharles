@@ -1,4 +1,10 @@
 # Changelog
+## [v1.03] - 3/29/2022
+### Added
+- Okta target module (needs testing)
+### Changed
+- In Office365 module: spelling fixes, removed "WindowsPowerShell" for user-agent string and minor edits
+
 ## [v1.02] - 3/27/2022
 ### Added
 - Added a base class for HTTP targets so that most target modules can inherit classes to print output, headers, etc
