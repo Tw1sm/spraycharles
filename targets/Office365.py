@@ -5,7 +5,7 @@ import requests
 
 
 class Office365:
-    def __init__(self, port, host, timeout, fireprox):
+    def __init__(self, host, port, timeout, fireprox):
         self.timeout = timeout
         self.url = "https://login.microsoft.com/common/oauth2/token"
 
@@ -15,7 +15,7 @@ class Office365:
         self.headers = {
             "Accept": "application/json",
             "Content-Type": "application/x-www-form-urlencoded",
-            "User-Agent": "Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.17763.1007",
+            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101 Firefox/52.0",
             "Expect": "100-continue",
             "Connection": "close",
         }
@@ -25,8 +25,8 @@ class Office365:
             "client_id": "1b730954-1685-4b74-9bfd-dac224a7b894",
             "client_info": "1",
             "grant_type": "password",
-            "username": "testmcreel@schneiderdowns.com",
-            "password": "test",
+            "username": "",
+            "password": "",
             "scope": "openid",
         }
 
@@ -92,7 +92,7 @@ class Office365:
             data = json.loads(response.content)
             err = data["error_description"].split(":")[0]
 
-            # Thank to dafthack for figuring out the error codes: https://github.com/dafthack/MSOLSpray
+            # Thanks to dafthack for figuring out the error codes: https://github.com/dafthack/MSOLSpray
             # standard error code
             if err == "AADSTS50126":
                 result = "Fail"
