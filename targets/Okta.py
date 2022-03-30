@@ -95,6 +95,7 @@ class Okta:
                 result = "Fail"
                 message = ""
 
+        # statuses taken from https://developer.okta.com/docs/reference/api/authn/#response-example-for-primary-authentication-with-public-application-success
         elif response.status_code == 200 and "status" in data.keys():
             # Account lockout
             if data["status"] == "LOCKED_OUT":
@@ -102,16 +103,19 @@ class Okta:
                 message = "Account appears locked"
 
             # Valid and not enrolled in MFA yet
+            elif data["status"] == "PASSWORD_EXPIRED":
+                result = "Success"
+                message = "Password Expired; no MFA"
+
+            # Valid and not enrolled in MFA yet
             elif data["status"] == "MFA_ENROLL":
                 result = "Success"
-                message = "Valid login; no MFA"
+                message = "Valid login; needs MFA enrollment"
 
-            # Valid (and enrolled in MFA?)
-            else:
+            # Valid and MFA required
+            elif data["status"] == "MFA_REQUIRED":
                 result = "Success"
-                message = (
-                    "Valid login; may have MFA"  # currently unsure of MFA in this case
-                )
+                message = "Valid login; MFA required"
 
         # failsafe for all other cases
         else:
