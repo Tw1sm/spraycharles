@@ -7,7 +7,7 @@ from .classes.BaseHttpTarget import BaseHttpTarget
 class Ntlm(BaseHttpTarget):
     def __init__(self, host, port, timeout, path, fireprox):
         self.timeout = timeout
-        self.url = f"http://{host}:{port}/{path}"
+        self.url = f"https://{host}:{port}/{path}"
 
         if fireprox:
             self.url = f"https://{fireprox}/fireprox/{path}"
