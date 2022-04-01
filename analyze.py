@@ -199,10 +199,12 @@ class Analyzer:
         # we'll only send notifications if NEW successes are found
         if hit_total > self.hit_count:
             # Calling notifications if specified
-            print()
-            console.print(
-                f"[*] Sending notification to {self.notify} webhook", style="info"
-            )
+            if self.notify:
+                print()
+                console.print(
+                    f"[*] Sending notification to {self.notify} webhook", style="info"
+                )
+                
             if self.notify == "slack":
                 slack(self.webhook, self.host)
             elif self.notify == "teams":
