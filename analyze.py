@@ -55,6 +55,7 @@ class Analyzer:
         else:
             return self.http_analyze(responses)
 
+    # Analyzes O365 and Okta
     def O365_analyze(self, responses):
         results = []
         for line in responses:
@@ -85,7 +86,7 @@ class Analyzer:
             # Returning true to indicate a successfully guessed credential
             return len(success_indicies)
         else:
-            console.print("[!] No successful Office365 logins", style="danger")
+            console.print("[!] No successful logins", style="danger")
 
             return 0
 
