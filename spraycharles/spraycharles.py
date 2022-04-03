@@ -10,6 +10,8 @@ import sys
 import time
 import warnings
 from time import sleep
+from pathlib import Path
+import pathlib 
 
 import click
 import click_config_file
@@ -21,8 +23,8 @@ from rich.prompt import Confirm
 from rich.table import Table
 from rich.theme import Theme
 
-from analyze import Analyzer
-from targets import *
+from .analyze import Analyzer
+from .targets import *
 
 VERSION = 1.03
 
@@ -160,6 +162,19 @@ class Spraycharles:
             )
             exit()
 
+        # Create spraycharles directories if they don't exist
+        user_home = str(Path.home())
+        if not os.path.exists(f'{user_home}/.spraycharles'):
+            os.mkdir(f'{user_home}/.spraycharles')
+            os.mkdir(f'{user_home}/.spraycharles/logs')
+            os.mkdir(f'{user_home}/.spraycharles/out')
+
+        # Building output file
+        current = datetime.datetime.now()
+        timestamp = int(round(current.timestamp()))
+        if output == 'output.csv':
+            output = f'{user_home}/.spraycharles/out/{host}.{timestamp}.csv'
+
         self.passwords = password_list
         self.password_file = passwords
         self.usernames = user_list
@@ -214,10 +229,14 @@ class Spraycharles:
             )
             exit()
 
-        # create the log file
-        if not os.path.isdir("logs"):
-            os.mkdir("logs")
-        self.log_name = "logs/%s.log" % self.host
+
+
+        # Create the logfile
+        user_home = str(Path.home())
+        current = datetime.datetime.now()
+        timestamp = int(round(current.timestamp()))
+
+        self.log_name = f'{user_home}/.spraycharles/logs/{self.host}.{timestamp}.log' 
         logging.basicConfig(
             filename=self.log_name,
             level=logging.INFO,
@@ -252,8 +271,10 @@ class Spraycharles:
         if self.notify:
             spray_info.add_row("Notify", f"True ({self.notify})")
 
-        spray_info.add_row("Logfile", f"{self.log_name}")
-        spray_info.add_row("Results", f"{self.output}")
+        log_name = pathlib.PurePath(self.log_name)
+        out_name = pathlib.PurePath(self.output)
+        spray_info.add_row("Logfile", f"{log_name.name}")
+        spray_info.add_row("Results", f"{out_name.name}")
 
         console.print(spray_info)
 
