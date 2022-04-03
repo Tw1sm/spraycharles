@@ -8,7 +8,7 @@ from rich.console import Console
 from rich.table import Table
 from rich.theme import Theme
 
-from utils.notify import discord, slack, teams
+from .utils.notify import discord, slack, teams
 
 # Defining theme
 custom_theme = Theme(
