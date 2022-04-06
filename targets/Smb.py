@@ -71,12 +71,19 @@ class Smb:
         try:
             self.conn.login(username, self.password, domain)
             self.conn.logoff()
-            return "SUCCESS"
+            return "STATUS_SUCCESS"
         except SessionError as e:
             if "STATUS_LOGON_FAILURE" in str(e):
                 return "STATUS_LOGON_FAILURE"
+            elif "STATUS_ACCOUNT_LOCKED_OUT" in str(e):
+                return "STATUS_ACCOUNT_LOCKED_OUT"
+            elif "STATUS_ACCOUNT_DISABLED" in str(e):
+                return "STATUS_ACCOUNT_DISABLED"
+            elif "STATUS_PASSWORD_EXPIRED" in str(e):
+                return "STATUS_PASSWORD_EXPIRED"
             else:
-                print(e)
+                # something funky happened
+                return str(e)
 
     # handle CSV out output headers. Can be customized per module
     def print_headers(self, csvfile):

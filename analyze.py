@@ -167,8 +167,13 @@ class Analyzer:
     # check for smb success not HTTP
     def smb_analyze(self, responses):
         successes = []
+        positive_statuses = [
+            "STATUS_SUCCESS",
+            "STATUS_ACCOUNT_DISABLED",
+            "STATUS_PASSWORD_EXPIRED",
+        ]
         for line in responses[1:]:
-            if line[2] != "STATUS_LOGON_FAILURE":
+            if line[2] in positive_statuses:
                 successes.append(line)
 
         if len(successes) > 0:
@@ -180,8 +185,9 @@ class Analyzer:
 
             success_table.add_column("Username")
             success_table.add_column("Password")
+            success_table.add_column("Status")
             for x in successes:
-                success_table.add_row(f"{x[0]}", f"{x[1]}")
+                success_table.add_row(f"{x[0]}", f"{x[1]}", f"{x[2]}")
 
             console.print(success_table)
 
@@ -205,7 +211,7 @@ class Analyzer:
                 console.print(
                     f"[*] Sending notification to {self.notify} webhook", style="info"
                 )
-                
+
             if self.notify == "slack":
                 slack(self.webhook, self.host)
             elif self.notify == "teams":
