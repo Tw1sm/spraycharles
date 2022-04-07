@@ -36,9 +36,11 @@ class Ntlm(BaseHttpTarget):
 
     def set_username(self, username):
         self.data["username"] = username
+        self.username = username
 
     def set_password(self, password):
         self.data["password"] = password
+        self.password = password
 
     def login(self, username, password):
         self.set_username(username)
