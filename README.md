@@ -7,9 +7,7 @@ Associated [blog post](https://www.sprocketsecurity.com/blog/how-to-bypass-mfa-a
 
 ## Content ##
 - [Install](#install)
-  - [Using pipenv](#using-pipenv)
-  - [Using Docker](#using-docker)
-  - [From GitHub](#from-github)
+  - [Using pipx](#using-pipx)
 - [Usage](#usage)
   - [Config File](#config-file)
   - [Notifications](#notifications)
@@ -23,38 +21,22 @@ Associated [blog post](https://www.sprocketsecurity.com/blog/how-to-bypass-mfa-a
 
 ## Install ##
 
-#### Using pipenv ####
-```bash
-git clone https://github.com/Tw1sm/spraycharles.git && cd spraycharles
-pipenv --python 3 shell
-pip3 install -r requirements.txt
-./spraycharles.py -h
+### Using pipx ###
+
+You can use pipx to to install the spraycharles package into an isolated environment. First install pipx:
+
+```
+pip3 install pipx
 ```
 
+Following this, install the package directly from GitHub using the following command:
 
-#### Using Docker ####
-Build the container using the included Dockerfile.
-
-```bash
-git clone https://github.com/Tw1sm/spraycharles.git && cd spraycharles
-docker build . -t spraycharles
+```
+pipx install git+https://github.com/puzzlepeaches/spraycharles.git@refactor
 ```
 
-You will most likely want to save and use a list of usernames and passwords during spraying. The easiest way to do this is by mapping a directory on your host with the container. Use the following command in Bash to map your present working directory to the spraycharles install directory inside the running container.
+The spraycharles package will then be in your path and useable from anywhere. Note that log and output CSV files are stored in a directory created in your users homefolder with the name `.spraycharles`. These log and CSV files are dynamically created on runtime. See [usage](#usage) for instructions on how to specify an alternative location for your CSV file. 
 
-```bash
-docker run -it -v $(pwd):/spraycharles/ spraycharles -h
-```
-
-Following your first run of the command above, a sparycharles directory will be created on your system where you can add username and password lists as well as access spraying logs.
-
-#### From GitHub
-```bash
-$ git clone https://github.com/Tw1sm/spraycharles.git
-$ cd spraycharles
-$ pip3 install -r requirements.txt
-$ ./spraycharles.py -h
-```
 
 <br/>
 
@@ -134,7 +116,7 @@ notify = 'slack'
 webhook = 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'
 ```
 
-Notifications sent to any of the providers will include the targeted hostname associated with the spraying job. This is expecially useful when spraying multiple targets at once using spraycharles. Note that unless you specify the --pause flag on execution, a notification will be issued following every spray iteration.
+Notifications sent to any of the providers will include the targeted hostname associated with the spraying job. This is expecially useful when spraying multiple targets at once using spraycharles. 
 
 <br/>
 
