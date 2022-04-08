@@ -44,9 +44,11 @@ class Adfs(BaseHttpTarget):
 
     def set_username(self, username):
         self.data["UserName"] = username
+        self.username = username
 
     def set_password(self, password):
         self.data["Password"] = password
+        self.password = password
 
     def login(self, username, password):
         # set data

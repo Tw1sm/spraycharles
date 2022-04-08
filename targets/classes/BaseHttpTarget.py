@@ -6,6 +6,10 @@ class BaseHttpTarget:
     Base class to hold output for standard HTTP spray targets
     """
 
+    def __init__(self):
+        self.username = ""
+        self.password = ""
+
     # handle CSV out output headers. Can be customized per module
     def print_headers(self, csvfile):
         """
@@ -36,14 +40,9 @@ class BaseHttpTarget:
             length = str(len(response.content))
 
         # print result to screen
-        print(
-            "%-35s %-17s %13s %15s"
-            % (self.data["username"], self.data["password"], code, length)
-        )
+        print("%-35s %-17s %13s %15s" % (self.username, self.password, code, length))
 
         # print to CSV file
         output = open(csvfile, "a")
-        output.write(
-            f'{self.data["username"]},{self.data["password"]},{code},{length}\n'
-        )
+        output.write(f"{self.username},{self.password},{code},{length}\n")
         output.close()
