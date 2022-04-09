@@ -2,7 +2,7 @@
 name = "spraycharles"
 version = "1.03"
 description = "Low and slow password spraying tool, designed to spray on an interval over a long period of time."
-authors = ["Your Name <you@example.com>"]
+authors = ["Matt Creel", "Nicholas A"]
 license = "BSD 3-Clause License"
 
 [tool.poetry.dependencies]

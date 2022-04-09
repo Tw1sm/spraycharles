@@ -15,7 +15,9 @@ class Okta:
 
         if fireprox:
             self.url = f"https://{fireprox}/fireprox/api/v1/authn"
-            self.url2 = f"https://{fireprox}/fireprox/api/v1/authn/factors/password/verify"
+            self.url2 = (
+                f"https://{fireprox}/fireprox/api/v1/authn/factors/password/verify"
+            )
 
         self.headers = {
             "Accept": "application/json",
@@ -33,14 +35,11 @@ class Okta:
             "options": {
                 "warnBeforePasswordExpired": "true",
                 "multiOptionalFactorEnroll": "true",
-            }
+            },
         }
 
         # password submission json
-        self.data2 = {
-            "password": "",
-            "stateToken": ""
-        }
+        self.data2 = {"password": "", "stateToken": ""}
 
     def set_username(self, username):
         self.data["username"] = username
@@ -58,11 +57,11 @@ class Okta:
         response = requests.post(
             self.url, headers=self.headers, json=self.data, timeout=self.timeout
         )  # , verify=False, proxies=self.proxyDict)
-        
+
         # get the stateToken for password submission
         data = response.json()
         token = ""
-        if 'stateToken' in data.keys():
+        if "stateToken" in data.keys():
             token = data["stateToken"]
         else:
             # temp debug
@@ -70,14 +69,13 @@ class Okta:
             # raise ValueError(f"Okta response missing stateToken")
             return response
 
-
         self.set_password(password)
         self.set_token(token)
         # post the request
         response = requests.post(
             self.url2, headers=self.headers, json=self.data2, timeout=self.timeout
         )  # , verify=False, proxies=self.proxyDict)
-        
+
         return response
 
     # handle CSV out output headers. Can be customized per module
@@ -125,7 +123,7 @@ class Okta:
 
         if "errorSummary" in data.keys():
             if data["errorSummary"] == "Authentication failed":
-                # Login returned early - stateToken missing               
+                # Login returned early - stateToken missing
                 result = "Error"
                 message = "Okta resp missing stateToken"
             else:
@@ -135,7 +133,7 @@ class Okta:
 
         # statuses taken from https://developer.okta.com/docs/reference/api/authn/#response-example-for-primary-authentication-with-public-application-success
         elif response.status_code == 200 and "status" in data.keys():
-            #print(f"[DEBUG]: {data}")
+            # print(f"[DEBUG]: {data}")
             # Account lockout
             if data["status"] == "LOCKED_OUT":
                 result = "Fail"

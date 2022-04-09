@@ -205,7 +205,7 @@ class Analyzer:
                 console.print(
                     f"[*] Sending notification to {self.notify} webhook", style="info"
                 )
-                
+
             if self.notify == "slack":
                 slack(self.webhook, self.host)
             elif self.notify == "teams":

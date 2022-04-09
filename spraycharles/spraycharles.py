@@ -5,13 +5,13 @@ import datetime
 import json
 import logging
 import os
+import pathlib
 import random
 import sys
 import time
 import warnings
-from time import sleep
 from pathlib import Path
-import pathlib 
+from time import sleep
 
 import click
 import click_config_file
@@ -164,16 +164,16 @@ class Spraycharles:
 
         # Create spraycharles directories if they don't exist
         user_home = str(Path.home())
-        if not os.path.exists(f'{user_home}/.spraycharles'):
-            os.mkdir(f'{user_home}/.spraycharles')
-            os.mkdir(f'{user_home}/.spraycharles/logs')
-            os.mkdir(f'{user_home}/.spraycharles/out')
+        if not os.path.exists(f"{user_home}/.spraycharles"):
+            os.mkdir(f"{user_home}/.spraycharles")
+            os.mkdir(f"{user_home}/.spraycharles/logs")
+            os.mkdir(f"{user_home}/.spraycharles/out")
 
         # Building output file
         current = datetime.datetime.now()
         timestamp = int(round(current.timestamp()))
-        if output == 'output.csv':
-            output = f'{user_home}/.spraycharles/out/{host}.{timestamp}.csv'
+        if output == "output.csv":
+            output = f"{user_home}/.spraycharles/out/{host}.{timestamp}.csv"
 
         self.passwords = password_list
         self.password_file = passwords
@@ -229,14 +229,12 @@ class Spraycharles:
             )
             exit()
 
-
-
         # Create the logfile
         user_home = str(Path.home())
         current = datetime.datetime.now()
         timestamp = int(round(current.timestamp()))
 
-        self.log_name = f'{user_home}/.spraycharles/logs/{self.host}.{timestamp}.log' 
+        self.log_name = f"{user_home}/.spraycharles/logs/{self.host}.{timestamp}.log"
         logging.basicConfig(
             filename=self.log_name,
             level=logging.INFO,
