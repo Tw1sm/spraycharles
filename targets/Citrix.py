@@ -43,9 +43,11 @@ class Citrix(BaseHttpTarget):
 
     def set_username(self, username):
         self.data["login"] = username
+        self.username = username
 
     def set_password(self, password):
         self.data["passwd"] = password
+        self.password = password
 
     def login(self, username, password):
         # set data

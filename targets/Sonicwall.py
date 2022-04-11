@@ -48,9 +48,11 @@ class Sonicwall(BaseHttpTarget):
 
     def set_username(self, username):
         self.data["uName"] = username
+        self.username = username
 
     def set_password(self, password):
         self.data["pass"] = password
+        self.password = password
 
     def login(self, username, password):
         # set data

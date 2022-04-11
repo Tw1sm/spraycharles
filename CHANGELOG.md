@@ -1,4 +1,8 @@
 # Changelog
+## [v1.04] - 4/8/2022
+### Changed
+- Fixed bug related to spray modules inheriting methods from BaseHttpTarget parent that refereced vars not set in formdata
+
 ## [v1.03] - 3/29/2022
 ### Added
 - Okta target module (needs testing)
