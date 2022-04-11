@@ -171,6 +171,7 @@ class Analyzer:
             "STATUS_SUCCESS",
             "STATUS_ACCOUNT_DISABLED",
             "STATUS_PASSWORD_EXPIRED",
+            "STATUS_PASSWORD_MUST_CHANGE",
         ]
         for line in responses[1:]:
             if line[2] in positive_statuses:

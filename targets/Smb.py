@@ -81,6 +81,8 @@ class Smb:
                 return "STATUS_ACCOUNT_DISABLED"
             elif "STATUS_PASSWORD_EXPIRED" in str(e):
                 return "STATUS_PASSWORD_EXPIRED"
+            elif "STATUS_PASSWORD_MUST_CHANGE" in str(e):
+                return "STATUS_PASSWORD_MUST_CHANGE"
             else:
                 # something funky happened
                 return str(e)
