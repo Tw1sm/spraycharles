@@ -24,7 +24,7 @@ from rich.theme import Theme
 from analyze import Analyzer
 from targets import *
 
-VERSION = 1.04
+VERSION = 1.05
 
 # Defining theme
 custom_theme = Theme(
