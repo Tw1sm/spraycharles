@@ -1,4 +1,9 @@
 # Changelog
+## [v1.05] - 4/13/2022
+### Changed
+- Improved handling of NTSTATUS values returned by SMB logins
+- Analysis of SMB logins
+
 ## [v1.04] - 4/8/2022
 ### Changed
 - Fixed bug related to spray modules inheriting methods from BaseHttpTarget parent that refereced vars not set in formdata
