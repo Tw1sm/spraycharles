@@ -172,9 +172,9 @@ class Spraycharles:
             os.mkdir(f"{user_home}/.spraycharles/logs")
             os.mkdir(f"{user_home}/.spraycharles/out")
 
-        # Building output file
+        # Building output files
         current = datetime.datetime.now()
-        timestamp = int(round(current.timestamp()))
+        timestamp = current.strftime("%Y%m%d-%H%M%S")
         if output == "output.csv":
             output = f"{user_home}/.spraycharles/out/{host}.{timestamp}.csv"
 
