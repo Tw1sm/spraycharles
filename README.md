@@ -32,10 +32,10 @@ pip3 install pipx
 Following this, install the package directly from GitHub using the following command:
 
 ```
-pipx install git+https://github.com/puzzlepeaches/spraycharles.git@refactor
+pipx install git+https://github.com/Tw1sm/spraycharles.git
 ```
 
-The spraycharles package will then be in your path and useable from anywhere. Note that log and output CSV files are stored in a directory created in your users homefolder with the name `.spraycharles`. These log and CSV files are dynamically created on runtime. See [usage](#usage) for instructions on how to specify an alternative location for your CSV file. 
+The spraycharles package will then be in your path and useable from anywhere. Note that log and output CSV files are stored in a directory created in your users homefolder with the name `.spraycharles`. These log and CSV files are dynamically created on runtime. See [usage](#usage) for instructions on how to specify an alternative location for your CSV file.
 
 
 <br/>
@@ -116,7 +116,7 @@ notify = 'slack'
 webhook = 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'
 ```
 
-Notifications sent to any of the providers will include the targeted hostname associated with the spraying job. This is expecially useful when spraying multiple targets at once using spraycharles. 
+Notifications sent to any of the providers will include the targeted hostname associated with the spraying job. This is expecially useful when spraying multiple targets at once using spraycharles.
 
 <br/>
 
@@ -149,27 +149,29 @@ Spraycharles is packaged with some additional utilities to assist with spraying 
 <br/>
 
 #### Generating Custom Spray Lists
-make_list.py will generate a password list based off the specifications provided in list_elements.json
+The spraycharles "gen" subcommand will generate a password list based off the specifications provided in extras/list_elements.json
+
 ```
-./utils/make_list.py
+sc gen extras/list_elements.json custom_passwords.txt
 ```
 
 <br/>
 
 #### Extracting Domain from NTLM over HTTP and SMB
-ntlm_challenger.py will extract the internal domain from both NTLM over HTTP and SMB services using a command similar to the one listed below.
+The spraycharles parse subcommand will extract the internal domain from both NTLM over HTTP and SMB services using a command similar to the one listed below.
 
 
 ```
-./utils/ntlm_challenger.py https://mail.acme.com/ews
+spraycharles parse https://example.com/ews
 ```
 
 <br/>
 
 ### Analyzing the results CSV file ###
-`analyze.py` can read your output CSV and determine response lengths that are statistically relevant. With enough data, it should be able to pull successful logins out of your CSV file. This is not the only way to determine successful logins, depending on your target site, and I would still recommend checking the data yourself to be sure nothing is missed. For SMB, it will simply find entries that contain "SUCCESS"
+With the analyze submodule can read your output CSV and determine response lengths that are statistically relevant. With enough data, it should be able to pull successful logins out of your CSV file. This is not the only way to determine successful logins, depending on your target site, and I would still recommend checking the data yourself to be sure nothing is missed. For SMB, it will simply find entries that contain "SUCCESS"
+
 ```
-./analyze.py myresults.csv
+sc analyze myresults.csv
 ```
 
 <br/>

@@ -1,0 +1,30 @@
+{
+    "base_words" : [
+        "Winter",
+        "Wintertime",
+        "Summertime",
+        "Summer",
+        "January",
+        "February",
+        "October",
+        "November",
+        "December",
+        "Welcome",
+        "welcome",
+        "Password",
+        "password"
+    ],
+
+    "number_ranges" : [
+        "1,4",
+        "18,22",
+        "2019,2022"
+    ],
+
+    "special_characters" : [
+        "!",
+        "@"
+    ],
+
+    "minimum_length": 8
+}

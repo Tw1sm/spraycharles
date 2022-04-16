@@ -24,7 +24,10 @@ from rich.table import Table
 from rich.theme import Theme
 
 from .analyze import Analyzer
+from .analyze import main as analyzer
 from .targets import *
+from .utils.make_list import main as make_list
+from .utils.ntlm_challenger import main as ntlm_challenger
 
 VERSION = 1.03
 
@@ -351,6 +354,10 @@ class Spraycharles:
             self.total_hits = new_hit_total
 
     def _check_file_contents(self, file_path, current_list):
+        """
+        Check if password or username list changed during execution
+        """
+
         new_list = []
         try:
             with open(file_path, "r") as f:
@@ -363,6 +370,10 @@ class Spraycharles:
         return additions
 
     def _print_attempt(self, username, password, response):
+        """
+        Prints the results of a single login attempt
+        """
+
         if response == "timeout":
             code = "TIMEOUT"
             length = "TIMEOUT"
@@ -375,6 +386,10 @@ class Spraycharles:
         output.close()
 
     def _login(self, username, password):
+        """
+        Perform login attempt
+        """
+
         try:
             response = self.target.login(username, password)
             self.target.print_response(response, self.output)
@@ -484,7 +499,14 @@ class Spraycharles:
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help", "help"])
 
 
-@click.command(no_args_is_help=True, context_settings=CONTEXT_SETTINGS)
+@click.group()
+@click.pass_context
+def cli(ctx):
+    if ctx.invoked_subcommand is None:
+        spray()
+
+
+@cli.command(no_args_is_help=True, context_settings=CONTEXT_SETTINGS)
 @click.option(
     "-p",
     "--passwords",
@@ -618,9 +640,10 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help", "help"])
     type=str,
     help="Webhook used for specified notification module",
 )
+
 # Allows user to specify configuration file with --config
 @click_config_file.configuration_option()
-def main(
+def spray(
     passwords,
     usernames,
     host,
@@ -641,7 +664,7 @@ def main(
     webhook,
     pause,
 ):
-    """Low and slow password spraying tool..."""
+    """Low and slow password spraying tool!"""
 
     # Dealing with SSL Warnings
     try:
@@ -679,6 +702,60 @@ def main(
     spraycharles.spray()
 
 
+@cli.command(no_args_is_help=True, context_settings=CONTEXT_SETTINGS)
+@click.argument("url", required=True)
+@click.option("--smbv1", is_flag=True, default=False, help="Use SMBv1 protocol")
+def parse(url, smbv1):
+    """
+    Parse NTLM over HTTP and SMB endpoints to collect domain information.\n
+    Format like https://example.com/ews or smb://dc01.example.com
+    """
+    ntlm_challenger(url, smbv1)
+
+
+@cli.command(no_args_is_help=True, context_settings=CONTEXT_SETTINGS)
+@click.argument("infile", required=True, type=click.Path(exists=True))
+@click.argument("outfile", required=True)
+def gen(infile, outfile):
+    """
+    Generate custom password lists from customized JSON files.
+
+    Customize the included JSON file and then execute \n
+    sc gen custom_elements.json password_list.txt
+    """
+    make_list(infile, outfile)
+
+
+@cli.command(no_args_is_help=True, context_settings=CONTEXT_SETTINGS)
+@click.argument("infile", required=True, type=click.Path(exists=True))
+@click.option(
+    "-n",
+    "--notify",
+    required=False,
+    default=None,
+    type=click.Choice(["teams", "slack", "discord"]),
+    help="Enable notifications for Slack, MS Teams or Discord.",
+)
+@click.option(
+    "-w",
+    "--webhook",
+    required=False,
+    type=str,
+    default=False,
+    help="Webhook used for specified notification module",
+)
+@click.option(
+    "-H",
+    "--host",
+    required=False,
+    type=str,
+    default=False,
+    help="Target host associated with CSV file",
+)
+def analyze(infile, notify, webhook, host):
+    analyzer(infile, notify, webhook, host)
+
+
 # stock boilerplate
 if __name__ == "__main__":
-    main()
+    cli()

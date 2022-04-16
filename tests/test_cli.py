@@ -1,6 +1,7 @@
 import pytest
-from spraycharles import spraycharles as sc
 from click.testing import CliRunner
+
+from spraycharles import spraycharles as sc
 
 
 def test_cli():

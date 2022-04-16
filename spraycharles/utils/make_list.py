@@ -4,14 +4,6 @@ import json
 from collections import OrderedDict
 
 
-def arg():
-    parser = argparse.ArgumentParser(
-        description="Creates a spray list based on the configs in list_elements.json",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-    )
-    return parser.parse_args()
-
-
 # append word to list given it meets length req
 def append(wordlist, word, min_length):
     if len(word) >= min_length:
@@ -19,12 +11,15 @@ def append(wordlist, word, min_length):
     return wordlist
 
 
-def main():
-    args = arg()
+def main(element_file, outfile):
 
-    # load configs from json file
-    with open("list_elements.json") as f:
-        data = json.load(f)
+    try:
+        with open(element_file) as f:
+            data = json.load(f)
+    except Exception as e:
+        print("Error loading JSON! Error returned below.")
+        print(f"{e}")
+        exit(1)
 
     words = data["base_words"]
     num_ranges = data["number_ranges"]
@@ -66,7 +61,8 @@ def main():
     # remove duplicates and preserve order
     spray_list = list(OrderedDict.fromkeys(spray_list))
 
-    with open("custom_passwords.txt", "w") as f:
+    # with open("custom_passwords.txt", "w") as f:
+    with open(outfile, "w") as f:
         f.write("\n".join(spray_list))
 
 
