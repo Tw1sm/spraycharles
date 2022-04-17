@@ -5,10 +5,12 @@ import datetime
 import json
 import logging
 import os
+import pathlib
 import random
 import sys
 import time
 import warnings
+from pathlib import Path
 from time import sleep
 
 import click
@@ -21,10 +23,13 @@ from rich.prompt import Confirm
 from rich.table import Table
 from rich.theme import Theme
 
-from analyze import Analyzer
-from targets import *
+from .analyze import Analyzer
+from .analyze import main as analyzer
+from .targets import *
+from .utils.make_list import main as make_list
+from .utils.ntlm_challenger import main as ntlm_challenger
 
-VERSION = 1.05
+VERSION = 1.06
 
 # Defining theme
 custom_theme = Theme(
@@ -160,6 +165,19 @@ class Spraycharles:
             )
             exit()
 
+        # Create spraycharles directories if they don't exist
+        user_home = str(Path.home())
+        if not os.path.exists(f"{user_home}/.spraycharles"):
+            os.mkdir(f"{user_home}/.spraycharles")
+            os.mkdir(f"{user_home}/.spraycharles/logs")
+            os.mkdir(f"{user_home}/.spraycharles/out")
+
+        # Building output files
+        current = datetime.datetime.now()
+        timestamp = current.strftime("%Y%m%d-%H%M%S")
+        if output == "output.csv":
+            output = f"{user_home}/.spraycharles/out/{host}.{timestamp}.csv"
+
         self.passwords = password_list
         self.password_file = passwords
         self.usernames = user_list
@@ -214,10 +232,12 @@ class Spraycharles:
             )
             exit()
 
-        # create the log file
-        if not os.path.isdir("logs"):
-            os.mkdir("logs")
-        self.log_name = "logs/%s.log" % self.host
+        # Create the logfile
+        user_home = str(Path.home())
+        current = datetime.datetime.now()
+        timestamp = int(round(current.timestamp()))
+
+        self.log_name = f"{user_home}/.spraycharles/logs/{self.host}.{timestamp}.log"
         logging.basicConfig(
             filename=self.log_name,
             level=logging.INFO,
@@ -252,8 +272,10 @@ class Spraycharles:
         if self.notify:
             spray_info.add_row("Notify", f"True ({self.notify})")
 
-        spray_info.add_row("Logfile", f"{self.log_name}")
-        spray_info.add_row("Results", f"{self.output}")
+        log_name = pathlib.PurePath(self.log_name)
+        out_name = pathlib.PurePath(self.output)
+        spray_info.add_row("Logfile", f"{log_name.name}")
+        spray_info.add_row("Results", f"{out_name.name}")
 
         console.print(spray_info)
 
@@ -332,6 +354,10 @@ class Spraycharles:
             self.total_hits = new_hit_total
 
     def _check_file_contents(self, file_path, current_list):
+        """
+        Check if password or username list changed during execution
+        """
+
         new_list = []
         try:
             with open(file_path, "r") as f:
@@ -344,6 +370,10 @@ class Spraycharles:
         return additions
 
     def _print_attempt(self, username, password, response):
+        """
+        Prints the results of a single login attempt
+        """
+
         if response == "timeout":
             code = "TIMEOUT"
             length = "TIMEOUT"
@@ -356,6 +386,10 @@ class Spraycharles:
         output.close()
 
     def _login(self, username, password):
+        """
+        Perform login attempt
+        """
+
         try:
             response = self.target.login(username, password)
             self.target.print_response(response, self.output)
@@ -462,10 +496,20 @@ class Spraycharles:
         )
 
 
+# Defining context settings for click CLI
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help", "help"])
 
 
-@click.command(no_args_is_help=True, context_settings=CONTEXT_SETTINGS)
+# Defining the cli group for all submocomands
+# The cli() function allows users to use the spray module by default
+@click.group()
+@click.pass_context
+def cli(ctx):
+    if ctx.invoked_subcommand is None:
+        spray()
+
+
+@cli.command(no_args_is_help=True, context_settings=CONTEXT_SETTINGS)
 @click.option(
     "-p",
     "--passwords",
@@ -601,7 +645,7 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help", "help"])
 )
 # Allows user to specify configuration file with --config
 @click_config_file.configuration_option()
-def main(
+def spray(
     passwords,
     usernames,
     host,
@@ -622,7 +666,7 @@ def main(
     webhook,
     pause,
 ):
-    """Low and slow password spraying tool..."""
+    """Low and slow password spraying tool."""
 
     # Dealing with SSL Warnings
     try:
@@ -660,6 +704,60 @@ def main(
     spraycharles.spray()
 
 
+# Defining the parse submodule. References ntlm_challanger.py script in utils
+@cli.command(no_args_is_help=True, context_settings=CONTEXT_SETTINGS)
+@click.argument("url", required=True)
+@click.option("--smbv1", is_flag=True, default=False, help="Use SMBv1 protocol")
+def parse(url, smbv1):
+    """
+    Parse NTLM over HTTP and SMB endpoints to collect domain information.
+    """
+    ntlm_challenger(url, smbv1)
+
+
+# Defining the gen submodule. References make_list.py script in utils
+@cli.command(no_args_is_help=True, context_settings=CONTEXT_SETTINGS)
+@click.argument("infile", required=True, type=click.Path(exists=True))
+@click.argument("outfile", required=True)
+def gen(infile, outfile):
+    """
+    Generate custom password lists from JSON file.
+    """
+    make_list(infile, outfile)
+
+
+# Defining the analyzer submodule. References analyze.py script.
+@cli.command(no_args_is_help=True, context_settings=CONTEXT_SETTINGS)
+@click.argument("infile", required=True, type=click.Path(exists=True))
+@click.option(
+    "-n",
+    "--notify",
+    required=False,
+    default=None,
+    type=click.Choice(["teams", "slack", "discord"]),
+    help="Enable notifications for Slack, MS Teams or Discord.",
+)
+@click.option(
+    "-w",
+    "--webhook",
+    required=False,
+    type=str,
+    default=False,
+    help="Webhook used for specified notification module.",
+)
+@click.option(
+    "-H",
+    "--host",
+    required=False,
+    type=str,
+    default=False,
+    help="Target host associated with CSV file.",
+)
+def analyze(infile, notify, webhook, host):
+    """Analyze existing csv files."""
+    analyzer(infile, notify, webhook, host)
+
+
 # stock boilerplate
 if __name__ == "__main__":
-    main()
+    cli()

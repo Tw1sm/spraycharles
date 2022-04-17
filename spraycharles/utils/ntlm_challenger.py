@@ -10,6 +10,7 @@ import datetime
 import sys
 from collections import OrderedDict
 
+import click
 import requests
 from impacket import ntlm, smb, smb3
 from impacket.smbconnection import SMBConnection
@@ -393,22 +394,13 @@ def request_SMBv1(host, port=445):
         return None
 
 
-def main():
-
-    # setup arguments
-    parser = argparse.ArgumentParser(
-        description="Fetch and parse NTLM challenge "
-        + "messages from HTTP and SMB services"
-    )
-    parser.add_argument("url", help="HTTP or SMB URL to fetch NTLM challenge from")
-    parser.add_argument("--smbv1", action="store_true", help="Use SMBv1")
-    args = parser.parse_args()
+def main(url, smbv1):
 
     # request challenge
-    if args.url.startswith("smb"):
+    if url.startswith("smb"):
 
         # get host/port from SMB
-        host_port = args.url.split("://")[1].split("/")[0].split(":")
+        host_port = url.split("://")[1].split("/")[0].split(":")
 
         if len(host_port) == 2:
             host, port = host_port
@@ -416,13 +408,13 @@ def main():
             host = host_port[0]
             port = 445
 
-        if args.smbv1:
+        if smbv1:
             challenge = request_SMBv1(host, port)
         else:
             challenge = request_SMBv23(host, port)
 
-    elif args.url.startswith("http"):
-        challenge = request_http(args.url)
+    elif url.startswith("http"):
+        challenge = request_http(url)
 
     else:
         print("[!] Invalid URL, expecting http://... or smb://...")

@@ -8,7 +8,7 @@ from rich.console import Console
 from rich.table import Table
 from rich.theme import Theme
 
-from utils.notify import discord, slack, teams
+from .utils.notify import discord, slack, teams
 
 # Defining theme
 custom_theme = Theme(
@@ -221,34 +221,6 @@ class Analyzer:
                 teams(self.webhook, self.host)
 
 
-CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
-
-
-@click.command(no_args_is_help=True, context_settings=CONTEXT_SETTINGS)
-@click.argument("file", type=str, required=True)
-@click.option(
-    "-n",
-    "--notify",
-    required=False,
-    type=click.Choice(["teams", "slack", "discord"]),
-    help="Enable notifications for Slack, MS Teams or Discord.",
-)
-@click.option(
-    "-w",
-    "--webhook",
-    required=False,
-    type=str,
-    default=False,
-    help="Webhook used for specified   notification module",
-)
-@click.option(
-    "-H",
-    "--host",
-    required=False,
-    type=str,
-    default=False,
-    help="Target host associated with CSV file",
-)
 def main(file, notify, webhook, host):
 
     analyzer = Analyzer(file, notify, webhook, host)
