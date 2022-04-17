@@ -215,6 +215,7 @@ spraycharles parse https://example.com/ews
 <br/>
 
 ### Analyzing the results CSV file ###
+<<<<<<< HEAD
 With the analyze submodule can read your output CSV and determine response lengths that are statistically relevant. With enough data, it should be able to pull successful logins out of your CSV file. This is not the only way to determine successful logins, depending on your target site, and I would still recommend checking the data yourself to be sure nothing is missed. For SMB, it will simply find entries that contain "SUCCESS"
 
 ```

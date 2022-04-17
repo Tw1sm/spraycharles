@@ -643,7 +643,6 @@ def cli(ctx):
     type=str,
     help="Webhook used for specified notification module",
 )
-
 # Allows user to specify configuration file with --config
 @click_config_file.configuration_option()
 def spray(
