@@ -29,7 +29,7 @@ from .targets import *
 from .utils.make_list import main as make_list
 from .utils.ntlm_challenger import main as ntlm_challenger
 
-VERSION = 1.03
+VERSION = 1.06
 
 # Defining theme
 custom_theme = Theme(
