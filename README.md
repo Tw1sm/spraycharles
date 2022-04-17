@@ -29,6 +29,7 @@ You can use pipx to to install the spraycharles package into an isolated environ
 
 ```
 pip3 install pipx
+pipx ensurepath
 ```
 
 Following this, install the package directly from GitHub using the following command:
@@ -38,14 +39,10 @@ pipx install git+https://github.com/Tw1sm/spraycharles.git
 ```
 
 
-The spraycharles package will then be in your path and useable from anywhere. Spraycharles can be executed using the following commands:
+The spraycharles package will then be in your path and useable from anywhere.
 
-```
-spraycharles
-sc
-```
 
-Note that log and output CSV files are stored in a directory created in your users homefolder with the name `.spraycharles`. These log and CSV files are dynamically created on runtime with. These files are in the format:
+Note that log and output CSV files are stored in a directory created in your users home folder with the name `.spraycharles`. These log and CSV files are dynamically created on runtime. These files are in the format:
 
 ```
 target-host.timestamp.csv
@@ -75,9 +72,9 @@ You may need to specify additional volumes based on where username a password li
 
 ## Usage ##
 ```
-Usage: spraycharles [OPTIONS]
+Usage: spraycharles spray [OPTIONS]
 
-  Low and slow password spraying tool...
+  Low and slow password spraying tool.
 
 Options:
   -p, --passwords TEXT            Filepath of the passwords list or a single
@@ -122,7 +119,7 @@ Options:
 Spraycharles also includes other submodules:
 
 ```
-Usage: sc [OPTIONS] COMMAND [ARGS]...
+Usage: spraycharles [OPTIONS] COMMAND [ARGS]...
 
 Options:
   --help  Show this message and exit.
@@ -173,23 +170,23 @@ Notifications sent to any of the providers will include the targeted hostname as
 ### Examples ###
 Basic usage (Office365)
 ```
-spraycharles -u users.txt -p passwords.txt -m Office365
+spraycharles spray -u users.txt -p passwords.txt -m Office365
 ```
 Basic usage (non-Office365) with a single password, supplied via command line
 ```
-spraycharles -u users.txt -H webmail.company.com -p Password123 -m owa
+spraycharles spray -u users.txt -H webmail.company.com -p Password123 -m owa
 ```
 Attempt 5 logins per user every 20 minutes
 ```
-spraycharles -u users.txt -H webmail.company.com -p passwords.txt -i 20 -a 5 -m owa
+spraycharles spray -u users.txt -H webmail.company.com -p passwords.txt -i 20 -a 5 -m owa
 ```
 Usage with fireprox (Office365)
 ```
-spraycharles -u users.txt -p passwords.txt -m office365 -f abcdefg.execute-api.us-east-1.amazonawms.com
+spraycharles spray -u users.txt -p passwords.txt -m office365 -f abcdefg.execute-api.us-east-1.amazonawms.com
 ```
 Spray host over SMB with 2 attempts per user every hour
 ```
-spraycharles -u users.txt -p passwords.txt -m Smb -H 10.10.1.5 -a 2 -i 60
+spraycharles spray -u users.txt -p passwords.txt -m Smb -H 10.10.1.5 -a 2 -i 60
 ```
 
 <br/>
