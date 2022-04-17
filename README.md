@@ -8,6 +8,7 @@ Associated [blog post](https://www.sprocketsecurity.com/blog/how-to-bypass-mfa-a
 ## Content ##
 - [Install](#install)
   - [Using pipx](#using-pipx)
+  - [Using Docker](#using-docker)
 - [Usage](#usage)
   - [Config File](#config-file)
   - [Notifications](#notifications)
@@ -17,6 +18,7 @@ Associated [blog post](https://www.sprocketsecurity.com/blog/how-to-bypass-mfa-a
   - [Extracting Domain from NTLM over HTTP and SMB](#extracting-domain-from-ntlm-over-http-and-smb)
   - [Analyzing the results CSV file](#analyzing-the-results-csv-file)
 - [Disclaimer](#disclaimer)
+- [Development](#development)
 - [Credits](#credits)
 
 ## Install ##
@@ -237,7 +239,6 @@ cd spraycharles
 poetry shell && poetry install
 ```
 
-## Testing ##
 Tests for the spraycharles project are written and stored in the tests directory. A more extensive testing harness is coming soon!
 
 ## Credits ##
