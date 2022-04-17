@@ -1,10 +1,10 @@
-FROM python:3
+FROM python:slim
 
 WORKDIR /
 
-RUN git clone https://github.com/Tw1sm/spraycharles
-WORKDIR spraycharles
-RUN pip3 install -r requirements.txt
-RUN chmod +x /spraycharles/spraycharles.py
+RUN apt-get update && apt-get install git -y
+RUN pip3 install pipx
+RUN pipx ensurepath
+RUN pipx install git+https://github.com/Tw1sm/spraycharles.git
 
-ENTRYPOINT ["./spraycharles.py"]
+ENTRYPOINT ["/root/.local/bin/spraycharles"]

@@ -496,9 +496,12 @@ class Spraycharles:
         )
 
 
+# Defining context settings for click CLI
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help", "help"])
 
 
+# Defining the cli group for all submocomands
+# The cli() function allows users to use the spray module by default
 @click.group()
 @click.pass_context
 def cli(ctx):
@@ -664,7 +667,7 @@ def spray(
     webhook,
     pause,
 ):
-    """Low and slow password spraying tool!"""
+    """Low and slow password spraying tool."""
 
     # Dealing with SSL Warnings
     try:
@@ -702,30 +705,29 @@ def spray(
     spraycharles.spray()
 
 
+# Defining the parse submodule. References ntlm_challanger.py script in utils
 @cli.command(no_args_is_help=True, context_settings=CONTEXT_SETTINGS)
 @click.argument("url", required=True)
 @click.option("--smbv1", is_flag=True, default=False, help="Use SMBv1 protocol")
 def parse(url, smbv1):
     """
-    Parse NTLM over HTTP and SMB endpoints to collect domain information.\n
-    Format like https://example.com/ews or smb://dc01.example.com
+    Parse NTLM over HTTP and SMB endpoints to collect domain information.
     """
     ntlm_challenger(url, smbv1)
 
 
+# Defining the gen submodule. References make_list.py script in utils
 @cli.command(no_args_is_help=True, context_settings=CONTEXT_SETTINGS)
 @click.argument("infile", required=True, type=click.Path(exists=True))
 @click.argument("outfile", required=True)
 def gen(infile, outfile):
     """
-    Generate custom password lists from customized JSON files.
-
-    Customize the included JSON file and then execute \n
-    sc gen custom_elements.json password_list.txt
+    Generate custom password lists from JSON file.
     """
     make_list(infile, outfile)
 
 
+# Defining the analyzer submodule. References analyze.py script.
 @cli.command(no_args_is_help=True, context_settings=CONTEXT_SETTINGS)
 @click.argument("infile", required=True, type=click.Path(exists=True))
 @click.option(
@@ -742,7 +744,7 @@ def gen(infile, outfile):
     required=False,
     type=str,
     default=False,
-    help="Webhook used for specified notification module",
+    help="Webhook used for specified notification module.",
 )
 @click.option(
     "-H",
@@ -750,9 +752,10 @@ def gen(infile, outfile):
     required=False,
     type=str,
     default=False,
-    help="Target host associated with CSV file",
+    help="Target host associated with CSV file.",
 )
 def analyze(infile, notify, webhook, host):
+    """Analyze existing csv files."""
     analyzer(infile, notify, webhook, host)
 
 

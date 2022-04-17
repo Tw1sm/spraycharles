@@ -35,14 +35,45 @@ Following this, install the package directly from GitHub using the following com
 pipx install git+https://github.com/Tw1sm/spraycharles.git
 ```
 
-The spraycharles package will then be in your path and useable from anywhere. Note that log and output CSV files are stored in a directory created in your users homefolder with the name `.spraycharles`. These log and CSV files are dynamically created on runtime. See [usage](#usage) for instructions on how to specify an alternative location for your CSV file.
+
+The spraycharles package will then be in your path and useable from anywhere. Spraycharles can be executed using the following commands:
+
+```
+spraycharles
+sc
+```
+
+Note that log and output CSV files are stored in a directory created in your users homefolder with the name `.spraycharles`. These log and CSV files are dynamically created on runtime with. These files are in the format:
+
+```
+target-host.timestamp.csv
+```
+
+See [usage](#usage) for instructions on how to specify an alternative location for your CSV file.
+
+### Using Docker ###
+Execute the following commands to build the spraycharles Docker container:
+
+```
+git clone https://github.com/Tw1sm/spraycharles
+cd spraycharles/extras
+docker build . -t spraycharles
+```
+
+Execute the following command to use the spraycharles Docker container:
+
+```
+docker run -it -v ~/.spraycharles:/root/.spraycharles spraycharles -h
+```
+
+You may need to specify additional volumes based on where username a password lists are being stored.
 
 
 <br/>
 
 ## Usage ##
 ```
-Usage: spraycharles.py [OPTIONS]
+Usage: spraycharles [OPTIONS]
 
   Low and slow password spraying tool...
 
@@ -86,6 +117,23 @@ Options:
   -h, --help                      Show this message and exit.
 ```
 
+Spraycharles also includes other submodules:
+
+```
+Usage: sc [OPTIONS] COMMAND [ARGS]...
+
+Options:
+  --help  Show this message and exit.
+
+Commands:
+  analyze  Analyze existing csv files.
+  gen      Generate custom password lists from customized JSON files.
+  parse    Parse NTLM over HTTP and SMB endpoints to collect domain information.
+  spray    Low and slow password spraying tool.
+```
+
+See below for further information about these modules.
+
 #### Config File
 It is possible to pre-populate command line arguments form a configuration file using the `--config` argument.
 
@@ -123,23 +171,23 @@ Notifications sent to any of the providers will include the targeted hostname as
 ### Examples ###
 Basic usage (Office365)
 ```
-./spraycharles.py -u users.txt -p passwords.txt -m Office365
+spraycharles -u users.txt -p passwords.txt -m Office365
 ```
 Basic usage (non-Office365) with a single password, supplied via command line
 ```
-./spraycharles.py -u users.txt -H webmail.company.com -p Password123 -m owa
+spraycharles -u users.txt -H webmail.company.com -p Password123 -m owa
 ```
 Attempt 5 logins per user every 20 minutes
 ```
-./spraycharles.py -n users.txt -H webmail.company.com -p passwords.txt -i 20 -a 5 -m owa
+spraycharles -u users.txt -H webmail.company.com -p passwords.txt -i 20 -a 5 -m owa
 ```
 Usage with fireprox (Office365)
 ```
-./spraycharles.py -u users.txt -p passwords.txt -m office365 -f abcdefg.execute-api.us-east-1.amazonawms.com
+spraycharles -u users.txt -p passwords.txt -m office365 -f abcdefg.execute-api.us-east-1.amazonawms.com
 ```
 Spray host over SMB with 2 attempts per user every hour
 ```
-./spraycharles.py -u users.txt -p passwords.txt -m Smb -H 10.10.1.5 -a 2 -i 60
+spraycharles -u users.txt -p passwords.txt -m Smb -H 10.10.1.5 -a 2 -i 60
 ```
 
 <br/>
@@ -152,7 +200,7 @@ Spraycharles is packaged with some additional utilities to assist with spraying 
 The spraycharles "gen" subcommand will generate a password list based off the specifications provided in extras/list_elements.json
 
 ```
-sc gen extras/list_elements.json custom_passwords.txt
+spraycharles gen extras/list_elements.json custom_passwords.txt
 ```
 
 <br/>
@@ -171,7 +219,7 @@ spraycharles parse https://example.com/ews
 With the analyze submodule can read your output CSV and determine response lengths that are statistically relevant. With enough data, it should be able to pull successful logins out of your CSV file. This is not the only way to determine successful logins, depending on your target site, and I would still recommend checking the data yourself to be sure nothing is missed. For SMB, it will simply find entries that contain "SUCCESS"
 
 ```
-sc analyze myresults.csv
+spraycharles analyze myresults.csv
 ```
 
 <br/>
@@ -183,10 +231,14 @@ This tool is designed for use during penetration testing; usage of this tool for
 Git pre-commit is used to maintain code quality and ensure uniform formatting. To begin developing with spraycharles:
 
 ```
-pip3 install pre-commit
-pip3 install -r requirements-dev.txt
-pre-commit install
+pip3 install poetry
+git clone https://github.com/Tw1sm/spraycharles
+cd spraycharles
+poetry shell && poetry install
 ```
+
+## Testing ##
+Tests for the spraycharles project are written and stored in the tests directory. A more extensive testing harness is coming soon!
 
 ## Credits ##
 - [@sprocket_ed](https://twitter.com/sprocket_ed) for contributing: several spray modules, many of features that make spraycharles great, and the associated blog post
