@@ -228,6 +228,7 @@ spraycharles analyze myresults.csv
 
 ## Disclaimer ##
 This tool is designed for use during penetration testing; usage of this tool for attacking targets without prior mutual consent is illegal. It is the end user's responsibility to obey all applicable local, state and federal laws. Developers assume no liability and are not responsible for any misuse of this program.
+<br/>
 
 ## Development ##
 Git pre-commit is used to maintain code quality and ensure uniform formatting. To begin developing with spraycharles:
@@ -240,6 +241,7 @@ poetry shell && poetry install
 ```
 
 Tests for the spraycharles project are written and stored in the tests directory. A more extensive testing harness is coming soon!
+<br/>
 
 ## Credits ##
 - [@sprocket_ed](https://twitter.com/sprocket_ed) for contributing: several spray modules, many of features that make spraycharles great, and the associated blog post
