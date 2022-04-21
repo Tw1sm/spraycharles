@@ -35,12 +35,10 @@ pipx ensurepath
 Following this, install the package directly from GitHub using the following command:
 
 ```
-pipx install git+https://github.com/Tw1sm/spraycharles.git
+pipx install spraycharles
 ```
 
-
 The spraycharles package will then be in your path and useable from anywhere.
-
 
 Note that log and output CSV files are stored in a directory created in your users home folder with the name `.spraycharles`. These log and CSV files are dynamically created on runtime. These files are in the format:
 
