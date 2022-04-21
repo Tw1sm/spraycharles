@@ -7,9 +7,8 @@ Associated [blog post](https://www.sprocketsecurity.com/blog/how-to-bypass-mfa-a
 
 ## Content ##
 - [Install](#install)
-  - [Using pipenv](#using-pipenv)
+  - [Using pipx](#using-pipx)
   - [Using Docker](#using-docker)
-  - [From GitHub](#from-github)
 - [Usage](#usage)
   - [Config File](#config-file)
   - [Notifications](#notifications)
@@ -19,50 +18,63 @@ Associated [blog post](https://www.sprocketsecurity.com/blog/how-to-bypass-mfa-a
   - [Extracting Domain from NTLM over HTTP and SMB](#extracting-domain-from-ntlm-over-http-and-smb)
   - [Analyzing the results CSV file](#analyzing-the-results-csv-file)
 - [Disclaimer](#disclaimer)
+- [Development](#development)
 - [Credits](#credits)
 
 ## Install ##
 
-#### Using pipenv ####
-```bash
-git clone https://github.com/Tw1sm/spraycharles.git && cd spraycharles
-pipenv --python 3 shell
-pip3 install -r requirements.txt
-./spraycharles.py -h
+### Using pipx ###
+
+You can use pipx to to install the spraycharles package into an isolated environment. First install pipx:
+
+```
+pip3 install pipx
+pipx ensurepath
+```
+
+Following this, install the package directly from GitHub using the following command:
+
+```
+pipx install git+https://github.com/Tw1sm/spraycharles.git
 ```
 
 
-#### Using Docker ####
-Build the container using the included Dockerfile.
+The spraycharles package will then be in your path and useable from anywhere.
 
-```bash
-git clone https://github.com/Tw1sm/spraycharles.git && cd spraycharles
+
+Note that log and output CSV files are stored in a directory created in your users home folder with the name `.spraycharles`. These log and CSV files are dynamically created on runtime. These files are in the format:
+
+```
+target-host.timestamp.csv
+```
+
+See [usage](#usage) for instructions on how to specify an alternative location for your CSV file.
+
+### Using Docker ###
+Execute the following commands to build the spraycharles Docker container:
+
+```
+git clone https://github.com/Tw1sm/spraycharles
+cd spraycharles/extras
 docker build . -t spraycharles
 ```
 
-You will most likely want to save and use a list of usernames and passwords during spraying. The easiest way to do this is by mapping a directory on your host with the container. Use the following command in Bash to map your present working directory to the spraycharles install directory inside the running container.
+Execute the following command to use the spraycharles Docker container:
 
-```bash
-docker run -it -v $(pwd):/spraycharles/ spraycharles -h
+```
+docker run -it -v ~/.spraycharles:/root/.spraycharles spraycharles -h
 ```
 
-Following your first run of the command above, a sparycharles directory will be created on your system where you can add username and password lists as well as access spraying logs.
+You may need to specify additional volumes based on where username a password lists are being stored.
 
-#### From GitHub
-```bash
-$ git clone https://github.com/Tw1sm/spraycharles.git
-$ cd spraycharles
-$ pip3 install -r requirements.txt
-$ ./spraycharles.py -h
-```
 
 <br/>
 
 ## Usage ##
 ```
-Usage: spraycharles.py [OPTIONS]
+Usage: spraycharles spray [OPTIONS]
 
-  Low and slow password spraying tool...
+  Low and slow password spraying tool.
 
 Options:
   -p, --passwords TEXT            Filepath of the passwords list or a single
@@ -104,6 +116,23 @@ Options:
   -h, --help                      Show this message and exit.
 ```
 
+Spraycharles also includes other submodules:
+
+```
+Usage: spraycharles [OPTIONS] COMMAND [ARGS]...
+
+Options:
+  --help  Show this message and exit.
+
+Commands:
+  analyze  Analyze existing csv files.
+  gen      Generate custom password lists from customized JSON files.
+  parse    Parse NTLM over HTTP and SMB endpoints to collect domain information.
+  spray    Low and slow password spraying tool.
+```
+
+See below for further information about these modules.
+
 #### Config File
 It is possible to pre-populate command line arguments form a configuration file using the `--config` argument.
 
@@ -134,30 +163,30 @@ notify = 'slack'
 webhook = 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'
 ```
 
-Notifications sent to any of the providers will include the targeted hostname associated with the spraying job. This is expecially useful when spraying multiple targets at once using spraycharles. Note that unless you specify the --pause flag on execution, a notification will be issued following every spray iteration.
+Notifications sent to any of the providers will include the targeted hostname associated with the spraying job. This is expecially useful when spraying multiple targets at once using spraycharles.
 
 <br/>
 
 ### Examples ###
 Basic usage (Office365)
 ```
-./spraycharles.py -u users.txt -p passwords.txt -m Office365
+spraycharles spray -u users.txt -p passwords.txt -m Office365
 ```
 Basic usage (non-Office365) with a single password, supplied via command line
 ```
-./spraycharles.py -u users.txt -H webmail.company.com -p Password123 -m owa
+spraycharles spray -u users.txt -H webmail.company.com -p Password123 -m owa
 ```
 Attempt 5 logins per user every 20 minutes
 ```
-./spraycharles.py -n users.txt -H webmail.company.com -p passwords.txt -i 20 -a 5 -m owa
+spraycharles spray -u users.txt -H webmail.company.com -p passwords.txt -i 20 -a 5 -m owa
 ```
 Usage with fireprox (Office365)
 ```
-./spraycharles.py -u users.txt -p passwords.txt -m office365 -f abcdefg.execute-api.us-east-1.amazonawms.com
+spraycharles spray -u users.txt -p passwords.txt -m office365 -f abcdefg.execute-api.us-east-1.amazonawms.com
 ```
 Spray host over SMB with 2 attempts per user every hour
 ```
-./spraycharles.py -u users.txt -p passwords.txt -m Smb -H 10.10.1.5 -a 2 -i 60
+spraycharles spray -u users.txt -p passwords.txt -m Smb -H 10.10.1.5 -a 2 -i 60
 ```
 
 <br/>
@@ -167,42 +196,50 @@ Spraycharles is packaged with some additional utilities to assist with spraying 
 <br/>
 
 #### Generating Custom Spray Lists
-make_list.py will generate a password list based off the specifications provided in list_elements.json
+The spraycharles "gen" subcommand will generate a password list based off the specifications provided in extras/list_elements.json
+
 ```
-./utils/make_list.py
+spraycharles gen extras/list_elements.json custom_passwords.txt
 ```
 
 <br/>
 
 #### Extracting Domain from NTLM over HTTP and SMB
-ntlm_challenger.py will extract the internal domain from both NTLM over HTTP and SMB services using a command similar to the one listed below.
+The spraycharles parse subcommand will extract the internal domain from both NTLM over HTTP and SMB services using a command similar to the one listed below.
 
 
 ```
-./utils/ntlm_challenger.py https://mail.acme.com/ews
+spraycharles parse https://example.com/ews
 ```
 
 <br/>
 
 ### Analyzing the results CSV file ###
-`analyze.py` can read your output CSV and determine response lengths that are statistically relevant. With enough data, it should be able to pull successful logins out of your CSV file. This is not the only way to determine successful logins, depending on your target site, and I would still recommend checking the data yourself to be sure nothing is missed. For SMB, it will simply find NTSTATUS entries that indicate success
+<<<<<<< HEAD
+With the analyze submodule can read your output CSV and determine response lengths that are statistically relevant. With enough data, it should be able to pull successful logins out of your CSV file. This is not the only way to determine successful logins, depending on your target site, and I would still recommend checking the data yourself to be sure nothing is missed. For SMB, it will simply find entries that contain "SUCCESS"
+
 ```
-./analyze.py myresults.csv
+spraycharles analyze myresults.csv
 ```
 
 <br/>
 
 ## Disclaimer ##
 This tool is designed for use during penetration testing; usage of this tool for attacking targets without prior mutual consent is illegal. It is the end user's responsibility to obey all applicable local, state and federal laws. Developers assume no liability and are not responsible for any misuse of this program.
+<br/>
 
 ## Development ##
 Git pre-commit is used to maintain code quality and ensure uniform formatting. To begin developing with spraycharles:
 
 ```
-pip3 install pre-commit
-pip3 install -r requirements-dev.txt
-pre-commit install
+pip3 install poetry
+git clone https://github.com/Tw1sm/spraycharles
+cd spraycharles
+poetry shell && poetry install
 ```
+
+Tests for the spraycharles project are written and stored in the tests directory. A more extensive testing harness is coming soon!
+<br/>
 
 ## Credits ##
 - [@sprocket_ed](https://twitter.com/sprocket_ed) for contributing: several spray modules, many of features that make spraycharles great, and the associated blog post

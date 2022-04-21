@@ -1,4 +1,19 @@
 # Changelog
+
+## [v1.06] - 4/17/2022
+### Added
+- Made spraycharles a package usable as a CLI utility. (spraycharles, sc)
+- Started supported test harnesses (pytest) to project for later use
+- Started prepping spraycharles for publishing to the PyPi package repository
+
+### Changed
+- Converted all included scripts as submodules to spraycharles
+- All included scripts can no longer be called as standalone tools
+- Started storing logfiles and csv output in user home directory
+- Moved Dockerfile and list_elements.json to extras directory
+- Updated Dockerfile
+- Updated README.md to reflect changes
+
 ## [v1.05] - 4/13/2022
 ### Changed
 - Improved handling of NTSTATUS values returned by SMB logins
