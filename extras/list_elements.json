@@ -2,6 +2,7 @@
     "base_words" : [
         "Winter",
         "Wintertime",
+        "Summertime",
         "Summer",
         "January",
         "February",
@@ -21,7 +22,8 @@
     ],
 
     "special_characters" : [
-        "!"
+        "!",
+        "@"
     ],
 
     "minimum_length": 8
