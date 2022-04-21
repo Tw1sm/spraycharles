@@ -1,8 +1,11 @@
 [tool.poetry]
 name = "spraycharles"
-version = "1.03"
+version = "1.06"
 description = "Low and slow password spraying tool, designed to spray on an interval over a long period of time."
-authors = ["Matt Creel", "@Tw1sm"]
+authors = [
+    "Matt Creel @Twism",
+    "Nicholas A @puzzlepeaches",
+]
 readme = "README.md"
 license = "BSD 3-Clause"
 homepage = "https://github.com/Tw1sm/spraycharles"

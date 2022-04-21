@@ -5,6 +5,8 @@ from impacket.smbconnection import SessionError, SMBConnection
 
 
 class Smb:
+    """Password spray SMB services"""
+
     smbv1 = True
 
     # port, timeout and fireprox are dead args here. exist only to keep

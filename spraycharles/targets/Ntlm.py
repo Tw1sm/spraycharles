@@ -5,6 +5,8 @@ from .classes.BaseHttpTarget import BaseHttpTarget
 
 
 class Ntlm(BaseHttpTarget):
+    """Password spray NTLM over HTTP endpoints"""
+
     def __init__(self, host, port, timeout, path, fireprox):
         self.timeout = timeout
         self.url = f"https://{host}:{port}/{path}"
