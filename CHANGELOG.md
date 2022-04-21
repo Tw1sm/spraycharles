@@ -1,6 +1,13 @@
 # Changelog
 
-## [v1.0.6] - 4/21/2022
+## [v1.0.7] - 4/21/2022
+### Added
+- Output for `gen` submodule
+
+### Changed
+- Versioning to X.X.X
+
+## [v1.0.6] - 4/17/2022
 ### Added
 - Made spraycharles a package usable as a CLI utility. (spraycharles, sc)
 - Started supported test harnesses (pytest) to project for later use
@@ -13,7 +20,6 @@
 - Moved Dockerfile and list_elements.json to extras directory
 - Updated Dockerfile
 - Updated README.md to reflect changes
-- Versioning to X.X.X
 
 ## [v1.0.5] - 4/13/2022
 ### Changed
