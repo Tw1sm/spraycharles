@@ -1,6 +1,6 @@
 # Changelog
 
-## [v1.06] - 4/17/2022
+## [v1.0.6] - 4/21/2022
 ### Added
 - Made spraycharles a package usable as a CLI utility. (spraycharles, sc)
 - Started supported test harnesses (pytest) to project for later use
@@ -13,23 +13,24 @@
 - Moved Dockerfile and list_elements.json to extras directory
 - Updated Dockerfile
 - Updated README.md to reflect changes
+- Versioning to X.X.X
 
-## [v1.05] - 4/13/2022
+## [v1.0.5] - 4/13/2022
 ### Changed
 - Improved handling of NTSTATUS values returned by SMB logins
 - Analysis of SMB logins
 
-## [v1.04] - 4/8/2022
+## [v1.0.4] - 4/8/2022
 ### Changed
 - Fixed bug related to spray modules inheriting methods from BaseHttpTarget parent that refereced vars not set in formdata
 
-## [v1.03] - 3/29/2022
+## [v1.0.3] - 3/29/2022
 ### Added
 - Okta target module (needs testing)
 ### Changed
 - In Office365 module: spelling fixes, removed "WindowsPowerShell" for user-agent string and minor edits
 
-## [v1.02] - 3/27/2022
+## [v1.0.2] - 3/27/2022
 ### Added
 - Added a base class for HTTP targets so that most target modules can inherit classes to print output, headers, etc
 ### Changed
@@ -38,7 +39,7 @@
 - Fixed http_analyze function to also send notifications
 - Made the ADFS, Ciscosslvpn, Citrix, Ntlm, Owa and Sonicwall targets subclasses of BaseHttpTarget to minimize code reuse
 
-## [v1.01] - 3/26/2022
+## [v1.0.1] - 3/26/2022
 ### Added
 - Utilize the rich library for terminal output
 - Progress bar during spray attempt
@@ -49,7 +50,7 @@
 ### Removed
 - OpenVPN module
 
-## [v1.0] - 3/9/2022
+## [v1.0.0] - 3/9/2022
 ### Added
 - Support for Slack, Teams and Discord notitications via webhooks when a successful spray hit is identified
 - `--notify` and `--webhook` arguments to support notifications
