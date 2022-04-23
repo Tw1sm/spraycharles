@@ -5,7 +5,10 @@ import requests
 
 
 class Office365:
+    """Password spray Microsoft Office 365"""
+
     def __init__(self, host, port, timeout, fireprox):
+
         self.timeout = timeout
         self.url = "https://login.microsoft.com/common/oauth2/token"
 

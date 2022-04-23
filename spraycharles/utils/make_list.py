@@ -12,12 +12,12 @@ def append(wordlist, word, min_length):
 
 
 def main(element_file, outfile):
-
+    print(f"[*] Reading {element_file} ...")
     try:
         with open(element_file) as f:
             data = json.load(f)
     except Exception as e:
-        print("Error loading JSON! Error returned below.")
+        print("[!] Error loading JSON:")
         print(f"{e}")
         exit(1)
 
@@ -64,6 +64,7 @@ def main(element_file, outfile):
     # with open("custom_passwords.txt", "w") as f:
     with open(outfile, "w") as f:
         f.write("\n".join(spray_list))
+    print(f"[*] Password list written to {outfile}")
 
 
 if __name__ == "__main__":

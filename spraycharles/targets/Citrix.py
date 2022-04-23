@@ -8,6 +8,8 @@ from .classes.BaseHttpTarget import BaseHttpTarget
 
 
 class Citrix(BaseHttpTarget):
+    """Password spray Citrix NetScaler"""
+
     def __init__(self, host, port, timeout, fireprox):
         self.timeout = timeout
         self.host = host

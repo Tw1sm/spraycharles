@@ -18,6 +18,7 @@ import click_config_file
 import requests
 from rich import print
 from rich.console import Console
+from rich.padding import Padding
 from rich.progress import Progress
 from rich.prompt import Confirm
 from rich.table import Table
@@ -29,7 +30,7 @@ from .targets import *
 from .utils.make_list import main as make_list
 from .utils.ntlm_challenger import main as ntlm_challenger
 
-VERSION = 1.06
+VERSION = "1.0.7"
 
 # Defining theme
 custom_theme = Theme(
@@ -507,6 +508,35 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help", "help"])
 def cli(ctx):
     if ctx.invoked_subcommand is None:
         spray()
+
+
+@cli.command(no_args_is_help=False, context_settings=CONTEXT_SETTINGS)
+def list():
+    """
+    List all the available spraying modules
+    """
+
+    module_table = Table(
+        show_header=True,
+        show_footer=False,
+        min_width=61,
+        title="Spraying Modules",
+        title_justify="left",
+        title_style="bold reverse",
+    )
+    module_table.add_column("Module", style="bold")
+    module_table.add_column("Description")
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    mod_list = os.listdir(dir_path + "/targets/")
+    for module in mod_list:
+        if module.endswith(".py") and module != "__init__.py":
+            module = module.replace(".py", "")
+            mod_name = getattr(sys.modules[__name__], module)
+            class_name = getattr(mod_name, module)
+            doc = class_name.__doc__
+            module_table.add_row(f"[blue]{module}[/blue]", f"[yellow]{doc}[/yellow]")
+
+    console.print(Padding(module_table, (1, 1)))
 
 
 @cli.command(no_args_is_help=True, context_settings=CONTEXT_SETTINGS)

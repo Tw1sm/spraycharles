@@ -5,6 +5,8 @@ import requests
 
 
 class Okta:
+    """Password spray Okta API"""
+
     def __init__(self, host, port, timeout, fireprox):
         self.timeout = timeout
         self.url = f"https://{host}:{port}/api/v1/authn"

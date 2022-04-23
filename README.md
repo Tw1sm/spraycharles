@@ -35,12 +35,10 @@ pipx ensurepath
 Following this, install the package directly from GitHub using the following command:
 
 ```
-pipx install git+https://github.com/Tw1sm/spraycharles.git
+pipx install spraycharles
 ```
 
-
 The spraycharles package will then be in your path and useable from anywhere.
-
 
 Note that log and output CSV files are stored in a directory created in your users home folder with the name `.spraycharles`. These log and CSV files are dynamically created on runtime. These files are in the format:
 
@@ -126,8 +124,9 @@ Options:
 
 Commands:
   analyze  Analyze existing csv files.
-  gen      Generate custom password lists from customized JSON files.
-  parse    Parse NTLM over HTTP and SMB endpoints to collect domain information.
+  gen      Generate custom password lists from JSON file.
+  list     List all the available spraying modules
+  parse    Parse NTLM over HTTP and SMB endpoints to collect domain...
   spray    Low and slow password spraying tool.
 ```
 
@@ -215,7 +214,7 @@ spraycharles parse https://example.com/ews
 <br/>
 
 ### Analyzing the results CSV file ###
-With the analyze submodule can read your output CSV and determine response lengths that are statistically relevant. With enough data, it should be able to pull successful logins out of your CSV file. This is not the only way to determine successful logins, depending on your target site, and I would still recommend checking the data yourself to be sure nothing is missed. For SMB, it will simply find entries that contain "SUCCESS"
+The `analyze` submodule can read your output CSV and determine response lengths that are statistically relevant. With enough data, it should be able to pull successful logins out of your CSV file. This is not the only way to determine successful logins, depending on your target site, and I would still recommend checking the data yourself to be sure nothing is missed. For SMB, it will simply find entries with NTSTATUS codes that indicate success.
 
 ```
 spraycharles analyze myresults.csv
