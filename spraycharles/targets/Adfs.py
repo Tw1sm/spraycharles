@@ -59,6 +59,10 @@ class Adfs(BaseHttpTarget):
 
         # post the request
         response = requests.post(
-            self.url, headers=self.headers, data=self.data, timeout=self.timeout
+            self.url,
+            headers=self.headers,
+            data=self.data,
+            timeout=self.timeout,
+            verify=False,
         )  # , verify=False, proxies=self.proxyDict)
         return response
