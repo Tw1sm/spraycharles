@@ -511,7 +511,7 @@ def cli(ctx):
 
 
 @cli.command(no_args_is_help=False, context_settings=CONTEXT_SETTINGS)
-def list():
+def modules():
     """
     List all the available spraying modules
     """

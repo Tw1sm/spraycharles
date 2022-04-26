@@ -125,7 +125,7 @@ Options:
 Commands:
   analyze  Analyze existing csv files.
   gen      Generate custom password lists from JSON file.
-  list     List all the available spraying modules
+  modules List all the available spraying modules
   parse    Parse NTLM over HTTP and SMB endpoints to collect domain...
   spray    Low and slow password spraying tool.
 ```
