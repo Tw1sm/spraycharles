@@ -1,5 +1,9 @@
 # Changelog
 
+## [v1.0.8] - 4/26/2022
+### Fixed
+- All spraying modules were broken after the addition of the list submodule. Changed list to modules to fix issue.
+
 ## [v1.0.7] - 4/21/2022
 ### Added
 - Output for `gen` submodule
