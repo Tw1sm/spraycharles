@@ -268,4 +268,4 @@ Tests for the spraycharles project are written and stored in the tests directory
 [issues-shield]: https://img.shields.io/github/issues/tw1sm/spraycharles.svg?style=for-the-badge
 [issues-url]: https://github.com/tw1sm/spraycharles/issues
 [license-shield]: https://img.shields.io/github/license/tw1sm/spraycharles.svg?style=for-the-badge
-[license-url]: https://github.com/tw1sm/spraycharles/blob/master/LICENSE.txt
+[license-url]: https://github.com/tw1sm/spraycharles/blob/master/LICENSE
