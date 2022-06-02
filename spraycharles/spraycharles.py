@@ -1,15 +1,11 @@
 #!/usr/bin/env python3
-
-import csv
 import datetime
-import json
 import logging
 import os
 import pathlib
 import random
 import sys
 import time
-import warnings
 from pathlib import Path
 from time import sleep
 
@@ -17,32 +13,18 @@ import click
 import click_config_file
 import requests
 from rich import print
-from rich.console import Console
 from rich.padding import Padding
 from rich.progress import Progress
 from rich.prompt import Confirm
 from rich.table import Table
-from rich.theme import Theme
+
+from spraycharles import __version__, console
 
 from .analyze import Analyzer
 from .analyze import main as analyzer
 from .targets import *
 from .utils.make_list import main as make_list
 from .utils.ntlm_challenger import main as ntlm_challenger
-
-VERSION = "1.0.8"
-
-# Defining theme
-custom_theme = Theme(
-    {
-        "info": "blue",
-        "good": "bold bright_green",
-        "warning": "bold yellow",
-        "danger": "bold bright_red",
-    }
-)
-
-console = Console(theme=custom_theme)
 
 
 class Spraycharles:
@@ -492,7 +474,7 @@ class Spraycharles:
 [yellow]\__ \|  _/|   /|   |\   /[blue]| <__|   ||   ||   /| |_ | _> \__ \\
 [yellow]<___/|_|  |_\_\|_|_| |_| [blue]`___/|_|_||_|_||_\_\|___||___><___/
 
-[yellow]                        v[blue]{VERSION}
+[yellow]                        v[blue]{__version__}
 """
         )
 

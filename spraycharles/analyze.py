@@ -8,19 +8,9 @@ from rich.console import Console
 from rich.table import Table
 from rich.theme import Theme
 
+from spraycharles import console
+
 from .utils.notify import discord, slack, teams
-
-# Defining theme
-custom_theme = Theme(
-    {
-        "info": "blue",
-        "good": "bold bright_green",
-        "warning": "bold yellow",
-        "danger": "bold bright_red",
-    }
-)
-
-console = Console(theme=custom_theme)
 
 
 class Analyzer:
@@ -218,7 +208,7 @@ class Analyzer:
             elif self.notify == "teams":
                 teams(self.webhook, self.host)
             elif self.notify == "discord":
-                teams(self.webhook, self.host)
+                discord(self.webhook, self.host)
 
 
 def main(file, notify, webhook, host):
