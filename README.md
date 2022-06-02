@@ -1,57 +1,86 @@
-spraycharles
-======
-## Overview ##
+[![PyPi][pypi-shield]][pypi-url]
+[![Contributors][contributors-shield]][contributors-url]
+[![Forks][forks-shield]][forks-url]
+[![Stargazers][stars-shield]][stars-url]
+[![Issues][issues-shield]][issues-url]
+[![MIT License][license-shield]][license-url]
+
+<!-- TABLE OF CONTENTS -->
+<details>
+  <summary>Table of Contents</summary>
+  <ol>
+    <li>
+      <a href="#overview">Overview</a>
+    </li>
+    <li>
+      <a href="#install">Install</a>
+      <ul>
+        <li><a href="#using-pipx">Using pipx</a></li>
+        <li><a href="#using-docker">Using docker</a></li>
+      </ul>
+    </li>
+    <li>
+      <a href="#Usage">Usage</a>
+      <ul>
+        <li><a href="#config-file">Config File</a></li>
+        <li><a href="#notifications">Notifications</a></li>
+        <li><a href="#examples">Examples</a></li>
+      </ul>
+    </li>
+    <li>
+      <a href="#utilities">Utilities</a>
+      <ul>
+        <li><a href="#generating-custom-spray-lists">Generating Custom Spray Lists</a></li>
+        <li><a href="#extracting-domain-from-ntlm-over-http-and-smb">Extracting Domain from NTLM over HTTP and SMB</a></li>
+        <li><a href="#analyzing-the-results-csv-file">Analyzing the results CSV file</a></li>
+      </ul>
+    </li>
+    <li>
+      <a href="#disclaimer">Disclaimer</a>
+    </li>
+    <li>
+      <a href="#development">Development</a>
+    </li>
+    <li>
+      <a href="#credits">Credits</a>
+    </li>
+  </ol>
+</details>
+
+# spraycharles
+
+## Overview
 Low and slow password spraying tool, designed to spray on an interval over a long period of time.
 
 Associated [blog post](https://www.sprocketsecurity.com/blog/how-to-bypass-mfa-all-day) by [@sprocket_ed](https://twitter.com/sprocket_ed) covering NTLM over HTTP, Exchange Web Services and spraycharles.
 
-## Content ##
-- [Install](#install)
-  - [Using pipx](#using-pipx)
-  - [Using Docker](#using-docker)
-- [Usage](#usage)
-  - [Config File](#config-file)
-  - [Notifications](#notifications)
-  - [Examples](#examples)
-- [Utilities](#utilities)
-  - [Generating Custom Spray Lists](#generating-custom-spray-lists)
-  - [Extracting Domain from NTLM over HTTP and SMB](#extracting-domain-from-ntlm-over-http-and-smb)
-  - [Analyzing the results CSV file](#analyzing-the-results-csv-file)
-- [Disclaimer](#disclaimer)
-- [Development](#development)
-- [Credits](#credits)
+## Install
 
-## Install ##
-
-### Using pipx ###
+### Using pipx
 
 You can use pipx to to install the spraycharles package into an isolated environment. First install pipx:
 
-```
+```bash
 pip3 install pipx
 pipx ensurepath
 ```
 
-Following this, install the package directly from GitHub using the following command:
+Following this, install the package with the following command:
 
-```
+```bash
 pipx install spraycharles
 ```
 
 The spraycharles package will then be in your path and useable from anywhere.
 
-Note that log and output CSV files are stored in a directory created in your users home folder with the name `.spraycharles`. These log and CSV files are dynamically created on runtime. These files are in the format:
-
-```
-target-host.timestamp.csv
-```
+Note that log and output CSV files are stored in a directory created in your users home folder with the name `.spraycharles`. These log and CSV files are dynamically created on runtime. These files are in the format: `target-host.timestamp.csv`.
 
 See [usage](#usage) for instructions on how to specify an alternative location for your CSV file.
 
-### Using Docker ###
+### Using Docker
 Execute the following commands to build the spraycharles Docker container:
 
-```
+```bash
 git clone https://github.com/Tw1sm/spraycharles
 cd spraycharles/extras
 docker build . -t spraycharles
@@ -59,16 +88,13 @@ docker build . -t spraycharles
 
 Execute the following command to use the spraycharles Docker container:
 
-```
+```bash
 docker run -it -v ~/.spraycharles:/root/.spraycharles spraycharles -h
 ```
 
 You may need to specify additional volumes based on where username a password lists are being stored.
 
-
-<br/>
-
-## Usage ##
+## Usage
 ```
 Usage: spraycharles spray [OPTIONS]
 
@@ -132,12 +158,12 @@ Commands:
 
 See below for further information about these modules.
 
-#### Config File
+### Config File
 It is possible to pre-populate command line arguments form a configuration file using the `--config` argument.
 
 An example configuration file is listed below:
 
-```
+```python
 usernames = '/tmp/users.txt'
 passwords = '/tmp/passwords.txt'
 output = 'mail.acme.com.csv'
@@ -150,95 +176,96 @@ interval = '30'
 timeout = '25'
 ```
 
-<br/>
-
-### Notifications ###
+### Notifications
 Spraycharles has the ability to issue notifications to Discord, Slack and Microsoft Teams following a potentially successful login attempt. This list of notification providers can augmented using the utils/notify.py script. For any of the potential notification agents, you must specify its name and a webhook URL.
 
 It is best to specify this information using the configuration file to keep your command shorter:
 
-```
+```python
 notify = 'slack'
 webhook = 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'
 ```
 
 Notifications sent to any of the providers will include the targeted hostname associated with the spraying job. This is expecially useful when spraying multiple targets at once using spraycharles.
 
-<br/>
-
-### Examples ###
+### Examples
 Basic usage (Office365)
-```
+```bash
 spraycharles spray -u users.txt -p passwords.txt -m Office365
 ```
 Basic usage (non-Office365) with a single password, supplied via command line
-```
+```bash
 spraycharles spray -u users.txt -H webmail.company.com -p Password123 -m owa
 ```
 Attempt 5 logins per user every 20 minutes
-```
+```bash
 spraycharles spray -u users.txt -H webmail.company.com -p passwords.txt -i 20 -a 5 -m owa
 ```
 Usage with fireprox (Office365)
-```
+```bash
 spraycharles spray -u users.txt -p passwords.txt -m office365 -f abcdefg.execute-api.us-east-1.amazonawms.com
 ```
 Spray host over SMB with 2 attempts per user every hour
-```
+```bash
 spraycharles spray -u users.txt -p passwords.txt -m Smb -H 10.10.1.5 -a 2 -i 60
 ```
 
-<br/>
-
-## Utilities ##
+## Utilities
 Spraycharles is packaged with some additional utilities to assist with spraying efforts.
-<br/>
 
-#### Generating Custom Spray Lists
+### Generating Custom Spray Lists
 The spraycharles "gen" subcommand will generate a password list based off the specifications provided in extras/list_elements.json
 
-```
+```bash
 spraycharles gen extras/list_elements.json custom_passwords.txt
 ```
 
-<br/>
-
-#### Extracting Domain from NTLM over HTTP and SMB
+### Extracting Domain from NTLM over HTTP and SMB
 The spraycharles parse subcommand will extract the internal domain from both NTLM over HTTP and SMB services using a command similar to the one listed below.
 
 
-```
+```bash
 spraycharles parse https://example.com/ews
 ```
 
-<br/>
-
-### Analyzing the results CSV file ###
+### Analyzing the results CSV file
 The `analyze` submodule can read your output CSV and determine response lengths that are statistically relevant. With enough data, it should be able to pull successful logins out of your CSV file. This is not the only way to determine successful logins, depending on your target site, and I would still recommend checking the data yourself to be sure nothing is missed. For SMB, it will simply find entries with NTSTATUS codes that indicate success.
 
-```
+```bash
 spraycharles analyze myresults.csv
 ```
 
-<br/>
-
-## Disclaimer ##
+## Disclaimer
 This tool is designed for use during penetration testing; usage of this tool for attacking targets without prior mutual consent is illegal. It is the end user's responsibility to obey all applicable local, state and federal laws. Developers assume no liability and are not responsible for any misuse of this program.
-<br/>
 
-## Development ##
+## Development
 Git pre-commit is used to maintain code quality and ensure uniform formatting. To begin developing with spraycharles:
 
-```
+```bash
 pip3 install poetry
 git clone https://github.com/Tw1sm/spraycharles
 cd spraycharles
-poetry shell && poetry install
+poetry install
 ```
 
 Tests for the spraycharles project are written and stored in the tests directory. A more extensive testing harness is coming soon!
-<br/>
 
-## Credits ##
+## Credits
 - [@sprocket_ed](https://twitter.com/sprocket_ed) for contributing: several spray modules, many of features that make spraycharles great, and the associated blog post
 - [@b17zr](https://twitter.com/b17zr) for the `ntlm_challenger.py` script, which is included in the `utils` folder
+
+
+<!-- MARKDOWN LINKS & IMAGES -->
+<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
+[pypi-shield]: https://img.shields.io/pypi/v/spraycharles?style=for-the-badge
+[pypi-url]: https://pypi.org/project/spraycharles/
+[contributors-shield]: https://img.shields.io/github/contributors/tw1sm/spraycharles.svg?style=for-the-badge
+[contributors-url]: https://github.com/tw1sm/spraycharles/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/tw1sm/spraycharles.svg?style=for-the-badge
+[forks-url]: https://github.com/tw1sm/spraycharles/network/members
+[stars-shield]: https://img.shields.io/github/stars/tw1sm/spraycharles.svg?style=for-the-badge
+[stars-url]: https://github.com/tw1sm/spraycharles/stargazers
+[issues-shield]: https://img.shields.io/github/issues/tw1sm/spraycharles.svg?style=for-the-badge
+[issues-url]: https://github.com/tw1sm/spraycharles/issues
+[license-shield]: https://img.shields.io/github/license/tw1sm/spraycharles.svg?style=for-the-badge
+[license-url]: https://github.com/tw1sm/spraycharles/blob/master/LICENSE.txt
