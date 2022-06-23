@@ -1,5 +1,16 @@
 # Changelog
 
+## [v1.0.9] - 6/23/2022
+### Fixed
+- Bug sending Discord notifications
+
+### Changed
+- Consolidated several duplicate definitions into `spraycharles/__init__.py`
+- Added `verify=False` to target module requests (except Office365 module)
+
+### Removed
+- Unused import statements
+
 ## [v1.0.8] - 4/26/2022
 ### Fixed
 - All spraying modules were broken after the addition of the list submodule. Changed list to modules to fix issue.
