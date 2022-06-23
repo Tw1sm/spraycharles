@@ -68,5 +68,6 @@ class Owa(BaseHttpTarget):
             cookies=self.cookies,
             data=self.data,
             timeout=self.timeout,
-        )  # , verify=False, proxies=self.proxyDict)
+            verify=False,
+        )  # , proxies=self.proxyDict)
         return response

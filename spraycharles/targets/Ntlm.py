@@ -51,6 +51,10 @@ class Ntlm(BaseHttpTarget):
 
         # post the request
         response = requests.post(
-            self.url, headers=self.headers, auth=ntlm_auth, timeout=self.timeout
-        )  # , verify=False, proxies=self.proxyDict)
+            self.url,
+            headers=self.headers,
+            auth=ntlm_auth,
+            timeout=self.timeout,
+            verify=False,
+        )  # , proxies=self.proxyDict)
         return response

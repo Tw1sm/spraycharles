@@ -57,8 +57,12 @@ class Okta:
         self.set_username(username)
         # post the request
         response = requests.post(
-            self.url, headers=self.headers, json=self.data, timeout=self.timeout
-        )  # , verify=False, proxies=self.proxyDict)
+            self.url,
+            headers=self.headers,
+            json=self.data,
+            timeout=self.timeout,
+            verify=False,
+        )  # , proxies=self.proxyDict)
 
         # get the stateToken for password submission
         data = response.json()
@@ -75,8 +79,12 @@ class Okta:
         self.set_token(token)
         # post the request
         response = requests.post(
-            self.url2, headers=self.headers, json=self.data2, timeout=self.timeout
-        )  # , verify=False, proxies=self.proxyDict)
+            self.url2,
+            headers=self.headers,
+            json=self.data2,
+            timeout=self.timeout,
+            verify=False,
+        )  # , proxies=self.proxyDict)
 
         return response
 

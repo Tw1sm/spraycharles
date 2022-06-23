@@ -57,6 +57,10 @@ class Citrix(BaseHttpTarget):
         self.set_password(password)
         # post the request
         response = requests.post(
-            self.url, headers=self.headers, data=self.data, timeout=self.timeout
-        )  # , verify=False, proxies=self.proxyDict)
+            self.url,
+            headers=self.headers,
+            data=self.data,
+            timeout=self.timeout,
+            verify=False,
+        )  # , proxies=self.proxyDict)
         return response
