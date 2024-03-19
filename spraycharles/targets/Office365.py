@@ -102,9 +102,14 @@ class Office365:
                 message = ""
 
             # Microsoft's MFA in use
-            elif err in ["AADSTS50076", "AADSTS50079"]:
+            elif err == "AADSTS50076":
                 result = "Success"
                 message = "Microsoft MFA in use"
+
+            # Microsoft's MFA must be onboarded
+            elif err == "AADSTS50079":
+                result = "Success"
+                message = "Microsoft MFA must be onboarded"
 
             # DUO or other MFA in use
             elif err == "AADSTS50158":
