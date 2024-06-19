@@ -18,26 +18,27 @@ HELP =  'Low and slow password spraying'
 @use_yaml_config()
 @dump_yaml_config('./last-config.yaml')
 def main(
-    usernames:  Path    = typer.Option(..., '-u', '--usernames', exists=True, readable=True, dir_okay=False, help="Filepath of the usernames list"),
-    passwords:  str     = typer.Option(..., '-p', '--passwords', help="Single password to spray or filepath of the passwords list"),
-    host:       str     = typer.Option(None, '-H', '--host', help="Host to password spray (ip or hostname). Can by anything when using Office365 module - only used for logfile name"),
-    module:     Target  = typer.Option(..., '-m', '--module', case_sensitive=False, help="Module corresponding to target host"),
-    path:       str     = typer.Option(None, help="NTLM authentication endpoint (i.e., rpc or ews)"),
-    output:     str     = typer.Option("output.csv", '-o', '--output', help="Name and path of output csv where attempts will be logged"),
-    attempts:   int     = typer.Option(None, '-a', '--attempts', help="Number of logins submissions per interval (for each user)"),
-    interval:   int     = typer.Option(None, '-i', '--interval', help="Minutes inbetween login intervals"),
-    equal:      bool    = typer.Option(False, '-e', '--equal', help="Does 1 spray for each user where password = username"),
-    timeout:    int     = typer.Option(5, '-t', '--timeout', help="Web request timeout threshold"),
-    port:       int     = typer.Option(443, '-P','--port', help="Port to connect to on the specified hos"),
-    fireprox:   str     = typer.Option(None, '-f', '--fireprox', help="URL of desired fireprox interface"),
-    domain:     str     = typer.Option(None, '-d', '--domain', help="HTTP - Prepend DOMAIN\\ to usernames; SMB - Supply domain for smb connection"),
-    analyze:    bool    = typer.Option(False, help="Run the results analyzer after each spray interval (Early false positives are more likely)"),
-    jitter:     int     = typer.Option(None, help="Jitter time between requests in seconds"),
-    jitter_min: int     = typer.Option(None, help="Minimum time between requests in seconds"),
-    notify:     HookSvc = typer.Option(None, '-n', '--notify', help="Enable notifications for Slack, Teams or Discord"),
-    webhook:    str     = typer.Option(None, '-w', '--webhook', help="Webhook used for specified notification module"),
-    pause:      bool    = typer.Option(False, help="Pause the spray following a potentially successful login"),
-    debug:      bool    = typer.Option(False, help="Enable debug logging")):
+    usernames:  Path    = typer.Option(..., '-u', '--usernames', exists=True, readable=True, dir_okay=False, help="Filepath of the usernames list", rich_help_panel="User/Pass Config"),
+    passwords:  str     = typer.Option(..., '-p', '--passwords', help="Single password to spray or filepath of the passwords list", rich_help_panel="User/Pass Config"),
+    host:       str     = typer.Option(None, '-H', '--host', help="Host to password spray (ip or hostname). Can by anything when using Office365 module - only used for logfile name", rich_help_panel="Spray Target"),
+    module:     Target  = typer.Option(..., '-m', '--module', case_sensitive=False, help="Module corresponding to target host", rich_help_panel="Spray Target"),
+    path:       str     = typer.Option(None, help="NTLM authentication endpoint (i.e., rpc or ews)", rich_help_panel="Spray Target"),
+    output:     str     = typer.Option("output.csv", '-o', '--output', help="Name and path of output csv where attempts will be logged", rich_help_panel="Output"),
+    attempts:   int     = typer.Option(None, '-a', '--attempts', help="Number of logins submissions per interval (for each user)", rich_help_panel="Spray Behavior"),
+    interval:   int     = typer.Option(None, '-i', '--interval', help="Minutes inbetween login intervals", rich_help_panel="Spray Behavior"),
+    equal:      bool    = typer.Option(False, '-e', '--equal', help="Does 1 spray for each user where password = username", rich_help_panel="User/Pass Config"),
+    timeout:    int     = typer.Option(5, '-t', '--timeout', help="Web request timeout threshold", rich_help_panel="Spray Behavior"),
+    port:       int     = typer.Option(443, '-P','--port', help="Port to connect to on the specified hos", rich_help_panel="Spray Target"),
+    fireprox:   str     = typer.Option(None, '-f', '--fireprox', help="URL of desired fireprox interface", rich_help_panel="Spray Target"),
+    domain:     str     = typer.Option(None, '-d', '--domain', help="HTTP - Prepend DOMAIN\\ to usernames; SMB - Supply domain for smb connection", rich_help_panel="Spray Target"),
+    analyze:    bool    = typer.Option(False, '--analyze', help="Run the results analyzer after each spray interval (Early false positives are more likely)", rich_help_panel="Output"),
+    jitter:     int     = typer.Option(None, help="Jitter time between requests in seconds", rich_help_panel="Spray Behavior"),
+    jitter_min: int     = typer.Option(None, help="Minimum time between requests in seconds", rich_help_panel="Spray Behavior"),
+    notify:     HookSvc = typer.Option(None, '-n', '--notify', help="Enable notifications for Slack, Teams or Discord", rich_help_panel="Notifications"),
+    webhook:    str     = typer.Option(None, '-w', '--webhook', help="Webhook used for specified notification module", rich_help_panel="Notifications"),
+    pause:      bool    = typer.Option(False, '--pause', help="Pause the spray following a potentially successful login", rich_help_panel="Spray Behavior"),
+    no_ssl:     bool    = typer.Option(False, '--no-ssl', help="Use HTTP instead of HTTPS", rich_help_panel="Spray Target"),
+    debug:      bool    = typer.Option(False, '--debug', help="Enable debug logging")):
 
     init_logger(debug)
 
@@ -104,6 +105,7 @@ def main(
             show_choices=False,
             show_default=False,
         )
+        print()
 
     # 
     # Check that jitter flags aren't supplied independently
@@ -141,7 +143,7 @@ def main(
         user_list=user_list,
         user_file=usernames,
         password_list=password_list,
-        password_file=passwords,
+        password_file=Path(passwords),
         host=host,
         module=module,
         path=path,
@@ -158,7 +160,8 @@ def main(
         jitter_min=jitter_min,
         notify=notify,
         webhook=webhook,
-        pause=pause
+        pause=pause,
+        no_ssl=no_ssl,
     )
 
     spraycharles.initialize_module()
