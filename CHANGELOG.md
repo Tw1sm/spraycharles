@@ -1,4 +1,14 @@
 # Changelog
+## [v2.0.0] - XX/XX/2024
+### Added
+- yaml config file with last args automatically written to `last-config.yaml`
+
+### Changed
+- Migrated to `typer` from `click` for arg parsing
+- Config file format to yaml
+
+### Removed
+
 ## [v1.0.10] - 6/20/2024
 ### Fixed
 - Catch OSError that gets thrown on SMB connection timeouts ([#23](https://github.com/Tw1sm/spraycharles/issues/23))

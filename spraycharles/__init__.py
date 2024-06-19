@@ -1,16 +1,15 @@
-from rich.console import Console
-from rich.theme import Theme
+__version__ = "2.0.0"
 
-__version__ = "1.0.10"
 
-# Defining theme
-custom_theme = Theme(
-    {
-        "info": "blue",
-        "good": "bold bright_green",
-        "warning": "bold yellow",
-        "danger": "bold bright_red",
-    }
-)
+def ascii():
+    return(
+        f"""
 
-console = Console(theme=custom_theme)
+[yellow] ___  ___  ___  ___  _ _ [blue] ___  _ _  ___  ___  _    ___  ___
+[yellow]/ __>| . \| . \| . || | |[blue]|  _>| | || . || . \| |  | __>/ __>
+[yellow]\__ \|  _/|   /|   |\   /[blue]| <__|   ||   ||   /| |_ | _> \__ \\
+[yellow]<___/|_|  |_\_\|_|_| |_| [blue]`___/|_|_||_|_||_\_\|___||___><___/
+
+[yellow]                        v[blue]{__version__}
+"""
+    )

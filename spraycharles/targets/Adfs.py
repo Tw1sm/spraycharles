@@ -4,7 +4,8 @@ from .classes.BaseHttpTarget import BaseHttpTarget
 
 
 class Adfs(BaseHttpTarget):
-    """Password spray Microsoft Active Directory Federation Services (ADFS)"""
+    NAME = "ADFS"
+    DESCRIPTION = "Spray Microsoft Active Directory Federation Services (ADFS)"
 
     def __init__(self, host, port, timeout, fireprox):
         self.timeout = timeout

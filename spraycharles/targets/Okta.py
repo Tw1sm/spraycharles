@@ -5,7 +5,8 @@ import requests
 
 
 class Okta:
-    """Password spray Okta API"""
+    NAME = "Okta"
+    DESCRIPTION = "Spray Okta API"
 
     def __init__(self, host, port, timeout, fireprox):
         self.timeout = timeout

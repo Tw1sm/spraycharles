@@ -1,13 +1,18 @@
-#!/usr/bin/env python3
-
+from enum import Enum
 import csv
 
 import numpy
 from rich.table import Table
 
-from spraycharles import console
+from spraycharles.lib.logger import console
 
 from .utils.notify import discord, slack, teams
+
+
+class HookSvc(str, Enum):
+    slack   = "Slack"
+    teams   = "Teams"
+    discord = "Discord"
 
 
 class Analyzer:

@@ -4,16 +4,13 @@
 # https://winprotocoldoc.blob.core.windows.net/productionwindowsarchives/MS-NLMP/%5bMS-NLMP%5d.pdf
 # Source: https://github.com/b17zr/ntlm_challenger
 
-import argparse
 import base64
 import datetime
 import sys
 from collections import OrderedDict
 
-import click
 import requests
 from impacket import ntlm, smb, smb3
-from impacket.smbconnection import SMBConnection
 from urllib3.exceptions import InsecureRequestWarning
 
 

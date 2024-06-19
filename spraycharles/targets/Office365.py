@@ -5,7 +5,8 @@ import requests
 
 
 class Office365:
-    """Password spray Microsoft Office 365"""
+    NAME = "Office365"
+    DESCRIPTION = "Spray Microsoft Office 365"
 
     def __init__(self, host, port, timeout, fireprox):
 

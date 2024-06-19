@@ -5,7 +5,8 @@ from impacket.smbconnection import SessionError, SMBConnection
 
 
 class Smb:
-    """Password spray SMB services"""
+    NAME = "SMB"
+    DESCRIPTION = "Spray SMB services"
 
     smbv1 = True
 

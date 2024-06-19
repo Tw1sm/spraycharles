@@ -3,6 +3,8 @@ output.csv
 config.ini
 logs/*
 TODO.md
+last-config.yaml
+*.txt
 
 # Environments
 .env

@@ -5,14 +5,19 @@ from .classes.BaseHttpTarget import BaseHttpTarget
 
 
 class Ntlm(BaseHttpTarget):
-    """Password spray NTLM over HTTP endpoints"""
+    NAME = "NTLM"
+    DESCRIPTION = "Spray NTLM over HTTP endpoints"
 
-    def __init__(self, host, port, timeout, path, fireprox):
+    def __init__(self, host, port, timeout, fireprox):
         self.timeout = timeout
-        self.url = f"https://{host}:{port}/{path}"
 
-        if fireprox:
-            self.url = f"https://{fireprox}/fireprox/{path}"
+        #
+        # URL will be constructed with path in a method unique to this function
+        #
+        self.url = None
+        self.fireprox = fireprox
+        self.host = host
+        self.port = port
 
         self.headers = {
             "User-Agent": "AppleExchangeWebServices/814.80.3 accountsd/113",
@@ -36,13 +41,22 @@ class Ntlm(BaseHttpTarget):
         }
     """
 
+    def set_path(self, path):
+        self.url = f"http://{self.host}:{self.port}/{path}"
+        
+        if self.fireprox is not None:
+            self.url = f"http://{self.fireprox}/fireprox/{path}"
+
+
     def set_username(self, username):
         self.data["username"] = username
         self.username = username
 
+
     def set_password(self, password):
         self.data["password"] = password
         self.password = password
+
 
     def login(self, username, password):
         self.set_username(username)
