@@ -377,8 +377,8 @@ class Spraycharles:
             response = self.target.login(username, password)
             self.target.print_response(response, self.output)
         except requests.ConnectTimeout as e:
-            self.target.print_response(response, self.output, timeout=True)
-        except (requests.ConnectionError, requests.ReadTimeout) as e:
+            self.target.print_response(None, self.output, timeout=True)
+        except (requests.ConnectionError, requests.ReadTimeout, OSError) as e:
             console.print(
                 "\n[!] Connection error - sleeping for 5 seconds", style="danger"
             )
