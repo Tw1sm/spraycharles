@@ -1,5 +1,5 @@
 # Changelog
-## [v0.1.0.10] - 6/20/2024
+## [v1.0.10] - 6/20/2024
 ### Fixed
 - Catch OSError that gets thrown on SMB connection timeouts ([#23](https://github.com/Tw1sm/spraycharles/issues/23))
 
