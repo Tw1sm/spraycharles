@@ -16,9 +16,9 @@ HELP =  'Low and slow password spraying'
 
 @app.callback(no_args_is_help=True, invoke_without_command=True)
 @use_yaml_config()
-@dump_yaml_config('./last-config.yaml')
+@dump_yaml_config('last-config.yaml')
 def main(
-    usernames:  Path    = typer.Option(..., '-u', '--usernames', exists=True, readable=True, dir_okay=False, help="Filepath of the usernames list", rich_help_panel="User/Pass Config"),
+    usernames:  str    = typer.Option(..., '-u', '--usernames', help="Filepath of the usernames list", rich_help_panel="User/Pass Config"),
     passwords:  str     = typer.Option(..., '-p', '--passwords', help="Single password to spray or filepath of the passwords list", rich_help_panel="User/Pass Config"),
     host:       str     = typer.Option(None, '-H', '--host', help="Host to password spray (ip or hostname). Can by anything when using Office365 module - only used for logfile name", rich_help_panel="Spray Target"),
     module:     Target  = typer.Option(..., '-m', '--module', case_sensitive=False, help="Module corresponding to target host", rich_help_panel="Spray Target"),
@@ -56,10 +56,15 @@ def main(
     #
     # Read username list and password [list]
     #
-    user_list = usernames.read_text().splitlines()
+    try:
+        logger.debug(f"Reading usernames from file {usernames}")
+        user_list = Path(usernames).read_text().splitlines()
+    except:
+        logger.error(f"Failed to read usernames from {usernames}")
+        exit()
     
     if Path(passwords).exists():
-        logger.debug("Password list detected, reading passwords from file")
+        logger.debug(f"Password list detected, reading passwords from file {passwords}")
         password_list = Path(passwords).read_text().splitlines()
     else:
         logger.debug("Single password detected")
@@ -141,7 +146,7 @@ def main(
     #
     spraycharles = Spraycharles(
         user_list=user_list,
-        user_file=usernames,
+        user_file=Path(usernames),
         password_list=password_list,
         password_file=Path(passwords),
         host=host,
