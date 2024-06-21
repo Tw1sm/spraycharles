@@ -23,7 +23,7 @@ def main(
     host:       str     = typer.Option(None, '-H', '--host', help="Host to password spray (ip or hostname). Can by anything when using Office365 module - only used for logfile name", rich_help_panel="Spray Target"),
     module:     Target  = typer.Option(..., '-m', '--module', case_sensitive=False, help="Module corresponding to target host", rich_help_panel="Spray Target"),
     path:       str     = typer.Option(None, help="NTLM authentication endpoint (i.e., rpc or ews)", rich_help_panel="Spray Target"),
-    output:     str     = typer.Option("output.csv", '-o', '--output', help="Name and path of output csv where attempts will be logged", rich_help_panel="Output"),
+    output:     str     = typer.Option(None, '-o', '--output', help="Name and path of result output file", rich_help_panel="Output"),
     attempts:   int     = typer.Option(None, '-a', '--attempts', help="Number of logins submissions per interval (for each user)", rich_help_panel="Spray Behavior"),
     interval:   int     = typer.Option(None, '-i', '--interval', help="Minutes inbetween login intervals", rich_help_panel="Spray Behavior"),
     equal:      bool    = typer.Option(False, '-e', '--equal', help="Does 1 spray for each user where password = username", rich_help_panel="User/Pass Config"),
@@ -146,9 +146,9 @@ def main(
     #
     spraycharles = Spraycharles(
         user_list=user_list,
-        user_file=Path(usernames),
+        user_file=usernames,
         password_list=password_list,
-        password_file=Path(passwords),
+        password_file=passwords,
         host=host,
         module=module,
         path=path,

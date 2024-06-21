@@ -1,11 +1,9 @@
-from enum import Enum
 import csv
-
 import numpy
+from enum import Enum
 from rich.table import Table
 
 from spraycharles.lib.logger import console
-
 from .utils.notify import discord, slack, teams
 
 

@@ -1,5 +1,5 @@
-import csv
-
+import json
+import datetime
 
 class BaseHttpTarget:
     """
@@ -10,28 +10,22 @@ class BaseHttpTarget:
         self.username = ""
         self.password = ""
 
-    # handle CSV out output headers. Can be customized per module
-    def print_headers(self, csvfile):
-        """
-        Print table headers
-        """
+
+    # 
+    # Print default module headers
+    #
+    def print_headers(self):
         print(
             "%-35s %-17s %-13s %-15s"
             % ("Username", "Password", "Response Code", "Response Length")
         )
         print("-" * 83)
 
-        # create CSV file
-        output = open(csvfile, "w")
-        fieldnames = ["Username", "Password", "Response Code", "Response Length"]
-        output_writer = csv.DictWriter(output, delimiter=",", fieldnames=fieldnames)
-        output_writer.writeheader()
-        output.close()
 
-    def print_response(self, response, csvfile, timeout=False):
-        """
-        Handle target's response evaluation. Can be overridden per module
-        """
+    #
+    # Print login attempt
+    #
+    def print_response(self, response, outfile, timeout=False):
         if timeout:
             code = "TIMEOUT"
             length = "TIMEOUT"
@@ -39,10 +33,29 @@ class BaseHttpTarget:
             code = response.status_code
             length = str(len(response.content))
 
-        # print result to screen
+        #
+        # print result to screen and log to file
+        #
         print("%-35s %-17s %13s %15s" % (self.username, self.password, code, length))
+        self.log_attempt(code, length, outfile)
 
-        # print to CSV file
-        output = open(csvfile, "a")
-        output.write(f"{self.username},{self.password},{code},{length}\n")
+    
+    #
+    # Log attempt as JSON object to file
+    #
+    def log_attempt(self, code, length, outfile):
+        output = open(outfile, "a")
+        output.write(
+            json.dumps(
+                {
+                    "UTC Timestamp": datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d %H:%M:%S"),
+                    "Module": self.__class__.__name__,
+                    "Username": self.username,
+                    "Password": self.password,
+                    "Response Code": code,
+                    "Response Length": length,
+                }
+            )
+        )
+        output.write("\n")
         output.close()

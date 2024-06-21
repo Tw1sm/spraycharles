@@ -25,9 +25,9 @@ class Spraycharles:
                  analyze, jitter, jitter_min, notify, webhook, pause, no_ssl):
 
         self.passwords = password_list
-        self.password_file = password_file
+        self.password_file = Path(password_file)
         self.usernames = user_list
-        self.user_file = user_file
+        self.user_file = Path(user_file)
         self.host = host
         self.module = module
         self.path = path
@@ -67,10 +67,19 @@ class Spraycharles:
         # 
         # Build default output file
         #
-        current = datetime.datetime.now()
+        current = datetime.datetime.now(datetime.UTC)
         timestamp = current.strftime("%Y%m%d-%H%M%S")
-        if output == "output.csv":
-            output = f"{user_home}/.spraycharles/out/{host}.{timestamp}.csv"
+    
+        if self.output is None:
+            self.output = Path(f"{user_home}/.spraycharles/out/{host}_{timestamp}.json")
+        else:
+            self.output = Path(self.output)
+            
+        #
+        # Overwrite output file if it already exists
+        #
+        if self.output.exists():
+            self.output.unlink()
 
 
     def initialize_module(self):
@@ -90,13 +99,17 @@ class Spraycharles:
         current = datetime.datetime.now()
         timestamp = int(round(current.timestamp()))
 
-        self.log_name = f"{user_home}/.spraycharles/logs/{self.host}.{timestamp}.log"
+        self.log_name = f"{user_home}/.spraycharles/logs/{self.host}_{timestamp}.log"
         logging.basicConfig(
             filename=self.log_name,
             level=logging.INFO,
-            format="%(asctime)s - %(levelname)s - %(message)s",
+            format="%(asctime)s UTC - %(levelname)s - %(message)s",
         )
+        logging.Formatter.converter = time.gmtime
 
+    #
+    # Display table with spray configs
+    #
     def pre_spray_info(self):
         spray_info = Table(
             show_header=False,
@@ -150,7 +163,7 @@ class Spraycharles:
                 logger.warning(f"Failed to connect to {self.host} over SMB")
                 exit()
 
-        self.target.print_headers(self.output)
+        self.target.print_headers()
 
 
     def _check_sleep(self):
@@ -209,19 +222,6 @@ class Spraycharles:
 
         additions = list(set(new_list) - set(current_list))
         return additions
-
-
-    def _print_attempt(self, username, password, response):
-        if response == "timeout":
-            code = "TIMEOUT"
-            length = "TIMEOUT"
-        else:
-            code = response.status_code
-            length = str(len(response.content))
-        print("%-27s %-17s %13s %15s" % (username, password, code, length))
-        output = open(self.output, "a")
-        output.write("%s,%s,%s,%s\n" % (username, password, code, length))
-        output.close()
 
 
     def _login(self, username, password):

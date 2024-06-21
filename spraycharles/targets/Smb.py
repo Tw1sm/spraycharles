@@ -1,4 +1,5 @@
-import csv
+import json
+import datetime
 
 from impacket.smb import SMB_DIALECT
 from impacket.smbconnection import SessionError, SMBConnection
@@ -90,25 +91,39 @@ class Smb:
                 # something funky happened
                 return str(e)
 
-    # handle CSV out output headers. Can be customized per module
-    def print_headers(self, csvfile):
+
+    # 
+    # Print custom SMB module headers
+    #
+    def print_headers(self):
         # print table headers
         print("%-25s %-17s %-23s" % ("Username", "Password", "SMB Login"))
         print("-" * 68)
 
-        # create CSV file
-        output = open(csvfile, "w")
-        fieldnames = ["Username", "Password", "SMB Login"]
-        output_writer = csv.DictWriter(output, delimiter=",", fieldnames=fieldnames)
-        output_writer.writeheader()
-        output.close()
 
-    # handle target's response evaluation. Can be customized per module
-    def print_response(self, response, csvfile, timeout=False):
+    # Print login attempt
+    def print_response(self, response, outfile, timeout=False):
         # print result to screen
         print("%-25s %-17s %-23s" % (self.username, self.password, response))
+        self.log_attempt(response, outfile)
+        
 
-        # print to CSV file
-        output = open(csvfile, "a")
-        output.write(f"{self.username},{self.password},{response}\n")
+    
+    #
+    # Log attempt as JSON object to file
+    #
+    def log_attempt(self, response, outfile):
+        output = open(outfile, "a")
+        output.write(
+            json.dumps(
+                {
+                    "UTC Timestamp": datetime.now(datetime.UTC).strftime("%Y-%m-%d %H:%M:%S"),
+                    "Module": self.__class__.__name__,
+                    "Username": self.username,
+                    "Password": self.password,
+                    "SMB Login": response,
+                }
+            )
+        )
+        output.write("\n")
         output.close()

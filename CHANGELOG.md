@@ -6,6 +6,7 @@
 ### Changed
 - Migrated to `typer` from `click` for arg parsing
 - Config file format to yaml
+- Migrated to UTC timestamps
 
 ### Removed
 

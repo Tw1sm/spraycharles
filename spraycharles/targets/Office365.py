@@ -1,6 +1,5 @@
-import csv
 import json
-
+import datetime
 import requests
 
 
@@ -81,7 +80,7 @@ class Office365:
         output.close()
 
     # handle target's response evaluation. Can be customized per module
-    def print_response(self, response, csvfile, timeout=False):
+    def print_response(self, response, outfile, timeout=False):
         if timeout:
             code = "TIMEOUT"
             length = "TIMEOUT"
@@ -159,9 +158,28 @@ class Office365:
             )
         )
 
-        # print to CSV file
-        output = open(csvfile, "a")
+        # log attempt to JSON
+        self.log_attempt(result, message, code, length, outfile)
+
+
+    #
+    # Log attempt as JSON object to file
+    #
+    def log_attempt(self, result, message, code, length, outfile):
+        output = open(outfile, "a")
         output.write(
-            f'{result},{message},{self.data["username"]},{self.data["password"]},{code},{length}\n'
+            json.dumps(
+                {
+                    "UTC Timestamp": datetime.now(datetime.UTC).strftime("%Y-%m-%d %H:%M:%S"),
+                    "Module": self.__class__.__name__,
+                    "Result": result,
+                    "Message": message,
+                    "Username": self.username,
+                    "Password": self.password,
+                    "Response Code": code,
+                    "Response Length": length,
+                }
+            )
         )
+        output.write("\n")
         output.close()
