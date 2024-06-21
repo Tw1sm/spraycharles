@@ -1,8 +1,7 @@
-#!/usr/bin/env python
 import argparse
 import json
 from collections import OrderedDict
-
+from spraycharles.lib.logger import logger
 
 # append word to list given it meets length req
 def append(wordlist, word, min_length):
@@ -11,8 +10,8 @@ def append(wordlist, word, min_length):
     return wordlist
 
 
-def main(element_file, outfile):
-    print(f"[*] Reading {element_file} ...")
+def make_list(element_file, outfile):
+    logger.info(f"Reading {element_file} ...")
     try:
         with open(element_file) as f:
             data = json.load(f)
@@ -64,8 +63,4 @@ def main(element_file, outfile):
     # with open("custom_passwords.txt", "w") as f:
     with open(outfile, "w") as f:
         f.write("\n".join(spray_list))
-    print(f"[*] Password list written to {outfile}")
-
-
-if __name__ == "__main__":
-    main()
+    logger.info(f"Password list written to {outfile}")

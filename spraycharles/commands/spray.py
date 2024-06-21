@@ -8,7 +8,7 @@ from spraycharles import ascii
 from spraycharles.lib.logger import logger, init_logger, console
 from spraycharles.targets import Target, all
 from spraycharles.lib.spraycharles import Spraycharles
-from spraycharles.analyze import HookSvc
+from spraycharles.lib.analyze import HookSvc
 
 app = typer.Typer()
 COMMAND_NAME = 'spray'

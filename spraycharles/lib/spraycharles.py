@@ -15,7 +15,7 @@ from rich.prompt import Confirm
 
 from spraycharles import __version__
 from spraycharles.lib.logger import console, logger
-from spraycharles.analyze import Analyzer
+from spraycharles.lib.analyze import Analyzer
 from spraycharles.targets import all as all_modules
 
 

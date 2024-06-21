@@ -56,7 +56,7 @@ class Analyzer:
             logger.info("Identified potentially successful logins!")
             print()
 
-            success_table = Table(show_footer=False, highlight=True)
+            success_table = Table(show_footer=False, highlight=True, title="Spray Hits", title_justify="left", title_style="bold reverse")
 
             success_table.add_column("Username")
             success_table.add_column("Password")
@@ -119,7 +119,7 @@ class Analyzer:
             logger.info("Identified potentially successful logins!")
             print()
 
-            success_table = Table(show_footer=False, highlight=True)
+            success_table = Table(show_footer=False, highlight=True, title="Spray Hits", title_justify="left", title_style="bold reverse")
 
             success_table.add_column("Username")
             success_table.add_column("Password")
@@ -171,7 +171,7 @@ class Analyzer:
             logger.info("Identified potentially successful logins!")
             print()
 
-            success_table = Table(show_footer=False, highlight=True)
+            success_table = Table(show_footer=False, highlight=True, title="Spray Hits", title_justify="left", title_style="bold reverse")
             success_table.add_column("Username")
             success_table.add_column("Password")
             success_table.add_column("Status")
