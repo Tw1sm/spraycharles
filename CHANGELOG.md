@@ -6,9 +6,8 @@
 ### Changed
 - Migrated to `typer` from `click` for arg parsing
 - Config file format to yaml
-- Migrated to UTC timestamps
-
-### Removed
+- Timestamps utilize UTC
+- Migrated to JSON output objects instead of CSV files
 
 ## [v1.0.10] - 6/20/2024
 ### Fixed

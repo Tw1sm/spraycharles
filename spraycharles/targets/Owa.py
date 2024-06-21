@@ -3,7 +3,7 @@ import requests
 from .classes.BaseHttpTarget import BaseHttpTarget
 
 
-class Owa(BaseHttpTarget):
+class OWA(BaseHttpTarget):
     NAME = "OWA"
     DESCRIPTION = "Spray Microsoft Outlook Web Applications"
 

@@ -4,7 +4,7 @@ from requests_ntlm import HttpNtlmAuth
 from .classes.BaseHttpTarget import BaseHttpTarget
 
 
-class Ntlm(BaseHttpTarget):
+class NTLM(BaseHttpTarget):
     NAME = "NTLM"
     DESCRIPTION = "Spray NTLM over HTTP endpoints"
 

@@ -1,12 +1,12 @@
-import csv
 import json
-
 import requests
+import datetime
 
 
 class Okta:
     NAME = "Okta"
     DESCRIPTION = "Spray Okta API"
+
 
     def __init__(self, host, port, timeout, fireprox):
         self.timeout = timeout
@@ -44,14 +44,18 @@ class Okta:
         # password submission json
         self.data2 = {"password": "", "stateToken": ""}
 
+
     def set_username(self, username):
         self.data["username"] = username
+
 
     def set_password(self, password):
         self.data2["password"] = password
 
+
     def set_token(self, token):
         self.data2["stateToken"] = token
+
 
     def login(self, username, password):
         # set data
@@ -89,9 +93,11 @@ class Okta:
 
         return response
 
-    # handle CSV out output headers. Can be customized per module
-    def print_headers(self, csvfile):
-        # print table headers
+
+    #
+    # Print table headers
+    #
+    def print_headers(self):
         print(
             "%-13s %-30s %-35s %-17s %-13s %-15s"
             % (
@@ -105,22 +111,11 @@ class Okta:
         )
         print("-" * 128)
 
-        # create CSV file
-        output = open(csvfile, "w")
-        fieldnames = [
-            "Result",
-            "Message",
-            "Username",
-            "Password",
-            "Response Code",
-            "Response Length",
-        ]
-        output_writer = csv.DictWriter(output, delimiter=",", fieldnames=fieldnames)
-        output_writer.writeheader()
-        output.close()
 
-    # handle target's response evaluation. Can be customized per module
-    def print_response(self, response, csvfile, timeout=False):
+    #
+    # Print individual login attempt result
+    #
+    def print_response(self, response, outfile, timeout=False):
         if timeout:
             code = "TIMEOUT"
             length = "TIMEOUT"
@@ -183,13 +178,31 @@ class Okta:
             )
         )
 
-        # print to CSV file
-        output = open(csvfile, "a")
-        output.write(
-            f'{result},{message},{self.data["username"]},{self.data2["password"]},{code},{length}\n'
-        )
-        output.close()
+        self.log_attempt(result, message, code, length, outfile)
 
         if response.status_code == 429:
             print("[!] Encountered HTTP response code 429; killing spray")
             exit()
+
+
+    #
+    # Log attempt as JSON object to file
+    #
+    def log_attempt(self, result, message, code, length, outfile):
+        output = open(outfile, "a")
+        output.write(
+            json.dumps(
+                {
+                    "UTC Timestamp": datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d %H:%M:%S"),
+                    "Module": self.__class__.__name__,
+                    "Result": result,
+                    "Message": message,
+                    "Username": self.data["username"],
+                    "Password": self.data2["password"],
+                    "Response Code": code,
+                    "Response Length": length,
+                }
+            )
+        )
+        output.write("\n")
+        output.close()

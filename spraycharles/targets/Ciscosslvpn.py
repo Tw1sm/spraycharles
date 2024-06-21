@@ -3,7 +3,7 @@ import requests
 from .classes.BaseHttpTarget import BaseHttpTarget
 
 
-class Ciscosslvpn(BaseHttpTarget):
+class CiscoSSLVPN(BaseHttpTarget):
     NAME = "CiscoSSLVPN"
     DESCRIPTION = "Spray Cisco SSL VPN (Cisco ASA)"
 

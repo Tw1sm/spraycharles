@@ -1,27 +1,28 @@
 from enum import Enum
 
-from spraycharles.targets.Adfs import Adfs
-from spraycharles.targets.Ciscosslvpn import Ciscosslvpn
+from spraycharles.targets.Adfs import ADFS
+from spraycharles.targets.Ciscosslvpn import CiscoSSLVPN
 from spraycharles.targets.Citrix import Citrix
-from spraycharles.targets.Ntlm import Ntlm
+from spraycharles.targets.Ntlm import NTLM
 from spraycharles.targets.Office365 import Office365
 from spraycharles.targets.Okta import Okta
-from spraycharles.targets.Owa import Owa
-from spraycharles.targets.Smb import Smb
+from spraycharles.targets.Owa import OWA
+from spraycharles.targets.Smb import SMB
 from spraycharles.targets.Sonicwall import Sonicwall
+
 
 #
 # define all target modules
 #
 all = [
-    Adfs,
-    Ciscosslvpn,
+    ADFS,
+    CiscoSSLVPN,
     Citrix,
-    Ntlm,
+    NTLM,
     Office365,
     Okta,
-    Owa,
-    Smb,
+    OWA,
+    SMB,
     Sonicwall
 ]
 
@@ -30,14 +31,14 @@ all = [
 # enum for typer argument verification
 #
 class Target(str, Enum):
-    adfs        = Adfs.NAME
-    ciscosslvpn = Ciscosslvpn.NAME
+    adfs        = ADFS.NAME
+    ciscosslvpn = CiscoSSLVPN.NAME
     citrix      = Citrix.NAME
-    ntlm        = Ntlm.NAME
+    ntlm        = NTLM.NAME
     office365   = Office365.NAME
     okta        = Okta.NAME
-    owa         = Owa.NAME
-    smb         = Smb.NAME
+    owa         = OWA.NAME
+    smb         = SMB.NAME
     sonicwall   = Sonicwall.NAME
 
 

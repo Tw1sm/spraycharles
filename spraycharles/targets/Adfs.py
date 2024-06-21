@@ -3,7 +3,7 @@ import requests
 from .classes.BaseHttpTarget import BaseHttpTarget
 
 
-class Adfs(BaseHttpTarget):
+class ADFS(BaseHttpTarget):
     NAME = "ADFS"
     DESCRIPTION = "Spray Microsoft Active Directory Federation Services (ADFS)"
 

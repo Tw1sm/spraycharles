@@ -1,11 +1,11 @@
 import json
 import datetime
-
 from impacket.smb import SMB_DIALECT
 from impacket.smbconnection import SessionError, SMBConnection
 
+from spraycharles.utils.smbstatus import SMBStatus
 
-class Smb:
+class SMB:
     NAME = "SMB"
     DESCRIPTION = "Spray SMB services"
 
@@ -75,20 +75,26 @@ class Smb:
         try:
             self.conn.login(username, self.password, domain)
             self.conn.logoff()
-            return "STATUS_SUCCESS"
+            
+            return SMBStatus.STATUS_SUCCESS.name
         except SessionError as e:
-            if "STATUS_LOGON_FAILURE" in str(e):
-                return "STATUS_LOGON_FAILURE"
-            elif "STATUS_ACCOUNT_LOCKED_OUT" in str(e):
-                return "STATUS_ACCOUNT_LOCKED_OUT"
-            elif "STATUS_ACCOUNT_DISABLED" in str(e):
-                return "STATUS_ACCOUNT_DISABLED"
-            elif "STATUS_PASSWORD_EXPIRED" in str(e):
-                return "STATUS_PASSWORD_EXPIRED"
-            elif "STATUS_PASSWORD_MUST_CHANGE" in str(e):
-                return "STATUS_PASSWORD_MUST_CHANGE"
+            
+            if SMBStatus.STATUS_LOGON_FAILURE in str(e):
+                return SMBStatus.STATUS_LOGON_FAILURE.name
+            
+            elif SMBStatus.STATUS_ACCOUNT_LOCKED_OUT in str(e):
+                return SMBStatus.STATUS_ACCOUNT_LOCKED_OUT.name
+            
+            elif SMBStatus.STATUS_ACCOUNT_DISABLED in str(e):
+                return SMBStatus.STATUS_ACCOUNT_DISABLED.name
+            
+            elif SMBStatus.STATUS_PASSWORD_EXPIRED in str(e):
+                return SMBStatus.STATUS_PASSWORD_EXPIRED.name
+            
+            elif SMBStatus.STATUS_PASSWORD_MUST_CHANGE in str(e):
+                return SMBStatus.STATUS_PASSWORD_MUST_CHANGE.name
+            
             else:
-                # something funky happened
                 return str(e)
 
 
@@ -101,7 +107,9 @@ class Smb:
         print("-" * 68)
 
 
+    # 
     # Print login attempt
+    #
     def print_response(self, response, outfile, timeout=False):
         # print result to screen
         print("%-25s %-17s %-23s" % (self.username, self.password, response))
@@ -117,7 +125,7 @@ class Smb:
         output.write(
             json.dumps(
                 {
-                    "UTC Timestamp": datetime.now(datetime.UTC).strftime("%Y-%m-%d %H:%M:%S"),
+                    "UTC Timestamp": datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d %H:%M:%S"),
                     "Module": self.__class__.__name__,
                     "Username": self.username,
                     "Password": self.password,

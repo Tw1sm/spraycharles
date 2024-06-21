@@ -49,8 +49,10 @@ class Office365:
         )  # , verify=False, proxies=self.proxyDict)
         return response
 
-    # handle CSV out output headers. Can be customized per module
-    def print_headers(self, csvfile):
+    #
+    # Print table headers
+    #
+    def print_headers(self):
         # print table headers
         print(
             "%-13s %-30s %-35s %-17s %-13s %-15s"
@@ -65,21 +67,10 @@ class Office365:
         )
         print("-" * 128)
 
-        # create CSV file
-        output = open(csvfile, "w")
-        fieldnames = [
-            "Result",
-            "Message",
-            "Username",
-            "Password",
-            "Response Code",
-            "Response Length",
-        ]
-        output_writer = csv.DictWriter(output, delimiter=",", fieldnames=fieldnames)
-        output_writer.writeheader()
-        output.close()
 
-    # handle target's response evaluation. Can be customized per module
+    #
+    # Print individual login attempt result
+    #
     def print_response(self, response, outfile, timeout=False):
         if timeout:
             code = "TIMEOUT"
@@ -170,12 +161,12 @@ class Office365:
         output.write(
             json.dumps(
                 {
-                    "UTC Timestamp": datetime.now(datetime.UTC).strftime("%Y-%m-%d %H:%M:%S"),
+                    "UTC Timestamp": datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d %H:%M:%S"),
                     "Module": self.__class__.__name__,
                     "Result": result,
                     "Message": message,
-                    "Username": self.username,
-                    "Password": self.password,
+                    "Username": self.data["username"],
+                    "Password": self.data["password"],
                     "Response Code": code,
                     "Response Length": length,
                 }
