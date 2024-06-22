@@ -3,7 +3,7 @@ import requests
 import datetime
 
 from spraycharles.lib.utils import SprayResult
-from spraycharles.lib.logger import logger
+from spraycharles.lib.logger import logger, JSON_FMT
 
 class Okta:
     NAME = "Okta"
@@ -100,8 +100,8 @@ class Okta:
     # Print table headers
     #
     def print_headers(self):
-        print(
-            "%-13s %-30s %-35s %-17s %-13s %-15s"
+        header = (
+            "%-13s %-30s %-35s %-25s %-13s %-15s"
             % (
                 SprayResult.RESULT,
                 SprayResult.MESSAGE,
@@ -111,13 +111,14 @@ class Okta:
                 SprayResult.RESPONSE_LENGTH,
             )
         )
-        print("-" * 128)
+        print(header)
+        print("-" * len(header))
 
 
     #
     # Print individual login attempt result
     #
-    def print_response(self, response, outfile, timeout=False):
+    def print_response(self, response, outfile, timeout=False, print_to_screen=True):
         if timeout:
             code = "TIMEOUT"
             length = "TIMEOUT"
@@ -167,18 +168,18 @@ class Okta:
             result = "Fail"
             message = "Unknown result returned"
 
-        # print result to screen
-        print(
-            "%-13s %-30s %-35s %-17s %13s %15s"
-            % (
-                result,
-                message,
-                self.data["username"],
-                self.data2["password"],
-                code,
-                length,
+        if print_to_screen:
+            print(
+                "%-13s %-30s %-35s %-25s %13s %15s"
+                % (
+                    result,
+                    message,
+                    self.data["username"],
+                    self.data2["password"],
+                    code,
+                    length,
+                )
             )
-        )
 
         self.log_attempt(result, message, code, length, outfile)
 
@@ -192,19 +193,19 @@ class Okta:
     #
     def log_attempt(self, result, message, code, length, outfile):
         output = open(outfile, "a")
-        output.write(
-            json.dumps(
-                {
-                    SprayResult.TIMESTAMP       : datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d %H:%M:%S"),
-                    SprayResult.MODULE          : self.__class__.__name__,
-                    SprayResult.RESULT          : result,
-                    SprayResult.MESSAGE         : message,
-                    SprayResult.USERNAME        : self.data["username"],
-                    SprayResult.PASSWORD        : self.data2["password"],
-                    SprayResult.RESPONSE_CODE   : code,
-                    SprayResult.RESPONSE_LENGTH : length,
-                }
-            )
+        data = json.dumps(
+            {
+                SprayResult.TIMESTAMP       : datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d %H:%M:%S"),
+                SprayResult.MODULE          : self.__class__.__name__,
+                SprayResult.RESULT          : result,
+                SprayResult.MESSAGE         : message,
+                SprayResult.USERNAME        : self.data["username"],
+                SprayResult.PASSWORD        : self.data2["password"],
+                SprayResult.RESPONSE_CODE   : code,
+                SprayResult.RESPONSE_LENGTH : length,
+            }
         )
+        logger.debug(data, extra=JSON_FMT)
+        output.write(data)
         output.write("\n")
         output.close()

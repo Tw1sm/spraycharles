@@ -3,12 +3,17 @@
 ### Added
 - yaml config file with last args automatically written to `last-config.yaml`
 - `--no-ssl` flag to allow specification of plain HTTP usage
+- `--quiet` to suppress every login attempt result from being displayed to the console
+- A more verbose `--debug` option
 
 ### Changed
 - Migrated to `typer` from `click` for arg parsing
 - Config file format to yaml
 - Timestamps utilize UTC
 - Migrated to JSON output objects instead of CSV files
+
+### Removed
+- Jitter delay triggering before the first login attempt
 
 ## [v1.0.10] - 6/20/2024
 ### Fixed

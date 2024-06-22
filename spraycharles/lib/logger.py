@@ -3,29 +3,18 @@ from rich.logging import RichHandler
 from rich.console import Console
 from rich.console import Console
 from rich.theme import Theme
+from rich.highlighter import JSONHighlighter
 
 OBJ_EXTRA_FMT = {
     "markup": True,
     "highlighter": False
 }
 
-FORMAT = "%(message)s"
+JSON_FMT = {
+    "highlighter": JSONHighlighter()
+}
 
-# 
-# Defining theme / console
-#
-custom_theme = Theme(
-    {
-        "info": "blue",
-        "good": "bold bright_green",
-        "warning": "bold yellow",
-        "danger": "bold bright_red",
-    }
-)
-
-console = Console(theme=custom_theme)
-
-
+console = Console()
 logger = logging.getLogger(__name__)
 
 #
@@ -46,7 +35,7 @@ def init_logger(debug):
 
     richHandler.setFormatter(
         logging.Formatter(
-            FORMAT,
+            "%(message)s",
             datefmt='[%X]'
         )
     )

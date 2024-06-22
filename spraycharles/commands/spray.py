@@ -24,6 +24,7 @@ def main(
     module:     Target  = typer.Option(..., '-m', '--module', case_sensitive=False, help="Module corresponding to target host", rich_help_panel="Spray Target"),
     path:       str     = typer.Option(None, help="NTLM authentication endpoint (i.e., rpc or ews)", rich_help_panel="Spray Target"),
     output:     str     = typer.Option(None, '-o', '--output', help="Name and path of result output file", rich_help_panel="Output"),
+    quiet:      bool    = typer.Option(False, '--quiet', help="Will not log each login attempt to the console", rich_help_panel="Output"),
     attempts:   int     = typer.Option(None, '-a', '--attempts', help="Number of logins submissions per interval (for each user)", rich_help_panel="Spray Behavior"),
     interval:   int     = typer.Option(None, '-i', '--interval', help="Minutes inbetween login intervals", rich_help_panel="Spray Behavior"),
     equal:      bool    = typer.Option(False, '-e', '--equal', help="Does 1 spray for each user where password = username", rich_help_panel="User/Pass Config"),
@@ -36,9 +37,10 @@ def main(
     jitter_min: int     = typer.Option(None, help="Minimum time between requests in seconds", rich_help_panel="Spray Behavior"),
     notify:     HookSvc = typer.Option(None, '-n', '--notify', case_sensitive=False, help="Enable notifications for Slack, Teams or Discord", rich_help_panel="Notifications"),
     webhook:    str     = typer.Option(None, '-w', '--webhook', help="Webhook used for specified notification module", rich_help_panel="Notifications"),
-    pause:      bool    = typer.Option(False, '--pause', help="Pause the spray following a potentially successful login", rich_help_panel="Spray Behavior"),
+    pause:      bool    = typer.Option(False, '--pause', help="Pause the spray between intervals if a new potentially successful login was found", rich_help_panel="Spray Behavior"),
     no_ssl:     bool    = typer.Option(False, '--no-ssl', help="Use HTTP instead of HTTPS", rich_help_panel="Spray Target"),
-    debug:      bool    = typer.Option(False, '--debug', help="Enable debug logging")):
+    debug:      bool    = typer.Option(False, '--debug', help="Enable debug logging (overrides --quiet)")):
+
 
     init_logger(debug)
 
@@ -96,21 +98,6 @@ def main(
     if (attempts is None) ^ (interval is None):
         logger.error("[!] Number of login attempts per interval (-a) and interval (-i) must be supplied together")
         exit()
-    
-    #
-    # Warn user if interval and attempts are not supplied and password list is provided
-    #
-    if interval is None and attempts is None and len(password_list) > 1:
-        logger.warning("You have not provided spray attempts/interval. This may lead to account lockouts!")
-        print()
-
-        Confirm.ask(
-            "[yellow]Press enter to continue anyways",
-            default=True,
-            show_choices=False,
-            show_default=False,
-        )
-        print()
 
     # 
     # Check that jitter flags aren't supplied independently
@@ -140,6 +127,27 @@ def main(
         logger.error("Must specify a Webhook URL when the notify flag is used.")
         exit()
 
+    #
+    # Pause only takes effect during analysis, which can only happen inbetween intervals
+    #
+    if pause and not (analyze and interval is not None):
+        logger.warning("--pause flag can only takes effect when analyze/interval options are set")
+
+    #
+    # Warn user if interval and attempts are not supplied and password list is provided
+    #
+    if interval is None and attempts is None and len(password_list) > 1:
+        logger.warning("You have not provided spray attempts/interval. This may lead to account lockouts!")
+        print()
+
+        Confirm.ask(
+            "[yellow]Press enter to continue anyways",
+            default=True,
+            show_choices=False,
+            show_default=False,
+        )
+        print()
+
 
     #
     # Finally validated, lets spray
@@ -167,6 +175,8 @@ def main(
         webhook=webhook,
         pause=pause,
         no_ssl=no_ssl,
+        debug=debug,
+        quiet=quiet
     )
 
     spraycharles.initialize_module()

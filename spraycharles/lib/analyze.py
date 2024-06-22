@@ -22,6 +22,11 @@ class Analyzer:
     def analyze(self):
         print()
         logger.debug(f"Opening results file: {self.resultsfile}")
+
+        #
+        # Output file isn't technically JSON compliant, but each line is a JSON object
+        # So read each line and load into a list of JSON objects
+        #
         with open(self.resultsfile, "r") as resultsfile:
             logger.info("Reading JSON spray result objects")
             responses = [json.loads(line) for line in resultsfile]
@@ -69,7 +74,6 @@ class Analyzer:
 
             self.send_notification(count)
 
-            # Returning true to indicate a successfully guessed credential
             return count
         else:
             logger.info("No successful logins")
@@ -137,7 +141,6 @@ class Analyzer:
 
             print()
 
-            # Returning true to indicate a successfully guessed credential
             return count
         else:
             logger.info("No outliers found or not enough data to find statistical significance")
@@ -168,7 +171,7 @@ class Analyzer:
             success_table = Table(show_footer=False, highlight=True, title="Spray Hits", title_justify="left", title_style="bold reverse")
             success_table.add_column(SprayResult.USERNAME)
             success_table.add_column(SprayResult.PASSWORD)
-            success_table.add_column(SprayResult.SMB_LOGIN, justify="right")
+            success_table.add_column(SprayResult.SMB_LOGIN)
 
             for result in successes:
                 success_table.add_row(
@@ -183,7 +186,6 @@ class Analyzer:
 
             print()
 
-            # Returning true to indicate a successfully guessed credential
             return len(successes)
         else:
             logger.info("No successful SMB logins")
@@ -194,9 +196,11 @@ class Analyzer:
     # Send notification to specified webhook
     #
     def send_notification(self, hit_total):
-        # we'll only send notifications if NEW successes are found
+        
+        # 
+        # We'll only send notifications if NEW successes are found
+        #
         if hit_total > self.hit_count:
-            # Calling notifications if specified
             if self.notify:
                 print()
                 logger.info(f"Sending notification to {self.notify.value} webhook")

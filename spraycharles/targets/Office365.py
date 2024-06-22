@@ -3,6 +3,8 @@ import datetime
 import requests
 
 from spraycharles.lib.utils import SprayResult
+from spraycharles.lib.logger import logger, JSON_FMT
+
 
 class Office365:
     NAME = "Office365"
@@ -55,8 +57,8 @@ class Office365:
     #
     def print_headers(self):
         # print table headers
-        print(
-            "%-13s %-30s %-35s %-17s %-13s %-15s"
+        header = (
+            "%-13s %-30s %-35s %-25s %-13s %-15s"
             % (
                 SprayResult.RESULT,
                 SprayResult.MESSAGE,
@@ -66,13 +68,14 @@ class Office365:
                 SprayResult.RESPONSE_LENGTH,
             )
         )
-        print("-" * 128)
+        print(header)
+        print("-" * len(header))
 
 
     #
     # Print individual login attempt result
     #
-    def print_response(self, response, outfile, timeout=False):
+    def print_response(self, response, outfile, timeout=False, print_to_screen=True):
         if timeout:
             code = "TIMEOUT"
             length = "TIMEOUT"
@@ -137,20 +140,19 @@ class Office365:
                 result = "Fail"
                 message = "Unknown error code returned"
 
-        # print result to screen
-        print(
-            "%-13s %-30s %-35s %-17s %13s %15s"
-            % (
-                result,
-                message,
-                self.data["username"],
-                self.data["password"],
-                code,
-                length,
+        if print_to_screen:
+            print(
+                "%-13s %-30s %-35s %-25s %13s %15s"
+                % (
+                    result,
+                    message,
+                    self.data["username"],
+                    self.data["password"],
+                    code,
+                    length,
+                )
             )
-        )
-
-        # log attempt to JSON
+        
         self.log_attempt(result, message, code, length, outfile)
 
 
@@ -159,19 +161,19 @@ class Office365:
     #
     def log_attempt(self, result, message, code, length, outfile):
         output = open(outfile, "a")
-        output.write(
-            json.dumps(
-                {
-                    SprayResult.TIMESTAMP       : datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d %H:%M:%S"),
-                    SprayResult.MODULE          : self.__class__.__name__,
-                    SprayResult.RESULT          : result,
-                    SprayResult.MESSAGE         : message,
-                    SprayResult.USERNAME        : self.data["username"],
-                    SprayResult.PASSWORD        : self.data["password"],
-                    SprayResult.RESPONSE_CODE   : code,
-                    SprayResult.RESPONSE_LENGTH : length,
-                }
-            )
+        data = json.dumps(
+            {
+                SprayResult.TIMESTAMP       : datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d %H:%M:%S"),
+                SprayResult.MODULE          : self.__class__.__name__,
+                SprayResult.RESULT          : result,
+                SprayResult.MESSAGE         : message,
+                SprayResult.USERNAME        : self.data["username"],
+                SprayResult.PASSWORD        : self.data["password"],
+                SprayResult.RESPONSE_CODE   : code,
+                SprayResult.RESPONSE_LENGTH : length,
+            }
         )
+        logger.debug(data, extra=JSON_FMT)
+        output.write(data)
         output.write("\n")
         output.close()

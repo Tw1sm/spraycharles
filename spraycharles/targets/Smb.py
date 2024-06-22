@@ -3,7 +3,7 @@ import datetime
 from impacket.smb import SMB_DIALECT
 from impacket.smbconnection import SessionError, SMBConnection
 
-from spraycharles.lib.logger import logger
+from spraycharles.lib.logger import logger, JSON_FMT
 from spraycharles.lib.utils import SMBStatus, SprayResult
 
 
@@ -115,17 +115,17 @@ class SMB:
     # Print custom SMB module headers
     #
     def print_headers(self):
-        # print table headers
-        print("%-25s %-17s %-23s" % (SprayResult.USERNAME, SprayResult.PASSWORD, SprayResult.SMB_LOGIN))
-        print("-" * 68)
+        header = ("%-25s %-25s %-23s" % (SprayResult.USERNAME, SprayResult.PASSWORD, SprayResult.SMB_LOGIN))
+        print(header)
+        print("-" * len(header))
 
 
     # 
     # Print login attempt
     #
-    def print_response(self, response, outfile, timeout=False):
-        # print result to screen
-        print("%-25s %-17s %-23s" % (self.username, self.password, response))
+    def print_response(self, response, outfile, timeout=False, print_to_screen=True):
+        if print_to_screen:
+            print("%-25s %-25s %-23s" % (self.username, self.password, response))
         self.log_attempt(response, outfile)    
 
     
@@ -134,16 +134,16 @@ class SMB:
     #
     def log_attempt(self, response, outfile):
         output = open(outfile, "a")
-        output.write(
-            json.dumps(
-                {
-                    SprayResult.TIMESTAMP   : datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d %H:%M:%S"),
-                    SprayResult.MODULE      : self.__class__.__name__,
-                    SprayResult.USERNAME    : self.username,
-                    SprayResult.PASSWORD    : self.password,
-                    SprayResult.SMB_LOGIN   : response,
-                }
-            )
+        data = json.dumps(
+            {
+                SprayResult.TIMESTAMP   : datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d %H:%M:%S"),
+                SprayResult.MODULE      : self.__class__.__name__,
+                SprayResult.USERNAME    : self.username,
+                SprayResult.PASSWORD    : self.password,
+                SprayResult.SMB_LOGIN   : response,
+            }
         )
+        logger.debug(data, extra=JSON_FMT)
+        output.write(data)
         output.write("\n")
         output.close()

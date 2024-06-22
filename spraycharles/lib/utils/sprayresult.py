@@ -1,5 +1,5 @@
 #
-# Enum to define strings for JSON properties
+# Define strings for JSON properties
 #
 class SprayResult:
     TIMESTAMP       = 'UTC Timestamp'

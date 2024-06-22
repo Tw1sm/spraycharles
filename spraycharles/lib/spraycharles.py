@@ -22,7 +22,7 @@ from spraycharles.targets import all as all_modules
 class Spraycharles:
     def __init__( self, user_list, user_file, password_list, password_file, host, module,
                  path, output, attempts, interval, equal, timeout, port, fireprox, domain,
-                 analyze, jitter, jitter_min, notify, webhook, pause, no_ssl):
+                 analyze, jitter, jitter_min, notify, webhook, pause, no_ssl, debug, quiet):
 
         self.passwords = password_list
         self.password_file = Path(password_file)
@@ -46,6 +46,9 @@ class Spraycharles:
         self.webhook = webhook
         self.pause = pause
         self.no_ssl = no_ssl
+        #self.debug = debug
+        #self.quiet = quiet
+        self.print = False if debug or quiet else True
 
         self.total_hits = 0
         self.login_attempts = 0
@@ -111,6 +114,7 @@ class Spraycharles:
         
         #
         # Logfile will use the default logger and UTC time
+        # This file will not contain passwords (output JSON file will)
         #
         logging.basicConfig(
             filename=self.log_name,
@@ -118,6 +122,7 @@ class Spraycharles:
             format="%(asctime)s UTC - %(levelname)s - %(message)s",
         )
         logging.Formatter.converter = time.gmtime
+
 
     #
     # Display table with spray configs
@@ -175,18 +180,21 @@ class Spraycharles:
                 logger.warning(f"Failed to connect to {self.host} over SMB")
                 exit()
 
-        self.target.print_headers()
+        if self.print:
+            self.target.print_headers()
 
 
+    #
+    # Check if attempts limit has been reached and sleep if necessary
+    #
     def _check_sleep(self):
         if self.login_attempts == self.attempts:
+
             #
-            # optionally run result analysis
+            # Optionally run result analysis
             #
             if self.analyze:
-                analyzer = Analyzer(
-                    self.output, self.notify, self.webhook, self.host, self.total_hits
-                )
+                analyzer = Analyzer(self.output, self.notify, self.webhook, self.host, self.total_hits)
                 new_hit_total = analyzer.analyze()
 
                 # 
@@ -194,7 +202,8 @@ class Spraycharles:
                 #
                 if new_hit_total > self.total_hits and self.pause:
                     print()
-                    logger.info("Successful login potentially identified. Pausing...")
+                    logger.info("Identified new potentially successful login! Pausing...")
+                    print()
 
                     Confirm.ask(
                         "[blue]Press enter to continue",
@@ -202,25 +211,24 @@ class Spraycharles:
                         show_choices=False,
                         show_default=False,
                     )
-                    print()
-            else:
-                new_hit_total = (
-                    0  # just set to zero since results aren't being analyzed mid-spray
-                )
-                print()
+
+                #
+                # New hit total becomes the total hits for next analysis interation
+                #
+                self.total_hits = new_hit_total
 
             #
-            # sleep for interval
+            # Sleep for interval
             #
+            print()
             logger.info(f"Sleeping until {(datetime.datetime.now() + datetime.timedelta(minutes=self.interval)).strftime('%m-%d %H:%M:%S')}")
             time.sleep(self.interval * 60)
             print()
 
             #
-            #  reset counter and set hit total
+            #  Reset the counter
             #
             self.login_attempts = 0
-            self.total_hits = new_hit_total
 
 
     def _check_file_contents(self, file_path, current_list):
@@ -239,41 +247,68 @@ class Spraycharles:
     def _login(self, username, password):
         try:
             response = self.target.login(username, password)
-            self.target.print_response(response, self.output)
+            self.target.print_response(response, self.output, print_to_screen=self.print)
         except requests.ConnectTimeout as e:
-            self.target.print_response(None, self.output, timeout=True)
+            self.target.print_response(None, self.output, timeout=True, print_to_screen=self.print)
         except (requests.ConnectionError, requests.ReadTimeout, OSError) as e:
-            console.print(
-                "\n[!] Connection error - sleeping for 5 seconds", style="danger"
-            )
+            print()
+            logger.warning("Connection error - sleeping for 5 seconds")
+
             sleep(5)
             self._login(username, password)
 
+    
+    #
+    # Calculate jitter and sleep
+    #
+    def _jitter(self):
+        if self.jitter:
+            num = random.randint(self.jitter_min, self.jitter)
+            logger.debug(f"Jitter sleep: {num} seconds")
+            sleep(num)
 
-    def spray(self):
-        # spray once with password = username if flag present
-        if self.equal:
-            with Progress(transient=True) as progress:
-                task = progress.add_task(
-                    f"[yellow]Equal Set", total=len(self.usernames)
-                )
-                for username in self.usernames:
-                    password = username.split("@")[0]
-                    if self.jitter is not None:
-                        if self.jitter_min is None:
-                            self.jitter_min = 0
-                        time.sleep(random.randint(self.jitter_min, self.jitter))
-                    self._login(username, password)
-                    progress.update(task, advance=1)
+    
+    #
+    # Perform one attempt per username with password = username
+    #
+    def _spray_equal(self):
+        with Progress(transient=True, console=console) as progress:
+            task = progress.add_task(f"[yellow]Password = Username", total=len(self.usernames))
+            
+            for indx, username in enumerate(self.usernames):
+                if indx > 0:
+                    self._jitter()
 
-                    # log the login attempt
-                    logging.info(f"Login attempted as {username}")
+                #
+                # If we have an email address, strip the @domain
+                #
+                password = username.split("@")[0]
+
+                self._login(username, password)
+                progress.update(task, advance=1)
+
+                #
+                # Log attempt to logfile
+                #
+                logging.info(f"Login attempted as {username}")
 
             self.login_attempts += 1
 
-        # spray using password file
+
+    #
+    # Main spray logic
+    #
+    def spray(self):
+        # 
+        # Spray once with password = username if flag present
+        #
+        if self.equal:
+            self._spray_equal()
+
+        #
+        # Spray using provided password [file]
+        #
         for password in self.passwords:
-            # trigger sleep if attempts limit hit
             self._check_sleep()
 
             # check if user/pass files have been updated and add new entries to current lists
@@ -284,45 +319,47 @@ class Spraycharles:
             )
 
             if len(new_users) > 0:
-                console.print(
-                    f"[>] Adding {len(new_users)} new users into the spray!",
-                    style="info",
-                )
+                logger.info(f"Adding {len(new_users)} new users into the spray!")
                 self.usernames.extend(new_users)
 
             if len(new_passwords) > 0:
-                console.print(
-                    f"[>] Adding {len(new_passwords)} new passwords to the end of the spray!",
-                    style="info",
-                )
+                logger.info(f"Adding {len(new_passwords)} new passwords to the end the spray!")
                 self.passwords.extend(new_passwords)
 
             # print line separator
             if len(new_passwords) > 0 or len(new_users) > 0:
                 print()
 
-            with Progress(transient=True) as progress:
-                task = progress.add_task(
-                    f"[green]Spraying: {password}", total=len(self.usernames)
-                )
-                while not progress.finished:
-                    for username in self.usernames:
-                        if self.domain:
-                            username = f"{self.domain}\\{username}"
-                        if self.jitter is not None:
-                            if self.jitter_min is None:
-                                self.jitter_min = 0
-                            time.sleep(random.randint(self.jitter_min, self.jitter))
-                        self._login(username, password)
-                        progress.update(task, advance=1)
+            with Progress(transient=True, console=console) as progress:
+                task = progress.add_task(f"[green]Spraying: {password}", total=len(self.usernames))
+                
+                for indx, username in enumerate(self.usernames):
 
-                        # log the login attempt
-                        logging.info(f"Login attempted as {username}")
+                    #
+                    # If we did a spray with password = username, we'll need jitter, even on first iteration
+                    #
+                    if self.equal:
+                        self._jitter()
+                    elif indx > 0:
+                        self._jitter()
+                    
+                    if self.domain:
+                        username = f"{self.domain}\\{username}"
+                    
+                    self._login(username, password)
+                    
+                    progress.update(task, advance=1)
+
+                    #
+                    # Log attempt to logfile
+                    #
+                    logging.info(f"Login attempted as {username}")
 
             self.login_attempts += 1
 
-        # analyze the results to point out possible hits
-        analyzer = Analyzer(
-            self.output, self.notify, self.webhook, self.host, self.total_hits
-        )
+        #
+        # The spray is complete, let's analyze results
+        #
+        logger.info("Spray complete!")
+        analyzer = Analyzer(self.output, self.notify, self.webhook, self.host, self.total_hits)
         analyzer.analyze()
