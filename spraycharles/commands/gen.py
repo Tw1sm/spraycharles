@@ -1,5 +1,5 @@
 import typer
-from spraycharles.utils.make_list import make_list
+from spraycharles.lib.utils import make_list
 from spraycharles.lib.logger import init_logger
 
 app = typer.Typer()

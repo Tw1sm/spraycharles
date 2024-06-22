@@ -1,8 +1,9 @@
 import typer
 from enum import Enum
 
-from spraycharles.lib.analyze import HookSvc, Analyzer
+from spraycharles.lib.analyze import Analyzer
 from spraycharles.lib.logger import init_logger
+from spraycharles.lib.utils import HookSvc
 
 app = typer.Typer()
 COMMAND_NAME = 'analyze'

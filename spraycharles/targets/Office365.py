@@ -2,6 +2,7 @@ import json
 import datetime
 import requests
 
+from spraycharles.lib.utils import SprayResult
 
 class Office365:
     NAME = "Office365"
@@ -161,14 +162,14 @@ class Office365:
         output.write(
             json.dumps(
                 {
-                    "UTC Timestamp": datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d %H:%M:%S"),
-                    "Module": self.__class__.__name__,
-                    "Result": result,
-                    "Message": message,
-                    "Username": self.data["username"],
-                    "Password": self.data["password"],
-                    "Response Code": code,
-                    "Response Length": length,
+                    SprayResult.TIMESTAMP       : datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d %H:%M:%S"),
+                    SprayResult.MODULE          : self.__class__.__name__,
+                    SprayResult.RESULT          : result,
+                    SprayResult.MESSAGE         : message,
+                    SprayResult.USERNAME        : self.data["username"],
+                    SprayResult.PASSWORD        : self.data["password"],
+                    SprayResult.RESPONSE_CODE   : code,
+                    SprayResult.RESPONSE_LENGTH : length,
                 }
             )
         )

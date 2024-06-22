@@ -1,6 +1,9 @@
 import json
 import datetime
 
+from spraycharles.lib.utils import SprayResult
+
+
 class BaseHttpTarget:
     """
     Base class to hold output for standard HTTP spray targets
@@ -48,12 +51,12 @@ class BaseHttpTarget:
         output.write(
             json.dumps(
                 {
-                    "UTC Timestamp": datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d %H:%M:%S"),
-                    "Module": self.__class__.__name__,
-                    "Username": self.username,
-                    "Password": self.password,
-                    "Response Code": code,
-                    "Response Length": length,
+                    SprayResult.TIMESTAMP       : datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d %H:%M:%S"),
+                    SprayResult.MODULE          : self.__class__.__name__,
+                    SprayResult.USERNAME        : self.username,
+                    SprayResult.PASSWORD        : self.password,
+                    SprayResult.RESPONSE_CODE   : code,
+                    SprayResult.RESPONSE_LENGTH : length,
                 }
             )
         )

@@ -2,6 +2,7 @@ import json
 import requests
 import datetime
 
+from spraycharles.lib.utils import SprayResult
 
 class Okta:
     NAME = "Okta"
@@ -193,14 +194,14 @@ class Okta:
         output.write(
             json.dumps(
                 {
-                    "UTC Timestamp": datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d %H:%M:%S"),
-                    "Module": self.__class__.__name__,
-                    "Result": result,
-                    "Message": message,
-                    "Username": self.data["username"],
-                    "Password": self.data2["password"],
-                    "Response Code": code,
-                    "Response Length": length,
+                    SprayResult.TIMESTAMP       : datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d %H:%M:%S"),
+                    SprayResult.MODULE          : self.__class__.__name__,
+                    SprayResult.RESULT          : result,
+                    SprayResult.MESSAGE         : message,
+                    SprayResult.USERNAME        : self.data["username"],
+                    SprayResult.PASSWORD        : self.data2["password"],
+                    SprayResult.RESPONSE_CODE   : code,
+                    SprayResult.RESPONSE_LENGTH : length,
                 }
             )
         )

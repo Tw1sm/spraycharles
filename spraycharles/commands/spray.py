@@ -8,7 +8,7 @@ from spraycharles import ascii
 from spraycharles.lib.logger import logger, init_logger, console
 from spraycharles.targets import Target, all
 from spraycharles.lib.spraycharles import Spraycharles
-from spraycharles.lib.analyze import HookSvc
+from spraycharles.lib.utils import HookSvc
 
 app = typer.Typer()
 COMMAND_NAME = 'spray'
@@ -34,7 +34,7 @@ def main(
     analyze:    bool    = typer.Option(False, '--analyze', help="Run the results analyzer after each spray interval (Early false positives are more likely)", rich_help_panel="Output"),
     jitter:     int     = typer.Option(None, help="Jitter time between requests in seconds", rich_help_panel="Spray Behavior"),
     jitter_min: int     = typer.Option(None, help="Minimum time between requests in seconds", rich_help_panel="Spray Behavior"),
-    notify:     HookSvc = typer.Option(None, '-n', '--notify', help="Enable notifications for Slack, Teams or Discord", rich_help_panel="Notifications"),
+    notify:     HookSvc = typer.Option(None, '-n', '--notify', case_sensitive=False, help="Enable notifications for Slack, Teams or Discord", rich_help_panel="Notifications"),
     webhook:    str     = typer.Option(None, '-w', '--webhook', help="Webhook used for specified notification module", rich_help_panel="Notifications"),
     pause:      bool    = typer.Option(False, '--pause', help="Pause the spray following a potentially successful login", rich_help_panel="Spray Behavior"),
     no_ssl:     bool    = typer.Option(False, '--no-ssl', help="Use HTTP instead of HTTPS", rich_help_panel="Spray Target"),

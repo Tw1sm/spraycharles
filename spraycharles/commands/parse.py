@@ -1,5 +1,5 @@
 import typer
-from spraycharles.utils.ntlm_challenger import main as ntlm_challenger
+from spraycharles.lib.utils import ntlm_challenger
 
 app = typer.Typer()
 COMMAND_NAME = 'parse'

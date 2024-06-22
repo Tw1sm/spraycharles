@@ -3,45 +3,54 @@ import datetime
 from impacket.smb import SMB_DIALECT
 from impacket.smbconnection import SessionError, SMBConnection
 
-from spraycharles.utils.smbstatus import SMBStatus
+from spraycharles.lib.logger import logger
+from spraycharles.lib.utils import SMBStatus, SprayResult
+
 
 class SMB:
     NAME = "SMB"
     DESCRIPTION = "Spray SMB services"
 
-    smbv1 = True
-
-    # port, timeout and fireprox are dead args here. exist only to keep
+    #
+    # Port, timeout and fireprox are dead args here. exist only to keep
     # formatting and logic from main spraycharles.py consistent with HTTP modules
+    #
     def __init__(self, host, port, timeout, fireprox):
         self.host = host
         self.url = f"smb://{host}"
-        conn = ""
-        domain = ""
-        hostname = ""
-        os = ""
-        # creds
-        username = ""
-        password = ""
+        self.conn = ""
+        self.domain = ""
+        self.hostname = ""
+        self.os = ""
+        self.smbv1 = True
+        self.username = ""
+        self.password = ""
+
 
     def get_conn(self):
+        #
         # Try connecting with SMBv1 first
+        #
         try:
-            self.conn = SMBConnection(
-                self.host, self.host, None, 445, preferredDialect=SMB_DIALECT
-            )
+            logger.debug(f"Attempting SMBv1 connection before SMBv3...")
+            self.conn = SMBConnection(self.host, self.host, None, 445, preferredDialect=SMB_DIALECT, timeout=5)
         except Exception as e:
-            # print(e)
+            logger.debug(f"Failed to connect with SMBv1: {str(e)}")
             self.smbv1 = False
+            
+            #
             # v1 failed, try with v3
+            #
             try:
+                logger.debug(f"Attempting SMBv3 connection...")
                 self.conn = SMBConnection(self.host, self.host, None, 445)
             except Exception as e:
-                # print(e)
-                # failed to get smb connection
+                logger.debug(f"Failed to connect with SMBv3: {str(e)}")
                 return False
 
-        # enumerate host info
+        #
+        # Enumerate host info
+        #
         try:
             self.conn.login("", "")
         except SessionError:
@@ -52,26 +61,30 @@ class SMB:
         self.os = self.conn.getServerOS()
         return True
 
+
     def login(self, username, password):
-        # set class attributes so they can be accessed in print_response()
         self.username = username
         self.password = password
 
-        # split out domain and username if currently joined
+        #
+        # Split out domain and username if currently joined
+        #
         domain = ""
         if "\\" in username:
             domain = username.split("\\")[0]
             username = username.split("\\")[1]
 
-        # get new smb connection
+        #
+        # Get new smb connection
+        #
         if self.smbv1:
-            self.conn = SMBConnection(
-                self.host, self.host, None, 445, preferredDialect=SMB_DIALECT
-            )
+            self.conn = SMBConnection(self.host, self.host, None, 445, preferredDialect=SMB_DIALECT)
         else:
             self.conn = SMBConnection(self.host, self.host, None, 445)
 
-        # login
+        #
+        # Send credentialed login request
+        #
         try:
             self.conn.login(username, self.password, domain)
             self.conn.logoff()
@@ -113,8 +126,7 @@ class SMB:
     def print_response(self, response, outfile, timeout=False):
         # print result to screen
         print("%-25s %-17s %-23s" % (self.username, self.password, response))
-        self.log_attempt(response, outfile)
-        
+        self.log_attempt(response, outfile)    
 
     
     #
@@ -125,11 +137,11 @@ class SMB:
         output.write(
             json.dumps(
                 {
-                    "UTC Timestamp": datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d %H:%M:%S"),
-                    "Module": self.__class__.__name__,
-                    "Username": self.username,
-                    "Password": self.password,
-                    "SMB Login": response,
+                    SprayResult.TIMESTAMP   : datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d %H:%M:%S"),
+                    SprayResult.MODULE      : self.__class__.__name__,
+                    SprayResult.USERNAME    : self.username,
+                    SprayResult.PASSWORD    : self.password,
+                    SprayResult.SMB_LOGIN   : response,
                 }
             )
         )

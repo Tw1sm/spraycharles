@@ -133,7 +133,7 @@ class Spraycharles:
             spray_info.add_row("Jitter", f"{self.jitter_min}-{self.jitter} seconds")
 
         if self.notify:
-            spray_info.add_row("Notify", f"True ({self.notify})")
+            spray_info.add_row("Notify", f"True ({self.notify.value})")
 
         log_name = pathlib.PurePath(self.log_name)
         out_name = pathlib.PurePath(self.output)

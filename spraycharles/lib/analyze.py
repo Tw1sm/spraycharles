@@ -4,14 +4,7 @@ from enum import Enum
 from rich.table import Table
 
 from spraycharles.lib.logger import console, logger
-from spraycharles.utils.notify import discord, slack, teams
-from spraycharles.utils.smbstatus import SMBStatus
-
-
-class HookSvc(str, Enum):
-    slack   = "Slack"
-    teams   = "Teams"
-    discord = "Discord"
+from spraycharles.lib.utils import discord, slack, teams, SMBStatus, SprayResult, HookSvc
 
 
 class Analyzer:
@@ -27,16 +20,16 @@ class Analyzer:
     # Run analysis over spray result file
     #
     def analyze(self):
+        print()
         logger.debug(f"Opening results file: {self.resultsfile}")
         with open(self.resultsfile, "r") as resultsfile:
-            print()
             logger.info("Reading JSON spray result objects")
             responses = [json.loads(line) for line in resultsfile]
             
         #
         # Determine the type of service that was sprayed
         #
-        match responses[0]["Module"]:
+        match responses[0][SprayResult.MODULE]:
             case "Office365":
                 return self.O365_analyze(responses)
             case "SMB":
@@ -58,16 +51,18 @@ class Analyzer:
 
             success_table = Table(show_footer=False, highlight=True, title="Spray Hits", title_justify="left", title_style="bold reverse")
 
-            success_table.add_column("Username")
-            success_table.add_column("Password")
-            success_table.add_column("Message", justify="right")
+            success_table.add_column(SprayResult.USERNAME)
+            success_table.add_column(SprayResult.PASSWORD)
+            success_table.add_column(SprayResult.MESSAGE, justify="right")
 
             count = 0
-            for x in responses:
-                if x.get("Result") == "Success":
+            for resp in responses:
+                if resp.get(SprayResult.RESULT) == "Success":
                     count += 1
                     success_table.add_row(
-                        f"{x.get('Username')}", f"{x.get('Password')}", f"{x.get('Message')}"
+                        str(resp.get(SprayResult.USERNAME)),
+                        str(resp.get(SprayResult.PASSWORD)),
+                        str(resp.get(SprayResult.MESSAGE))
                     )
 
             console.print(success_table)
@@ -89,13 +84,12 @@ class Analyzer:
         len_with_timeouts = len(responses)
 
         # remove lines with timeouts
-        responses = [line for line in responses if line.get("Response Code") != "TIMEOUT"]
-        timeouts = len_with_timeouts - len(responses)
+        responses = [line for line in responses if line.get(SprayResult.RESPONSE_CODE) != "TIMEOUT"]
 
         response_lengths = []
         # Get the response length column for analysis
         for indx, line in enumerate(responses):
-            response_lengths.append(int(line.get("Response Length")))
+            response_lengths.append(int(line.get(SprayResult.RESPONSE_LENGTH)))
 
         logger.info("Calculating mean and standard deviation of response lengths")
 
@@ -121,20 +115,20 @@ class Analyzer:
 
             success_table = Table(show_footer=False, highlight=True, title="Spray Hits", title_justify="left", title_style="bold reverse")
 
-            success_table.add_column("Username")
-            success_table.add_column("Password")
-            success_table.add_column("Response Code", justify="right")
-            success_table.add_column("Response Length", justify="right")
+            success_table.add_column(SprayResult.USERNAME)
+            success_table.add_column(SprayResult.PASSWORD)
+            success_table.add_column(SprayResult.RESPONSE_CODE, justify="right")
+            success_table.add_column(SprayResult.RESPONSE_LENGTH, justify="right")
 
             count = 0
             for resp in responses:
                 if int(resp.get("Response Length")) in length_outliers:
                     count += 1
                     success_table.add_row(
-                        str(resp.get('Username')),
-                        str(resp.get('Password')),
-                        str(resp.get('Response Code')),
-                        str(resp.get('Response Length'))
+                        str(resp.get(SprayResult.USERNAME)),
+                        str(resp.get(SprayResult.PASSWORD)),
+                        str(resp.get(SprayResult.RESPONSE_CODE)),
+                        str(resp.get(SprayResult.RESPONSE_LENGTH))
                     )
                 
             console.print(success_table)
@@ -164,7 +158,7 @@ class Analyzer:
         ]
 
         for result in responses:
-            if SMBStatus(result.get("SMB Login")) in positive_statuses:
+            if SMBStatus(result.get(SprayResult.SMB_LOGIN)) in positive_statuses:
                 successes.append(result)
 
         if len(successes) > 0:
@@ -172,12 +166,16 @@ class Analyzer:
             print()
 
             success_table = Table(show_footer=False, highlight=True, title="Spray Hits", title_justify="left", title_style="bold reverse")
-            success_table.add_column("Username")
-            success_table.add_column("Password")
-            success_table.add_column("Status")
+            success_table.add_column(SprayResult.USERNAME)
+            success_table.add_column(SprayResult.PASSWORD)
+            success_table.add_column(SprayResult.SMB_LOGIN, justify="right")
 
             for result in successes:
-                success_table.add_row(f"{result.get('Username')}", f"{result.get('Password')}", f"{result.get('SMB Login')}")
+                success_table.add_row(
+                    str(result.get(SprayResult.USERNAME)),
+                    str(result.get(SprayResult.PASSWORD)),
+                    str(result.get(SprayResult.SMB_LOGIN))
+                )
 
             console.print(success_table)
 
@@ -201,13 +199,16 @@ class Analyzer:
             # Calling notifications if specified
             if self.notify:
                 print()
-                console.print(
-                    f"[*] Sending notification to {self.notify} webhook", style="info"
-                )
+                logger.info(f"Sending notification to {self.notify.value} webhook")
 
-            if self.notify == "slack":
-                slack(self.webhook, self.host)
-            elif self.notify == "teams":
-                teams(self.webhook, self.host)
-            elif self.notify == "discord":
-                discord(self.webhook, self.host)
+            match self.notify:
+                case None:
+                    pass
+                case HookSvc.SLACK:
+                    slack(self.webhook, self.host)
+                case HookSvc.TEAMS:
+                    teams(self.webhook, self.host)
+                case HookSvc.DISCORD:
+                    discord(self.webhook, self.host)
+                case _:
+                    logger.error("Invalid notification service specified")
