@@ -18,7 +18,7 @@ HELP =  'Low and slow password spraying'
 @use_yaml_config()
 @dump_yaml_config('last-config.yaml')
 def main(
-    usernames:  str    = typer.Option(..., '-u', '--usernames', help="Filepath of the usernames list", rich_help_panel="User/Pass Config"),
+    usernames:  str     = typer.Option(..., '-u', '--usernames', help="Filepath of the usernames list", rich_help_panel="User/Pass Config"),
     passwords:  str     = typer.Option(..., '-p', '--passwords', help="Single password to spray or filepath of the passwords list", rich_help_panel="User/Pass Config"),
     host:       str     = typer.Option(None, '-H', '--host', help="Host to password spray (ip or hostname). Can by anything when using Office365 module - only used for logfile name", rich_help_panel="Spray Target"),
     module:     Target  = typer.Option(..., '-m', '--module', case_sensitive=False, help="Module corresponding to target host", rich_help_panel="Spray Target"),
@@ -29,7 +29,7 @@ def main(
     interval:   int     = typer.Option(None, '-i', '--interval', help="Minutes inbetween login intervals", rich_help_panel="Spray Behavior"),
     equal:      bool    = typer.Option(False, '-e', '--equal', help="Does 1 spray for each user where password = username", rich_help_panel="User/Pass Config"),
     timeout:    int     = typer.Option(5, '-t', '--timeout', help="Web request timeout threshold", rich_help_panel="Spray Behavior"),
-    port:       int     = typer.Option(443, '-P','--port', help="Port to connect to on the specified hos", rich_help_panel="Spray Target"),
+    port:       int     = typer.Option(443, '-P','--port', help="Port to connect to on the specified host", rich_help_panel="Spray Target"),
     fireprox:   str     = typer.Option(None, '-f', '--fireprox', help="URL of desired fireprox interface", rich_help_panel="Spray Target"),
     domain:     str     = typer.Option(None, '-d', '--domain', help="HTTP - Prepend DOMAIN\\ to usernames; SMB - Supply domain for smb connection", rich_help_panel="Spray Target"),
     analyze:    bool    = typer.Option(False, '--analyze', help="Run the results analyzer after each spray interval (Early false positives are more likely)", rich_help_panel="Output"),

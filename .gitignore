@@ -5,6 +5,7 @@ logs/*
 TODO.md
 last-config.yaml
 *.txt
+*.json
 
 # Environments
 .env

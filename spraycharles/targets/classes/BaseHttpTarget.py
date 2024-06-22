@@ -64,5 +64,6 @@ class BaseHttpTarget:
             }
         )
         logger.debug(data, extra=JSON_FMT)
+        output.write(data)
         output.write("\n")
         output.close()

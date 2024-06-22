@@ -1,6 +1,0 @@
-{"UTC Timestamp": "2024-06-22 09:35:25", "Module": "NTLM", "Username": "SEVENKINGDOMS\\robert.baratheon", "Password": "iamthekingoftheworld", "Response Code": 405, "Response Length": "1293"}
-{"UTC Timestamp": "2024-06-22 09:35:25", "Module": "NTLM", "Username": "SEVENKINGDOMS\\tywin.lannister", "Password": "iamthekingoftheworld", "Response Code": 401, "Response Length": "1293"}
-{"UTC Timestamp": "2024-06-22 09:35:25", "Module": "NTLM", "Username": "SEVENKINGDOMS\\cersei.lannister", "Password": "iamthekingoftheworld", "Response Code": 401, "Response Length": "1293"}
-{"UTC Timestamp": "2024-06-22 09:35:25", "Module": "NTLM", "Username": "SEVENKINGDOMS\\robert.baratheon", "Password": "fake", "Response Code": 401, "Response Length": "1293"}
-{"UTC Timestamp": "2024-06-22 09:35:25", "Module": "NTLM", "Username": "SEVENKINGDOMS\\tywin.lannister", "Password": "fake", "Response Code": 401, "Response Length": "1293"}
-{"UTC Timestamp": "2024-06-22 09:35:25", "Module": "NTLM", "Username": "SEVENKINGDOMS\\cersei.lannister", "Password": "fake", "Response Code": 401, "Response Length": "1293"}
