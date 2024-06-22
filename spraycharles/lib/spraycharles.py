@@ -94,12 +94,24 @@ class Spraycharles:
                 if self.target.NAME == "NTLM":
                     self.target.set_path(self.path)
 
+                #
+                # Modules default to HTTPS, switch to HTTP if --no-ssl set
+                #
+                if self.no_ssl:
+                    self.target.set_plain_http()
+
+        #
         # Create the logfile
+        #
         user_home = str(Path.home())
         current = datetime.datetime.now()
         timestamp = int(round(current.timestamp()))
 
         self.log_name = f"{user_home}/.spraycharles/logs/{self.host}_{timestamp}.log"
+        
+        #
+        # Logfile will use the default logger and UTC time
+        #
         logging.basicConfig(
             filename=self.log_name,
             level=logging.INFO,

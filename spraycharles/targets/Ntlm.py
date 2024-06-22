@@ -42,10 +42,10 @@ class NTLM(BaseHttpTarget):
     """
 
     def set_path(self, path):
-        self.url = f"http://{self.host}:{self.port}/{path}"
+        self.url = f"https://{self.host}:{self.port}/{path}"
         
         if self.fireprox is not None:
-            self.url = f"http://{self.fireprox}/fireprox/{path}"
+            self.url = f"https://{self.fireprox}/fireprox/{path}"
 
 
     def set_username(self, username):

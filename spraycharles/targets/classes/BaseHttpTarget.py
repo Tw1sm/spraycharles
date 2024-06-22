@@ -14,6 +14,13 @@ class BaseHttpTarget:
         self.password = ""
 
 
+    #
+    # Modules default to HTTPS, switch to HTTP if --no-ssl set
+    #
+    def set_plain_http(self):
+        self.url = self.url.replace("https://", "http://", 1)
+
+
     # 
     # Print default module headers
     #
