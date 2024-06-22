@@ -13,7 +13,7 @@ repository = "https://github.com/Tw1sm/spraycharles"
 include = ["LICENSE", "CHANGELOG.md"]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.10"
 numpy = "^1.22.3"
 impacket = "^0.9.24"
 requests = "^2.27.1"
