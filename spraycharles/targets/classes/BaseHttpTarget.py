@@ -25,10 +25,7 @@ class BaseHttpTarget:
     # Print default module headers
     #
     def print_headers(self):
-        print(
-            "%-35s %-17s %-13s %-15s"
-            % ("Username", "Password", "Response Code", "Response Length")
-        )
+        print("%-35s %-17s %-13s %-15s" % (SprayResult.USERNAME, SprayResult.PASSWORD, SprayResult.RESPONSE_CODE, SprayResult.RESPONSE_LENGTH))
         print("-" * 83)
 
 

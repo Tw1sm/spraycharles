@@ -116,7 +116,7 @@ class SMB:
     #
     def print_headers(self):
         # print table headers
-        print("%-25s %-17s %-23s" % ("Username", "Password", "SMB Login"))
+        print("%-25s %-17s %-23s" % (SprayResult.USERNAME, SprayResult.PASSWORD, SprayResult.SMB_LOGIN))
         print("-" * 68)
 
 

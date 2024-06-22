@@ -1,10 +1,7 @@
-from enum import Enum
-
-
 #
 # Enum to define strings for JSON properties
 #
-class SprayResult(str, Enum):
+class SprayResult:
     TIMESTAMP       = 'UTC Timestamp'
     MODULE          = 'Module'
     RESULT          = 'Result'          # O365/Okta only

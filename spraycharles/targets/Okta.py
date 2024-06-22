@@ -103,12 +103,12 @@ class Okta:
         print(
             "%-13s %-30s %-35s %-17s %-13s %-15s"
             % (
-                "Result",
-                "Message",
-                "Username",
-                "Password",
-                "Response Code",
-                "Response Length",
+                SprayResult.RESULT,
+                SprayResult.MESSAGE,
+                SprayResult.USERNAME,
+                SprayResult.PASSWORD,
+                SprayResult.RESPONSE_CODE,
+                SprayResult.RESPONSE_LENGTH,
             )
         )
         print("-" * 128)
