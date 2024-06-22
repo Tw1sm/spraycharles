@@ -16,8 +16,7 @@ def make_list(element_file, outfile):
         with open(element_file) as f:
             data = json.load(f)
     except Exception as e:
-        print("[!] Error loading JSON:")
-        print(f"{e}")
+        logger.error(f"Error reading {element_file}: {e}")
         exit(1)
 
     words = data["base_words"]

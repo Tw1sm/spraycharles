@@ -3,6 +3,7 @@ import requests
 import datetime
 
 from spraycharles.lib.utils import SprayResult
+from spraycharles.lib.logger import logger
 
 class Okta:
     NAME = "Okta"
@@ -182,7 +183,7 @@ class Okta:
         self.log_attempt(result, message, code, length, outfile)
 
         if response.status_code == 429:
-            print("[!] Encountered HTTP response code 429; killing spray")
+            logger.error("Encountered HTTP response code 429; killing spray")
             exit()
 
 
