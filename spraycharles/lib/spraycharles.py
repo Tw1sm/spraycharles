@@ -34,8 +34,8 @@ class Spraycharles:
         self.module = module
         self.path = path
         self.output = output
-        self.attempts = 1
-        self.interval = 0.25
+        self.attempts = attempts
+        self.interval = interval
         self.equal = equal
         self.timeout = timeout
         self.port = port
@@ -83,6 +83,18 @@ class Spraycharles:
         #
         if self.output.exists():
             self.output.unlink()
+        
+        #
+        # Logfile will use the default logger and UTC time
+        # This file will not contain passwords (output JSON file will)
+        #
+        self.log_name = f"{user_home}/.spraycharles/logs/{self.host}_{timestamp}.log"
+        logging.basicConfig(
+            filename=self.log_name,
+            level=logging.INFO,
+            format="%(asctime)s UTC - %(levelname)s - %(message)s",
+        )
+        logging.Formatter.converter = time.gmtime
 
 
     def initialize_module(self):
@@ -102,26 +114,6 @@ class Spraycharles:
                 #
                 if self.no_ssl:
                     self.target.set_plain_http()
-
-        #
-        # Create the logfile
-        #
-        user_home = str(Path.home())
-        current = datetime.datetime.now()
-        timestamp = int(round(current.timestamp()))
-
-        self.log_name = f"{user_home}/.spraycharles/logs/{self.host}_{timestamp}.log"
-        
-        #
-        # Logfile will use the default logger and UTC time
-        # This file will not contain passwords (output JSON file will)
-        #
-        logging.basicConfig(
-            filename=self.log_name,
-            level=logging.INFO,
-            format="%(asctime)s UTC - %(levelname)s - %(message)s",
-        )
-        logging.Formatter.converter = time.gmtime
 
 
     #
@@ -357,7 +349,6 @@ class Spraycharles:
                 #
                 self._update_list_from_file(self.user_file, self.user_file_hash, self.usernames, type="usernames")
                 self._update_list_from_file(self.password_file, self.passworld_file_hash, self.passwords, type="passwords")
-                logger.debug(f"pass list: {self.passwords}")
 
                 password = self.passwords[indx]
                 logger.debug(f"Loop index: {indx} - Password: '{password}'")
