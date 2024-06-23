@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 # parsing from "NT LAN Manager (NTLM) Authentication Protocol" v20190923, revision  31.0
 # https://winprotocoldoc.blob.core.windows.net/productionwindowsarchives/MS-NLMP/%5bMS-NLMP%5d.pdf
 # Source: https://github.com/b17zr/ntlm_challenger
