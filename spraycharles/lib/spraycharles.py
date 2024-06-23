@@ -4,6 +4,7 @@ import logging
 import pathlib
 import random
 import time
+import hashlib
 from pathlib import Path
 from time import sleep
 
@@ -25,15 +26,17 @@ class Spraycharles:
                  analyze, jitter, jitter_min, notify, webhook, pause, no_ssl, debug, quiet):
 
         self.passwords = password_list
-        self.password_file = Path(password_file)
+        self.password_file = None if password_file is None else Path(password_file)
+        self.passworld_file_hash = None if self.password_file is None else Spraycharles._hash_file(self.password_file)
         self.usernames = user_list
         self.user_file = Path(user_file)
+        self.user_file_hash = None if self.user_file is None else Spraycharles._hash_file(self.user_file)
         self.host = host
         self.module = module
         self.path = path
         self.output = output
-        self.attempts = attempts
-        self.interval = interval
+        self.attempts = 1
+        self.interval = 0.25
         self.equal = equal
         self.timeout = timeout
         self.port = port
@@ -46,8 +49,6 @@ class Spraycharles:
         self.webhook = webhook
         self.pause = pause
         self.no_ssl = no_ssl
-        #self.debug = debug
-        #self.quiet = quiet
         self.print = False if debug or quiet else True
 
         self.total_hits = 0
@@ -230,21 +231,59 @@ class Spraycharles:
             #
             self.login_attempts = 0
 
-
-    def _check_file_contents(self, file_path, current_list):
-        new_list = []
+    
+    #
+    # File hashing function to determoine if file has been modified
+    #
+    @staticmethod
+    def _hash_file(file: Path, current_hash: str = None):
         try:
-            with open(file_path, "r") as f:
-                new_list = f.read().splitlines()
-        except:
-            # file either no longer exists, or -p flag was given a password and not a file
-            pass
+            fb = file.read_bytes()
+            hash = hashlib.sha256(fb).hexdigest()
+            logger.debug(f"SHA-256 of {file}: {hash}")
+            return hash
+        except Exception as e:
+            logger.error(f"Error hashing {file}")
+            logger.error(str(e))
+            return current_hash
 
-        additions = list(set(new_list) - set(current_list))
-        return additions
+
+    #
+    # Allows username/password files to be modified mid-spray and take effect
+    #
+    def _update_list_from_file(self, file: Path, current_hash: str, current_list: list[str], type="usernames"):
+        
+        #
+        # A single password could have been provided on the CLI, so ensure we're provided a Path() object 
+        #
+        if file is None:
+            return
+        
+        new_hash = Spraycharles._hash_file(file, current_hash)
+        
+        if new_hash == current_hash:
+            logger.debug(f"{file} has not been modified")
+            return
+
+        #
+        # There has been a file change, let's update the list
+        #
+        current_hash = new_hash
+        logger.debug(f"Detected change in {file} - updating {type} list")
+        old_size = len(current_list)
+        current_list.clear()
+        try:
+            current_list.extend(file.read_text().splitlines())
+            logger.info(f"Updated {type} list - size of changes: {len(current_list) - old_size}")
+        except Exception as e:
+            logger.debug(f"Error updating {type} list: {e}")
+            return
 
 
-    def _login(self, username, password):
+    #
+    # Recursive function to send login attempts
+    #
+    def _login(self, username: str, password: str):
         try:
             response = self.target.login(username, password)
             self.target.print_response(response, self.output, print_to_screen=self.print)
@@ -307,59 +346,58 @@ class Spraycharles:
 
         #
         # Spray using provided password [file]
+        # We'll use a while loop so we can manually control the list index, in the event of user/pass file changes
         #
-        for password in self.passwords:
-            self._check_sleep()
+        try:
+            indx = 0
+            while indx < len(self.passwords):
+                self._check_sleep()
 
-            # check if user/pass files have been updated and add new entries to current lists
-            # this will let users add (but not remove) users/passwords into the spray as it runs
-            new_users = self._check_file_contents(self.user_file, self.usernames)
-            new_passwords = self._check_file_contents(
-                self.password_file, self.passwords
-            )
+                #
+                # Bring in user/pass file updates
+                #
+                self._update_list_from_file(self.user_file, self.user_file_hash, self.usernames, type="usernames")
+                self._update_list_from_file(self.password_file, self.passworld_file_hash, self.passwords, type="passwords")
+                logger.debug(f"pass list: {self.passwords}")
 
-            if len(new_users) > 0:
-                logger.info(f"Adding {len(new_users)} new users into the spray!")
-                self.usernames.extend(new_users)
+                password = self.passwords[indx]
+                logger.debug(f"Loop index: {indx} - Password: '{password}'")
 
-            if len(new_passwords) > 0:
-                logger.info(f"Adding {len(new_passwords)} new passwords to the end the spray!")
-                self.passwords.extend(new_passwords)
-
-            # print line separator
-            if len(new_passwords) > 0 or len(new_users) > 0:
-                print()
-
-            with Progress(transient=True, console=console) as progress:
-                task = progress.add_task(f"[green]Spraying: {password}", total=len(self.usernames))
-                
-                for indx, username in enumerate(self.usernames):
-
-                    #
-                    # If we did a spray with password = username, we'll need jitter, even on first iteration
-                    #
-                    if self.equal:
-                        self._jitter()
-                    elif indx > 0:
-                        self._jitter()
+                with Progress(transient=True, console=console) as progress:
+                    task = progress.add_task(f"[green]Spraying: {password}", total=len(self.usernames))
                     
-                    if self.domain:
-                        username = f"{self.domain}\\{username}"
-                    
-                    self._login(username, password)
-                    
-                    progress.update(task, advance=1)
+                    for user_indx, username in enumerate(self.usernames):
 
-                    #
-                    # Log attempt to logfile
-                    #
-                    logging.info(f"Login attempted as {username}")
+                        #
+                        # If we did a spray with password = username, we'll need jitter, even on first iteration
+                        #
+                        if self.equal:
+                            self._jitter()
+                        elif user_indx > 0:
+                            self._jitter()
+                        
+                        if self.domain:
+                            username = f"{self.domain}\\{username}"
+                        
+                        self._login(username, password)
+                        
+                        progress.update(task, advance=1)
 
-            self.login_attempts += 1
+                        #
+                        # Log attempt to logfile
+                        #
+                        logging.info(f"Login attempted as {username}")
+
+                self.login_attempts += 1
+                indx += 1
+
+        except IndexError as e:
+            logger.error("Index error in spray loop, exiting spray loop! Bad user/pass file change?")
 
         #
         # The spray is complete, let's analyze results
         #
+        print()
         logger.info("Spray complete!")
         analyzer = Analyzer(self.output, self.notify, self.webhook, self.host, self.total_hits)
         analyzer.analyze()

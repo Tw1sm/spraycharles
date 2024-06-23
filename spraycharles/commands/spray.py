@@ -51,7 +51,6 @@ def main(
         import requests.packages.urllib3
 
         requests.packages.urllib3.disable_warnings()
-        logger.debug("Disabled urllib3 SSL warnings")
     except Exception:
         pass
 
@@ -71,6 +70,11 @@ def main(
     else:
         logger.debug("Single password detected")
         password_list = [passwords]
+        
+        #
+        # Set to None so it's not checked for file changes
+        #
+        passwords = None
 
     #
     # Host arg is required for all modules except Office365
@@ -147,7 +151,6 @@ def main(
             show_default=False,
         )
         print()
-
 
     #
     # Finally validated, lets spray

@@ -5,12 +5,14 @@
 - `--no-ssl` flag to allow specification of plain HTTP usage
 - `--quiet` to suppress every login attempt result from being displayed to the console
 - A more verbose `--debug` option
+- Ability to remove usernames or passwords from lists mid-spray
 
 ### Changed
 - Migrated to `typer` from `click` for arg parsing
 - Config file format to yaml
 - Timestamps utilize UTC
 - Migrated to JSON output objects instead of CSV files
+- Improved logic for mid-spray username/password file updates
 
 ### Removed
 - Jitter delay triggering before the first login attempt
