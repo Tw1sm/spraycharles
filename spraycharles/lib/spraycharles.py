@@ -8,6 +8,7 @@ from pathlib import Path
 from time import sleep
 
 import requests
+from requests.exceptions import ConnectTimeout, ConnectionError, ReadTimeout, Timeout, TooManyRedirects, RetryError, RequestException
 from rich import print
 from rich.progress import Progress
 from rich.table import Table
@@ -97,6 +98,9 @@ class Spraycharles:
         logging.Formatter.converter = time.gmtime
 
 
+    #
+    # Find the module were using and prep
+    #
     def initialize_module(self):
         for target in all_modules:
             if self.module == target.NAME:
@@ -231,7 +235,7 @@ class Spraycharles:
         try:
             fb = file.read_bytes()
             hash = hashlib.sha256(fb).hexdigest()
-            logger.debug(f"SHA-256 of {file}: {hash}")
+            logger.debug(f"Calculated hash for {file} to check for changes")
             return hash
         except Exception as e:
             logger.error(f"Error hashing {file}")
@@ -278,12 +282,31 @@ class Spraycharles:
         try:
             response = self.target.login(username, password)
             self.target.print_response(response, self.output, print_to_screen=self.print)
-        except requests.ConnectTimeout as e:
+        
+        #
+        # If we timeout, we'll note that in the result object/output
+        # 
+        except (ConnectTimeout, Timeout) as e:
+            logger.debug(f"Timeout error: {e}")
             self.target.print_response(None, self.output, timeout=True, print_to_screen=self.print)
-        except (requests.ConnectionError, requests.ReadTimeout, OSError) as e:
+        
+        #
+        # For these exeptions, we'll sleep for 5 seconds and try again
+        #   Note: OSError can occur if the SMB module experiences trouble connecting to 445
+        #
+        except (OSError, ReadTimeout, ConnectionError) as e:
             print()
-            logger.warning("Connection error - sleeping for 5 seconds")
+            logger.warning("Connection error - will retry 5 seconds")
+            logger.debug(str(e))
+            sleep(5)
+            self._login(username, password)
 
+        #
+        # Last ditch effort, something else with Requests went wrong
+        #
+        except RequestException as e:
+            logger.error("Unexpected error with Requests library - will retry in 5 seconds")
+            logger.error(str(e))
             sleep(5)
             self._login(username, password)
 

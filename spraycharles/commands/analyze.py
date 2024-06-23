@@ -7,7 +7,7 @@ from spraycharles.lib.utils import HookSvc
 
 app = typer.Typer()
 COMMAND_NAME = 'analyze'
-HELP =  'Analyze CSV files for potential spray hits'
+HELP =  'Analyze Spraycharles output files for potential spray hits'
 
 
 @app.callback(no_args_is_help=True, invoke_without_command=True)
