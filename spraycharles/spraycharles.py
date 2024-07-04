@@ -49,6 +49,7 @@ class Spraycharles:
         notify,
         webhook,
         pause,
+        pitchfork,
     ):
         """
         Validate args and initalize class attributes
@@ -86,6 +87,15 @@ class Spraycharles:
                 password_list = f.read().splitlines()
         except Exception:
             password_list = [passwords]
+
+        # if running on pitchfork mode, check if length of usernames and
+        # passwords are the same
+        if pitchfork and len(user_list) != len(password_list):
+            console.print(
+                "[!] Number of usernames and passwords must be equal when using pitchfork mode",
+                style="danger",
+            )
+            exit()
 
         # check that interval and attempt args are supplied together
         if interval and not attempts:
@@ -182,6 +192,7 @@ class Spraycharles:
         self.notify = notify
         self.webhook = webhook
         self.pause = pause
+        self.pitchfork = pitchfork
         self.total_hits = 0
         self.login_attempts = 0
         self.target = None
@@ -409,55 +420,78 @@ class Spraycharles:
 
             self.login_attempts += 1
 
-        # spray using password file
-        for password in self.passwords:
-            # trigger sleep if attempts limit hit
-            self._check_sleep()
-
-            # check if user/pass files have been updated and add new entries to current lists
-            # this will let users add (but not remove) users/passwords into the spray as it runs
-            new_users = self._check_file_contents(self.user_file, self.usernames)
-            new_passwords = self._check_file_contents(
-                self.password_file, self.passwords
-            )
-
-            if len(new_users) > 0:
-                console.print(
-                    f"[>] Adding {len(new_users)} new users into the spray!",
-                    style="info",
-                )
-                self.usernames.extend(new_users)
-
-            if len(new_passwords) > 0:
-                console.print(
-                    f"[>] Adding {len(new_passwords)} new passwords to the end of the spray!",
-                    style="info",
-                )
-                self.passwords.extend(new_passwords)
-
-            # print line separator
-            if len(new_passwords) > 0 or len(new_users) > 0:
-                print()
-
+        # spray using pitchfork mode
+        if self.pitchfork:
             with Progress(transient=True) as progress:
                 task = progress.add_task(
-                    f"[green]Spraying: {password}", total=len(self.usernames)
+                    f"[yellow]Pitchfork Mode", total=len(self.usernames)
                 )
-                while not progress.finished:
-                    for username in self.usernames:
-                        if self.domain:
-                            username = f"{self.domain}\\{username}"
-                        if self.jitter is not None:
-                            if self.jitter_min is None:
-                                self.jitter_min = 0
-                            time.sleep(random.randint(self.jitter_min, self.jitter))
-                        self._login(username, password)
-                        progress.update(task, advance=1)
+                for username, password in zip(self.usernames, self.passwords):
+                    # trigger sleep if attempts limit hit
+                    self._check_sleep()
+                    if self.jitter is not None:
+                        if self.jitter_min is None:
+                            self.jitter_min = 0
+                        time.sleep(random.randint(self.jitter_min, self.jitter))
+                    if self.domain:
+                        username = f"{self.domain}\\{username}"
+                    self._login(username, password)
+                    progress.update(task, advance=1)
 
-                        # log the login attempt
-                        logging.info(f"Login attempted as {username}")
+                    # log the login attempt
+                    logging.info(f"Login attempted as {username}")
 
-            self.login_attempts += 1
+                    self.login_attempts += 1
+        else:
+            # spray using password file
+            for password in self.passwords:
+                # trigger sleep if attempts limit hit
+                self._check_sleep()
+
+                # check if user/pass files have been updated and add new entries to current lists
+                # this will let users add (but not remove) users/passwords into the spray as it runs
+                new_users = self._check_file_contents(self.user_file, self.usernames)
+                new_passwords = self._check_file_contents(
+                    self.password_file, self.passwords
+                )
+
+                if len(new_users) > 0:
+                    console.print(
+                        f"[>] Adding {len(new_users)} new users into the spray!",
+                        style="info",
+                    )
+                    self.usernames.extend(new_users)
+
+                if len(new_passwords) > 0:
+                    console.print(
+                        f"[>] Adding {len(new_passwords)} new passwords to the end of the spray!",
+                        style="info",
+                    )
+                    self.passwords.extend(new_passwords)
+
+                # print line separator
+                if len(new_passwords) > 0 or len(new_users) > 0:
+                    print()
+
+                with Progress(transient=True) as progress:
+                    task = progress.add_task(
+                        f"[green]Spraying: {password}", total=len(self.usernames)
+                    )
+                    while not progress.finished:
+                        for username in self.usernames:
+                            if self.domain:
+                                username = f"{self.domain}\\{username}"
+                            if self.jitter is not None:
+                                if self.jitter_min is None:
+                                    self.jitter_min = 0
+                                time.sleep(random.randint(self.jitter_min, self.jitter))
+                            self._login(username, password)
+                            progress.update(task, advance=1)
+
+                            # log the login attempt
+                            logging.info(f"Login attempted as {username}")
+
+                self.login_attempts += 1
 
         # analyze the results to point out possible hits
         analyzer = Analyzer(
@@ -655,6 +689,12 @@ def modules():
     type=str,
     help="Webhook used for specified notification module",
 )
+@click.option(
+    "--pitchfork",
+    required=False,
+    is_flag=True,
+    help="Enable pitchfork mode. Use first user with first password and so on.",
+)
 # Allows user to specify configuration file with --config
 @click_config_file.configuration_option()
 def spray(
@@ -677,6 +717,7 @@ def spray(
     notify,
     webhook,
     pause,
+    pitchfork,
 ):
     """Low and slow password spraying tool."""
 
@@ -708,6 +749,7 @@ def spray(
         notify,
         webhook,
         pause,
+        pitchfork,
     )
 
     spraycharles.initialize_module()

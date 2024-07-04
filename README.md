@@ -136,6 +136,8 @@ Options:
                                   Discord.
   -w, --webhook TEXT              Webhook used for specified notification
                                   module
+  --pitchfork                     Enable pitchfork mode. Use first user with
+                                  first password and so on.
   --config FILE                   Read configuration from FILE.
   -h, --help                      Show this message and exit.
 ```
