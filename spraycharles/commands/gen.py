@@ -1,24 +1,27 @@
-#!/usr/bin/env python
-import argparse
+import typer
 import json
 from collections import OrderedDict
 
+from spraycharles.lib.logger import init_logger, logger
 
-# append word to list given it meets length req
-def append(wordlist, word, min_length):
-    if len(word) >= min_length:
-        wordlist.append(word)
-    return wordlist
+app = typer.Typer()
+COMMAND_NAME = 'gen'
+HELP =  'Generate custom password lists from JSON file'
 
 
-def main(element_file, outfile):
-    print(f"[*] Reading {element_file} ...")
+@app.callback(no_args_is_help=True, invoke_without_command=True)
+def main(
+    infile:     str = typer.Argument(..., exists=True, help="Filepath of the JSON file (example in repo's extras folder)"),
+    outfile:    str = typer.Argument(..., writable=True, help="Name and path of the output file")):
+    
+    init_logger(False)
+    
+    logger.info(f"Reading {infile} ...")
     try:
-        with open(element_file) as f:
+        with open(infile) as f:
             data = json.load(f)
     except Exception as e:
-        print("[!] Error loading JSON:")
-        print(f"{e}")
+        logger.error(f"Error reading {infile}: {e}")
         exit(1)
 
     words = data["base_words"]
@@ -28,14 +31,14 @@ def main(element_file, outfile):
 
     ranges = []
 
-    """
-    Append the following combinations to the final list:
-        1. Word + number
-        2. Word + 0 + number (if 0 < number < 9 to get 01, 02, etc..)
-        3. Word + number + special char
-        4. Word + 0 + number + special char (if 0 < number < 9)
-        5. Word + special char
-    """
+    
+    # Append the following combinations to the final list:
+    #     1. Word + number
+    #     2. Word + 0 + number (if 0 < number < 9 to get 01, 02, etc..)
+    #     3. Word + number + special char
+    #     4. Word + 0 + number + special char (if 0 < number < 9)
+    #     5. Word + special char
+    
 
     for r in num_ranges:
         min_max = r.split(",")
@@ -58,14 +61,20 @@ def main(element_file, outfile):
             for char in spec_chars:
                 spray_list = append(spray_list, word + char, min_length)
 
-    # remove duplicates and preserve order
+    # 
+    # Remove duplicates and preserve order
+    #
     spray_list = list(OrderedDict.fromkeys(spray_list))
 
-    # with open("custom_passwords.txt", "w") as f:
     with open(outfile, "w") as f:
         f.write("\n".join(spray_list))
-    print(f"[*] Password list written to {outfile}")
+    logger.info(f"Password list written to {outfile}")
 
 
-if __name__ == "__main__":
-    main()
+#
+# Append if word meets min length
+#
+def append(wordlist, word, min_length):
+    if len(word) >= min_length:
+        wordlist.append(word)
+    return wordlist

@@ -1,20 +1,17 @@
-#!/usr/bin/env python3
-
 # parsing from "NT LAN Manager (NTLM) Authentication Protocol" v20190923, revision  31.0
 # https://winprotocoldoc.blob.core.windows.net/productionwindowsarchives/MS-NLMP/%5bMS-NLMP%5d.pdf
 # Source: https://github.com/b17zr/ntlm_challenger
 
-import argparse
 import base64
 import datetime
 import sys
 from collections import OrderedDict
 
-import click
 import requests
 from impacket import ntlm, smb, smb3
-from impacket.smbconnection import SMBConnection
 from urllib3.exceptions import InsecureRequestWarning
+
+from spraycharles.lib.logger import console
 
 
 def decode_string(byte_string):
@@ -213,21 +210,21 @@ def parse_challenge(challenge_message):
 def print_challenge(challenge):
 
     if "NTLMSSP_TARGET_TYPE_DOMAIN" in challenge["negotiate_flags"]:
-        print("\nTarget (Domain): {}".format(challenge["target_name"]))
+        console.print("\nTarget (Domain): {}".format(challenge["target_name"]))
     elif "NTLMSSP_TARGET_TYPE_SERVER" in challenge["negotiate_flags"]:
-        print("\nTarget (Server): {}".format(challenge["target_name"]))
+        console.print("\nTarget (Server): {}".format(challenge["target_name"]))
 
-    print("\nVersion: {}".format(challenge["version"]))
+    console.print("\nVersion: {}".format(challenge["version"]))
 
-    print("\nTargetInfo:")
+    console.print("\nTargetInfo:")
 
     for name, value in challenge["target_info"].items():
-        print("  {}: {}".format(name, value))
+        console.print("  {}: {}".format(name, value))
 
-    print("\nNegotiate Flags:")
+    console.print("\nNegotiate Flags:")
 
     for flag in challenge["negotiate_flags"]:
-        print("  {}".format(flag))
+        console.print("  {}".format(flag))
 
 
 def request_http(url):
@@ -239,7 +236,7 @@ def request_http(url):
     request = requests.get(url, headers=headers, verify=False)
 
     if request.status_code not in [401, 302]:
-        print(
+        console.print(
             "[!] Expecting response code 401 or 302, received: {}".format(
                 request.status_code
             )
@@ -250,11 +247,11 @@ def request_http(url):
     auth_header = request.headers.get("WWW-Authenticate")
 
     if not auth_header:
-        print("[!] NTLM Challenge response not found (WWW-Authenticate header missing)")
+        console.print("[!] NTLM Challenge response not found (WWW-Authenticate header missing)")
         return None
 
     if not "NTLM" in auth_header:
-        print(
+        console.print(
             '[!] NTLM Challenge response not found (WWW-Authenticate does not contain "NTLM")'
         )
         return None
@@ -417,7 +414,7 @@ def main(url, smbv1):
         challenge = request_http(url)
 
     else:
-        print("[!] Invalid URL, expecting http://... or smb://...")
+        console.print("[!] Invalid URL, expecting http://... or smb://...")
         sys.exit()
 
     # parse challenge

@@ -1,11 +1,14 @@
-import csv
 import json
-
 import requests
+import datetime
 
+from spraycharles.lib.utils import SprayResult
+from spraycharles.lib.logger import logger, JSON_FMT
 
 class Okta:
-    """Password spray Okta API"""
+    NAME = "Okta"
+    DESCRIPTION = "Spray Okta API"
+
 
     def __init__(self, host, port, timeout, fireprox):
         self.timeout = timeout
@@ -43,14 +46,18 @@ class Okta:
         # password submission json
         self.data2 = {"password": "", "stateToken": ""}
 
+
     def set_username(self, username):
         self.data["username"] = username
+
 
     def set_password(self, password):
         self.data2["password"] = password
 
+
     def set_token(self, token):
         self.data2["stateToken"] = token
+
 
     def login(self, username, password):
         # set data
@@ -88,38 +95,30 @@ class Okta:
 
         return response
 
-    # handle CSV out output headers. Can be customized per module
-    def print_headers(self, csvfile):
-        # print table headers
-        print(
-            "%-13s %-30s %-35s %-17s %-13s %-15s"
+
+    #
+    # Print table headers
+    #
+    def print_headers(self):
+        header = (
+            "%-13s %-30s %-35s %-25s %-13s %-15s"
             % (
-                "Result",
-                "Message",
-                "Username",
-                "Password",
-                "Response Code",
-                "Response Length",
+                SprayResult.RESULT,
+                SprayResult.MESSAGE,
+                SprayResult.USERNAME,
+                SprayResult.PASSWORD,
+                SprayResult.RESPONSE_CODE,
+                SprayResult.RESPONSE_LENGTH,
             )
         )
-        print("-" * 128)
+        print(header)
+        print("-" * len(header))
 
-        # create CSV file
-        output = open(csvfile, "w")
-        fieldnames = [
-            "Result",
-            "Message",
-            "Username",
-            "Password",
-            "Response Code",
-            "Response Length",
-        ]
-        output_writer = csv.DictWriter(output, delimiter=",", fieldnames=fieldnames)
-        output_writer.writeheader()
-        output.close()
 
-    # handle target's response evaluation. Can be customized per module
-    def print_response(self, response, csvfile, timeout=False):
+    #
+    # Print individual login attempt result
+    #
+    def print_response(self, response, outfile, timeout=False, print_to_screen=True):
         if timeout:
             code = "TIMEOUT"
             length = "TIMEOUT"
@@ -169,26 +168,44 @@ class Okta:
             result = "Fail"
             message = "Unknown result returned"
 
-        # print result to screen
-        print(
-            "%-13s %-30s %-35s %-17s %13s %15s"
-            % (
-                result,
-                message,
-                self.data["username"],
-                self.data2["password"],
-                code,
-                length,
+        if print_to_screen:
+            print(
+                "%-13s %-30s %-35s %-25s %13s %15s"
+                % (
+                    result,
+                    message,
+                    self.data["username"],
+                    self.data2["password"],
+                    code,
+                    length,
+                )
             )
-        )
 
-        # print to CSV file
-        output = open(csvfile, "a")
-        output.write(
-            f'{result},{message},{self.data["username"]},{self.data2["password"]},{code},{length}\n'
-        )
-        output.close()
+        self.log_attempt(result, message, code, length, outfile)
 
         if response.status_code == 429:
-            print("[!] Encountered HTTP response code 429; killing spray")
+            logger.error("Encountered HTTP response code 429; killing spray")
             exit()
+
+
+    #
+    # Log attempt as JSON object to file
+    #
+    def log_attempt(self, result, message, code, length, outfile):
+        output = open(outfile, "a")
+        data = json.dumps(
+            {
+                SprayResult.TIMESTAMP       : datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d %H:%M:%S"),
+                SprayResult.MODULE          : self.__class__.__name__,
+                SprayResult.RESULT          : result,
+                SprayResult.MESSAGE         : message,
+                SprayResult.USERNAME        : self.data["username"],
+                SprayResult.PASSWORD        : self.data2["password"],
+                SprayResult.RESPONSE_CODE   : code,
+                SprayResult.RESPONSE_LENGTH : length,
+            }
+        )
+        logger.debug(data, extra=JSON_FMT)
+        output.write(data)
+        output.write("\n")
+        output.close()

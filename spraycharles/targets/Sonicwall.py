@@ -4,7 +4,8 @@ from .classes.BaseHttpTarget import BaseHttpTarget
 
 
 class Sonicwall(BaseHttpTarget):
-    """Password spray Sonicwall VPN appliances"""
+    NAME = "Sonicwall"
+    DESCRIPTION = "Spray Sonicwall VPN appliances"
 
     def __init__(self, host, port, timeout, fireprox):
         self.domain = input("Enter domain: ")

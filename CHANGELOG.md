@@ -1,4 +1,22 @@
 # Changelog
+## [v2.0.0] - 09/36/2024
+### Added
+- yaml config file with last args automatically written to `last-config.yaml`
+- `--no-ssl` flag to allow specification of plain HTTP usage
+- `--quiet` to suppress every login attempt result from being displayed to the console
+- A more verbose `--debug` option
+- Ability to remove usernames or passwords from lists mid-spray
+
+### Changed
+- Migrated to `typer` from `click` for arg parsing
+- Config file format to yaml
+- Timestamps utilize UTC
+- Migrated to JSON output objects instead of CSV files
+- Improved logic for mid-spray username/password file updates
+
+### Removed
+- Jitter delay triggering before the first login attempt
+
 ## [v1.0.10] - 6/20/2024
 ### Fixed
 - Catch OSError that gets thrown on SMB connection timeouts ([#23](https://github.com/Tw1sm/spraycharles/issues/23))

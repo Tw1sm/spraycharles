@@ -1,11 +1,14 @@
-import csv
 import json
-
+import datetime
 import requests
+
+from spraycharles.lib.utils import SprayResult
+from spraycharles.lib.logger import logger, JSON_FMT
 
 
 class Office365:
-    """Password spray Microsoft Office 365"""
+    NAME = "Office365"
+    DESCRIPTION = "Spray Microsoft Office 365"
 
     def __init__(self, host, port, timeout, fireprox):
 
@@ -49,38 +52,30 @@ class Office365:
         )  # , verify=False, proxies=self.proxyDict)
         return response
 
-    # handle CSV out output headers. Can be customized per module
-    def print_headers(self, csvfile):
+    #
+    # Print table headers
+    #
+    def print_headers(self):
         # print table headers
-        print(
-            "%-13s %-30s %-35s %-17s %-13s %-15s"
+        header = (
+            "%-13s %-30s %-35s %-25s %-13s %-15s"
             % (
-                "Result",
-                "Message",
-                "Username",
-                "Password",
-                "Response Code",
-                "Response Length",
+                SprayResult.RESULT,
+                SprayResult.MESSAGE,
+                SprayResult.USERNAME,
+                SprayResult.PASSWORD,
+                SprayResult.RESPONSE_CODE,
+                SprayResult.RESPONSE_LENGTH,
             )
         )
-        print("-" * 128)
+        print(header)
+        print("-" * len(header))
 
-        # create CSV file
-        output = open(csvfile, "w")
-        fieldnames = [
-            "Result",
-            "Message",
-            "Username",
-            "Password",
-            "Response Code",
-            "Response Length",
-        ]
-        output_writer = csv.DictWriter(output, delimiter=",", fieldnames=fieldnames)
-        output_writer.writeheader()
-        output.close()
 
-    # handle target's response evaluation. Can be customized per module
-    def print_response(self, response, csvfile, timeout=False):
+    #
+    # Print individual login attempt result
+    #
+    def print_response(self, response, outfile, timeout=False, print_to_screen=True):
         if timeout:
             code = "TIMEOUT"
             length = "TIMEOUT"
@@ -145,22 +140,40 @@ class Office365:
                 result = "Fail"
                 message = "Unknown error code returned"
 
-        # print result to screen
-        print(
-            "%-13s %-30s %-35s %-17s %13s %15s"
-            % (
-                result,
-                message,
-                self.data["username"],
-                self.data["password"],
-                code,
-                length,
+        if print_to_screen:
+            print(
+                "%-13s %-30s %-35s %-25s %13s %15s"
+                % (
+                    result,
+                    message,
+                    self.data["username"],
+                    self.data["password"],
+                    code,
+                    length,
+                )
             )
-        )
+        
+        self.log_attempt(result, message, code, length, outfile)
 
-        # print to CSV file
-        output = open(csvfile, "a")
-        output.write(
-            f'{result},{message},{self.data["username"]},{self.data["password"]},{code},{length}\n'
+
+    #
+    # Log attempt as JSON object to file
+    #
+    def log_attempt(self, result, message, code, length, outfile):
+        output = open(outfile, "a")
+        data = json.dumps(
+            {
+                SprayResult.TIMESTAMP       : datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d %H:%M:%S"),
+                SprayResult.MODULE          : self.__class__.__name__,
+                SprayResult.RESULT          : result,
+                SprayResult.MESSAGE         : message,
+                SprayResult.USERNAME        : self.data["username"],
+                SprayResult.PASSWORD        : self.data["password"],
+                SprayResult.RESPONSE_CODE   : code,
+                SprayResult.RESPONSE_LENGTH : length,
+            }
         )
+        logger.debug(data, extra=JSON_FMT)
+        output.write(data)
+        output.write("\n")
         output.close()

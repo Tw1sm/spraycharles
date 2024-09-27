@@ -3,8 +3,9 @@ import requests
 from .classes.BaseHttpTarget import BaseHttpTarget
 
 
-class Owa(BaseHttpTarget):
-    """Password spray Microsoft Outlook Web Applications"""
+class OWA(BaseHttpTarget):
+    NAME = "OWA"
+    DESCRIPTION = "Spray Microsoft Outlook Web Applications"
 
     def __init__(self, host, port, timeout, fireprox):
         self.timeout = timeout

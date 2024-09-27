@@ -1,45 +1,56 @@
-import csv
-
+import json
+import datetime
 from impacket.smb import SMB_DIALECT
 from impacket.smbconnection import SessionError, SMBConnection
 
+from spraycharles.lib.logger import logger, JSON_FMT
+from spraycharles.lib.utils import SMBStatus, SprayResult
 
-class Smb:
-    """Password spray SMB services"""
 
-    smbv1 = True
+class SMB:
+    NAME = "SMB"
+    DESCRIPTION = "Spray SMB services"
 
-    # port, timeout and fireprox are dead args here. exist only to keep
+    #
+    # Port, timeout and fireprox are dead args here. exist only to keep
     # formatting and logic from main spraycharles.py consistent with HTTP modules
+    #
     def __init__(self, host, port, timeout, fireprox):
         self.host = host
         self.url = f"smb://{host}"
-        conn = ""
-        domain = ""
-        hostname = ""
-        os = ""
-        # creds
-        username = ""
-        password = ""
+        self.conn = ""
+        self.domain = ""
+        self.hostname = ""
+        self.os = ""
+        self.smbv1 = True
+        self.username = ""
+        self.password = ""
+
 
     def get_conn(self):
+        #
         # Try connecting with SMBv1 first
+        #
         try:
-            self.conn = SMBConnection(
-                self.host, self.host, None, 445, preferredDialect=SMB_DIALECT
-            )
+            logger.debug(f"Attempting SMBv1 connection before SMBv3...")
+            self.conn = SMBConnection(self.host, self.host, None, 445, preferredDialect=SMB_DIALECT, timeout=5)
         except Exception as e:
-            # print(e)
+            logger.debug(f"Failed to connect with SMBv1: {str(e)}")
             self.smbv1 = False
+            
+            #
             # v1 failed, try with v3
+            #
             try:
+                logger.debug(f"Attempting SMBv3 connection...")
                 self.conn = SMBConnection(self.host, self.host, None, 445)
             except Exception as e:
-                # print(e)
-                # failed to get smb connection
+                logger.debug(f"Failed to connect with SMBv3: {str(e)}")
                 return False
 
-        # enumerate host info
+        #
+        # Enumerate host info
+        #
         try:
             self.conn.login("", "")
         except SessionError:
@@ -50,64 +61,89 @@ class Smb:
         self.os = self.conn.getServerOS()
         return True
 
+
     def login(self, username, password):
-        # set class attributes so they can be accessed in print_response()
         self.username = username
         self.password = password
 
-        # split out domain and username if currently joined
+        #
+        # Split out domain and username if currently joined
+        #
         domain = ""
         if "\\" in username:
             domain = username.split("\\")[0]
             username = username.split("\\")[1]
 
-        # get new smb connection
+        #
+        # Get new smb connection
+        #
         if self.smbv1:
-            self.conn = SMBConnection(
-                self.host, self.host, None, 445, preferredDialect=SMB_DIALECT
-            )
+            self.conn = SMBConnection(self.host, self.host, None, 445, preferredDialect=SMB_DIALECT)
         else:
             self.conn = SMBConnection(self.host, self.host, None, 445)
 
-        # login
+        #
+        # Send credentialed login request
+        #
         try:
             self.conn.login(username, self.password, domain)
             self.conn.logoff()
-            return "STATUS_SUCCESS"
+            
+            return SMBStatus.STATUS_SUCCESS.name
         except SessionError as e:
-            if "STATUS_LOGON_FAILURE" in str(e):
-                return "STATUS_LOGON_FAILURE"
-            elif "STATUS_ACCOUNT_LOCKED_OUT" in str(e):
-                return "STATUS_ACCOUNT_LOCKED_OUT"
-            elif "STATUS_ACCOUNT_DISABLED" in str(e):
-                return "STATUS_ACCOUNT_DISABLED"
-            elif "STATUS_PASSWORD_EXPIRED" in str(e):
-                return "STATUS_PASSWORD_EXPIRED"
-            elif "STATUS_PASSWORD_MUST_CHANGE" in str(e):
-                return "STATUS_PASSWORD_MUST_CHANGE"
+            
+            if SMBStatus.STATUS_LOGON_FAILURE in str(e):
+                return SMBStatus.STATUS_LOGON_FAILURE.name
+            
+            elif SMBStatus.STATUS_ACCOUNT_LOCKED_OUT in str(e):
+                return SMBStatus.STATUS_ACCOUNT_LOCKED_OUT.name
+            
+            elif SMBStatus.STATUS_ACCOUNT_DISABLED in str(e):
+                return SMBStatus.STATUS_ACCOUNT_DISABLED.name
+            
+            elif SMBStatus.STATUS_PASSWORD_EXPIRED in str(e):
+                return SMBStatus.STATUS_PASSWORD_EXPIRED.name
+            
+            elif SMBStatus.STATUS_PASSWORD_MUST_CHANGE in str(e):
+                return SMBStatus.STATUS_PASSWORD_MUST_CHANGE.name
+            
             else:
-                # something funky happened
                 return str(e)
 
-    # handle CSV out output headers. Can be customized per module
-    def print_headers(self, csvfile):
-        # print table headers
-        print("%-25s %-17s %-23s" % ("Username", "Password", "SMB Login"))
-        print("-" * 68)
 
-        # create CSV file
-        output = open(csvfile, "w")
-        fieldnames = ["Username", "Password", "SMB Login"]
-        output_writer = csv.DictWriter(output, delimiter=",", fieldnames=fieldnames)
-        output_writer.writeheader()
-        output.close()
+    # 
+    # Print custom SMB module headers
+    #
+    def print_headers(self):
+        header = ("%-25s %-25s %-23s" % (SprayResult.USERNAME, SprayResult.PASSWORD, SprayResult.SMB_LOGIN))
+        print(header)
+        print("-" * len(header))
 
-    # handle target's response evaluation. Can be customized per module
-    def print_response(self, response, csvfile, timeout=False):
-        # print result to screen
-        print("%-25s %-17s %-23s" % (self.username, self.password, response))
 
-        # print to CSV file
-        output = open(csvfile, "a")
-        output.write(f"{self.username},{self.password},{response}\n")
+    # 
+    # Print login attempt
+    #
+    def print_response(self, response, outfile, timeout=False, print_to_screen=True):
+        if print_to_screen:
+            print("%-25s %-25s %-23s" % (self.username, self.password, response))
+        self.log_attempt(response, outfile)    
+
+    
+    #
+    # Log attempt as JSON object to file
+    #
+    def log_attempt(self, response, outfile):
+        output = open(outfile, "a")
+        data = json.dumps(
+            {
+                SprayResult.TIMESTAMP   : datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d %H:%M:%S"),
+                SprayResult.MODULE      : self.__class__.__name__,
+                SprayResult.USERNAME    : self.username,
+                SprayResult.PASSWORD    : self.password,
+                SprayResult.SMB_LOGIN   : response,
+            }
+        )
+        logger.debug(data, extra=JSON_FMT)
+        output.write(data)
+        output.write("\n")
         output.close()

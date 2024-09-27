@@ -3,8 +3,9 @@ import requests
 from .classes.BaseHttpTarget import BaseHttpTarget
 
 
-class Ciscosslvpn(BaseHttpTarget):
-    """Password spray Cisco SSL VPN (Cisco ASA)"""
+class CiscoSSLVPN(BaseHttpTarget):
+    NAME = "CiscoSSLVPN"
+    DESCRIPTION = "Spray Cisco SSL VPN (Cisco ASA)"
 
     def __init__(self, host, port, timeout, fireprox):
         self.group = input("Enter VPN group: ")

@@ -1,6 +1,13 @@
+from enum import Enum
 import pymsteams
 from discord_webhook import DiscordWebhook
 from notifiers import get_notifier
+
+
+class HookSvc(str, Enum):
+    SLACK   = "Slack"
+    TEAMS   = "Teams"
+    DISCORD = "Discord"
 
 
 def slack(webhook, host):
