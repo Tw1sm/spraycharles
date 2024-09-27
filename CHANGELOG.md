@@ -1,5 +1,5 @@
 # Changelog
-## [v2.0.0] - XX/XX/2024
+## [v2.0.0] - 09/36/2024
 ### Added
 - yaml config file with last args automatically written to `last-config.yaml`
 - `--no-ssl` flag to allow specification of plain HTTP usage
