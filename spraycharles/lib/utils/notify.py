@@ -1,7 +1,7 @@
 from enum import Enum
 import pymsteams
 from discord_webhook import DiscordWebhook
-from notifiers import get_notifier
+import requests
 
 
 class HookSvc(str, Enum):
@@ -11,8 +11,11 @@ class HookSvc(str, Enum):
 
 
 def slack(webhook, host):
-    slack = get_notifier("slack")
-    slack.notify(message=f"Credentials guessed for host: {host}", webhook_url=webhook)
+    payload = {
+        "text": f"Credentials guessed for host: {host}"
+    }
+    response = requests.post(webhook, json=payload)
+    response.raise_for_status()  # Raises an error for bad responses
 
 
 def teams(webhook, host):
