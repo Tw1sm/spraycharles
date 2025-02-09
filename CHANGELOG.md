@@ -1,4 +1,8 @@
 # Changelog
+## [v0.2.1] - 02/08/2025
+### Changed
+- Removed `notifiers` dependency ([#29](https://github.com/Tw1sm/spraycharles/pull/29))
+
 ## [v2.0.0] - 09/36/2024
 ### Added
 - yaml config file with last args automatically written to `last-config.yaml`
