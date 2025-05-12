@@ -1,4 +1,9 @@
 # Changelog
+## [v0.2.2] - 5/12/2025
+### Added
+- Spray module for remote desktop gateway ([#31](https://github.com/Tw1sm/spraycharles/pull/31))
+- pyyaml dependency ([#30](https://github.com/Tw1sm/spraycharles/pull/30))
+
 ## [v0.2.1] - 02/08/2025
 ### Changed
 - Removed `notifiers` dependency ([#29](https://github.com/Tw1sm/spraycharles/pull/29))
