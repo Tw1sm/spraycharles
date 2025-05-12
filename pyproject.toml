@@ -25,7 +25,7 @@ typer = "^0.12.3"
 typer-config = "^1.4.0"
 pyyaml = "^6.0.2"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 numpy = "^1.22.3"
 impacket = "^0.9.24"
 requests = "^2.27.1"
