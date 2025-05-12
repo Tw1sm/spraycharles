@@ -7,6 +7,7 @@ from spraycharles.targets.Ntlm import NTLM
 from spraycharles.targets.Office365 import Office365
 from spraycharles.targets.Okta import Okta
 from spraycharles.targets.Owa import OWA
+from spraycharles.targets.Rdg import RDG
 from spraycharles.targets.Smb import SMB
 from spraycharles.targets.Sonicwall import Sonicwall
 
@@ -22,6 +23,7 @@ all = [
     Office365,
     Okta,
     OWA,
+    RDG,
     SMB,
     Sonicwall
 ]
@@ -38,6 +40,7 @@ class Target(str, Enum):
     office365   = Office365.NAME
     okta        = Okta.NAME
     owa         = OWA.NAME
+    rdg         = RDG.NAME
     smb         = SMB.NAME
     sonicwall   = Sonicwall.NAME
 
