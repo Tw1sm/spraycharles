@@ -60,8 +60,8 @@ def main(
     try:
         logger.debug(f"Reading usernames from file {usernames}")
         user_list = Path(usernames).read_text().splitlines()
-    except:
-        logger.error(f"Failed to read usernames from {usernames}")
+    except Exception as e:
+        logger.error(f"Failed to read usernames from {usernames}: {e}")
         exit()
     
     if Path(passwords).exists():

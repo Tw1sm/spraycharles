@@ -1,0 +1,70 @@
+name: CI Tests
+
+on:
+  push:
+    branches: [ '**' ]
+  pull_request:
+    branches: [ '**' ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.12"]  # Test minimum and recent stable
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        version: latest
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+    
+    - name: Load cached venv
+      id: cached-poetry-dependencies
+      uses: actions/cache@v3
+      with:
+        path: .venv
+        key: venv-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('**/poetry.lock') }}
+    
+    - name: Install dependencies
+      if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+      run: poetry install --no-interaction --no-root
+    
+    - name: Install project
+      run: poetry install --no-interaction
+    
+    - name: Run smoke tests
+      run: |
+        echo "Testing spraycharles main help..."
+        poetry run spraycharles --help
+        
+        echo "Testing spray command help..."
+        poetry run spraycharles spray --help
+        
+        echo "Testing analyze command help..."
+        poetry run spraycharles analyze --help
+        
+        echo "Testing gen command help..."
+        poetry run spraycharles gen --help
+        
+        echo "Testing modules command..."
+        poetry run spraycharles modules
+        
+        echo "Testing parse command help..."
+        poetry run spraycharles parse --help
+        
+        echo "Testing Python imports..."
+        poetry run python -c "import spraycharles; print(f'Version: {spraycharles.__version__}')"
+        
+        echo "All tests passed!"
+
