@@ -43,7 +43,7 @@ jobs:
     - name: Install project
       run: poetry install --no-interaction
     
-    - name: Run smoke tests
+    - name: Run smoke tests with Poetry
       run: |
         echo "Testing spraycharles main help..."
         poetry run spraycharles --help
@@ -66,5 +66,50 @@ jobs:
         echo "Testing Python imports..."
         poetry run python -c "import spraycharles; print(f'Version: {spraycharles.__version__}')"
         
-        echo "All tests passed!"
+        echo "All Poetry tests passed!"
+    
+    - name: Build package
+      run: poetry build
+    
+    - name: Test pip installation in clean virtualenv
+      run: |
+        echo "Creating clean virtual environment..."
+        python -m venv test_env
+        
+        echo "Installing package with pip..."
+        ./test_env/bin/pip install --quiet dist/*.whl
+        
+        echo "Testing installed package..."
+        ./test_env/bin/spraycharles --help
+        ./test_env/bin/spraycharles spray --help > /dev/null
+        ./test_env/bin/spraycharles modules
+        
+        echo "Verifying click version..."
+        ./test_env/bin/pip list | grep -E "click|typer"
+        
+        # Ensure click 8.0.4 is installed
+        if ./test_env/bin/pip list | grep "click" | grep -q "8.0.4"; then
+          echo "Correct click version (8.0.4) installed"
+        else
+          echo "Wrong click version installed!"
+          ./test_env/bin/pip list | grep click
+          exit 1
+        fi
+        
+        echo "Pip installation tests passed!"
+    
+    - name: Test pipx installation
+      run: |
+        echo "Installing pipx..."
+        pip install pipx
+        
+        echo "Installing spraycharles with pipx..."
+        pipx install dist/*.whl
+        
+        echo "Testing pipx-installed package..."
+        ~/.local/bin/spraycharles --help
+        ~/.local/bin/spraycharles spray --help > /dev/null
+        ~/.local/bin/spraycharles modules
+        
+        echo "Pipx installation tests passed!"
 
