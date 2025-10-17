@@ -27,7 +27,7 @@ class Spraycharles:
 
         self.passwords = password_list
         self.password_file = None if password_file is None else Path(password_file)
-        self.passworld_file_hash = None if self.password_file is None else Spraycharles._hash_file(self.password_file)
+        self.password_file_hash = None if self.password_file is None else Spraycharles._hash_file(self.password_file)
         self.usernames = user_list
         self.user_file = Path(user_file)
         self.user_file_hash = None if self.user_file is None else Spraycharles._hash_file(self.user_file)
@@ -371,7 +371,7 @@ class Spraycharles:
                 # Bring in user/pass file updates
                 #
                 self._update_list_from_file(self.user_file, self.user_file_hash, self.usernames, type="usernames")
-                self._update_list_from_file(self.password_file, self.passworld_file_hash, self.passwords, type="passwords")
+                self._update_list_from_file(self.password_file, self.password_file_hash, self.passwords, type="passwords")
 
                 password = self.passwords[indx]
                 logger.debug(f"Loop index: {indx} - Password: '{password}'")

@@ -39,3 +39,5 @@ share/python-wheels/
 *.egg
 MANIFEST
 Pipfile
+CLAUDE.md
+.jython_cache/*
