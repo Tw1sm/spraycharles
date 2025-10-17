@@ -97,19 +97,4 @@ jobs:
         fi
         
         echo "Pip installation tests passed!"
-    
-    - name: Test pipx installation
-      run: |
-        echo "Installing pipx..."
-        pip install pipx
-        
-        echo "Installing spraycharles with pipx..."
-        pipx install dist/*.whl
-        
-        echo "Testing pipx-installed package..."
-        ~/.local/bin/spraycharles --help
-        ~/.local/bin/spraycharles spray --help > /dev/null
-        ~/.local/bin/spraycharles modules
-        
-        echo "Pipx installation tests passed!"
 

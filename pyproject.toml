@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "spraycharles"
-version = "2.0.2"
+version = "2.0.3"
 description = "Low and slow password spraying tool, designed to spray on an interval over a long period of time."
 authors = [
     "Matt Creel",
