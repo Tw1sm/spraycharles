@@ -54,6 +54,15 @@ docker run -it -v ~/.spraycharles:/root/.spraycharles spraycharles -h
 
 You may need to specify additional volumes based on where username a password lists are being stored.
 
+### NixOS
+
+For Nix or NixOS users is a package available. Keep in mind that the latest releases might only
+be present in the `unstable` channel.
+
+```bash
+nix-env -iA nixos.spraycharles
+```
+
 ## Usage
 The `spray` subcommand:
 ```
